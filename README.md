@@ -1,57 +1,14 @@
-# General Repository Template
+# CMIP7-Input: Code and documentation for ACCESS CMIP7 forcings and input files
 
-A general template repository for default settings when creating new repositories.
+This repository is intended for code and documentation related to the input data used by the ACCESS models used for CMIP7, notably [ACCESS-ESM1.6](https://github.com/ACCESS-NRI/access-esm1.6-configs) and [ACCESS-CM3](https://github.com/ACCESS-NRI/cm3-suite). This includes code and documentation related to transformations applied to [CMIP7 forcing files](https://wcrp-cmip.org/cmip7-task-teams/forcings/) to produce model input files for each CMIP7 experiment.
 
-This repository uses the Apache-2.0 license. `COPYRIGHT.txt` contains a current copyright statement which should be included at the top of all files.
+## Development strategies
+NOTE: The following development strategies are suggestions, subject to discussion and confirmation
 
-When creating a new repository you [can use this repository as a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template), to automate the creation of the correct license and COPYRIGHT statement.
+### Suggested code strategy
 
-## COPYRIGHT Header
+As much code as possible would be developed via this GitHub repository. The main exceptions would be the code and suites currently developed via [MOSRS](https://code.metoffice.gov.uk/) repositories such as [ANTS](https://code.metoffice.gov.uk/doc/ancil/ants/2.0/index.html), [the ANCIL Contrib project](https://code.metoffice.gov.uk/trac/ancil/browser/contrib/trunk/), Rose/Cylc suites, and Rose Stem tests. These would initially be developed via [contributing](https://code.metoffice.gov.uk/doc/ancil/ants/2.0/contributing.html) to the relevant MOSRS repository according to [current ANTS working practices](https://code.metoffice.gov.uk/trac/ancil/wiki/ANTS/WorkingPractices) and would be migrated to GitHub when appropriate. The GitHub Continuous Integration infrastructure for such MORSR code would be developed in parallel with the code development via MOSRS.
 
-Best practice suggests adding a copyright statement at the top of every source code file, or text file where it is possible to add a copyright statement without interfering with the purpose of the file. The reasoning is if a file is separated from the repository in which it resides then it may not be possible to ascertain it's licensing, which may hamper re-use.
+### Suggested documentation strategy
 
-Making this as short and concise as possible reduces the overhead in including such a copyright statement. To that end using [SPDX identifiers](https://spdx.dev/ids/) is simple, efficient, portable and machine-readable.
-
-### Examples
-
-An example, short, copyright statement is reproduced below, as it might appear in different coding languages. Copy and add to files as appropriate: 
-
-#### plaintext
-It is common to include copyright statements at the bottom of a text document or website page
-```text
-© 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details. 
-SPDX-License-Identifier: Apache-2.0
-```
-
-#### python
-For code it is more common to include the copyright in a comment at the top
-```python
-# Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: Apache-2.0
-```
-
-#### shell
-```bash
-# Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
-# SPDX-License-Identifier: Apache-2.0
-```
-
-##### FORTRAN
-```fortran
-! Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
-! SPDX-License-Identifier: Apache-2.0
-```
-
-#### C/C++ 
-```c
-// Copyright 2022 ACCESS-NRI and contributors. See the top-level COPYRIGHT file for details.
-// SPDX-License-Identifier: Apache-2.0
-```
-
-### Notes
-
-Note that the date is the first time the project is created. 
-
-The date signifies the year from which the copyright notice applies. **NEVER** replace with a later year, only ever add later years or a year range. 
-
-It is not necessary to include subsequent years in the copyright statement at all unless updates have been made at a later time, and even then it is largely discretionary: they are not necessary as copyright is contingent on the lifespan of copyright holder +50 years as per the [Berne Convention](https://en.wikipedia.org/wiki/Berne_Convention).
+Similarly, as much documentation as possible would be contained in the Wiki for this repository, then published to other locations when appropriate. The main exception would be documentation that describes some of the internal workings of some UK Met Office and Momentum Partnership projects, such as [the ANCIL project](https://code.metoffice.gov.uk/trac/ancil), [the UK CMIP6 project](https://code.metoffice.gov.uk/trac/ukcmip6), and [the UKESM project](https://code.metoffice.gov.uk/trac/UKESM).  In this case, only a top-level description would be given in the Wiki for this repository, with details in an appropriate MOSRS project Wiki.  
