@@ -1,0 +1,9 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.6 (optimized)
+ ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
+ ! 28-Sep-23 11:53     
+
+use CO2_fluxes_ESM_2000.nc
+show d
+shade field1561[l=1]
+exit

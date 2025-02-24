@@ -1,0 +1,11 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7 (opt)
+ ! Linux 2.6.32-642.1.1.el6.x86_64 64-bit - 07/18/16
+ !  5-Apr-19 16:41     
+
+use co2_3d_old.nc
+use co2_3d_new.nc
+show d
+shade field1564[k=1,d=1] - field1564[k=1,d=2]
+shade field1564[k=38,d=1] - field1564[k=38,d=2]
+exit

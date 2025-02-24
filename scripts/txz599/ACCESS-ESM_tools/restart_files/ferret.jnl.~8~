@@ -1,0 +1,11 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.5 (optimized)
+ ! Linux 4.18.0-80.el8.x86_64 64-bit - 12/16/19
+ ! 22-Jun-20 10:19     
+
+use am_veg_frac_1850.nc
+use am_veg_frac_2014.nc
+show d
+shade field1391[d=1,k=1]
+shade field1391[d=1,k=1] - field1391[d=2,k=1]
+exit

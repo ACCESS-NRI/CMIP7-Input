@@ -1,0 +1,15 @@
+! historical GHG data for CMIP6 
+! source: /group_workspaces/jasmin2/tids/CMIP6_ANCIL/data/inputs4MIPs_2017-06-08/UoM/GHGConcentrations/CMIP/UoM-CMIP-1-2-0/yr/ 
+ &THISFILE_SPECIFICATIONS 
+ THISFILE_DATACOLUMNS    =          24, 
+ THISFILE_FIRSTYEAR      =        1850, 
+ THISFILE_LASTYEAR       =        1850, 
+ THISFILE_ANNUALSTEPS    =           1, 
+ THISFILE_FIRSTDATAROW   =          15, 
+ THISFILE_UNITS          =  SEE ROW 13, 
+ THISFILE_DATTYPE        =  RCPDAT 
+/ 
+   COLUMN:      1   2   3   4   5   6   7   8   9   10   11   12   13   14   15   16   17   18   19   20   21   22   23   24
+   UNITS:      ppt   ppm   ppb   ppb   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt   ppt
+   YEARS      DUMM0   CO2   CH4   N2O   HFC125   HFC134a   CFC_11   CFC_12   DUMM1   CFC_113   CFC_114   CFC_115   CARB_TET   MCF   HCFC_22   HCFC_141B   HCFC_142B   HALON1211   HALON1202   HALON1301   HALON2402   CH3BR   CH3CL   DUMM2
+   1850    -0.0000e+00    2.8432e+02    8.0825e+02    2.7302e+02    0.0000e+00    0.0000e+00    0.0000e+00    0.0000e+00    -0.0000e+00    0.0000e+00    0.0000e+00    0.0000e+00    2.5000e-02    0.0000e+00    0.0000e+00    0.0000e+00    0.0000e+00    4.4466e-03    0.0000e+00    0.0000e+00    0.0000e+00    5.3000e+00    4.5700e+02    -0.0000e+00

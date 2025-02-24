@@ -1,0 +1,18 @@
+module rm python
+module load python/2.7.6
+module use ~access/modules
+module load pythonlib/umfile_utils
+
+python ../python/subset_um.py PI-EDC-01.astart-02350101 PI-EDC-01.astart-02350101_essential
+cp PI-EDC-01.astart-02350101_essential PI-EDC-01.astart-02350101_essential_NegPulse
+python ../python/um_replace_field_multilevel.py -v 252 -V field1564 -n co2_3d_edc01_yr350_negpulse.nc PI-EDC-01.astart-02350101_essential_NegPulse
+
+co2_3d_edc01_yr350_negpulse.nc was generated on ruby using /home/zie022/access/analysis/ancil_files/format_3d_co2.ncl
+
+
+
+including tracer1 and tracer2:
+
+python ../python/um_replace_field_multilevel.py -v 252 -V field1564 -n 3D_atm_tracer_pulse_01_yr281_negpulse.nc PI-EDC-pulse-01.astart-02810101_essential_NegPulse
+python ../python/um_replace_field_multilevel.py -v 33001 -V tracer1 -n 3D_atm_tracer_pulse_01_yr281_negpulse.nc PI-EDC-pulse-01.astart-02810101_essential_NegPulse
+python ../python/um_replace_field_multilevel.py -v 33002 -V tracer2 -n 3D_atm_tracer_pulse_01_yr281_negpulse.nc PI-EDC-pulse-01.astart-02810101_essential_NegPulse

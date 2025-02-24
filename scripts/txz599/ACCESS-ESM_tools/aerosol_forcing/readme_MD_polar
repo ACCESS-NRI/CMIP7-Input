@@ -1,0 +1,48 @@
+There are a couple of CMIP5 era scripts for detecting and fixing these. E.g.
+
+ 
+
+module use ~access/modules
+
+module load pythonlib/umfile_utils
+
+python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/scycl_1850_ESM1.anc
+
+Error - polar anomaly: Field 58 Level 0 Index 2
+
+   Absolute value (SP, NP): 0.0 4.00238e-15
+
+   Relative value (SP, NP): 0.0 16..
+
+
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/BC_hi_1849_2015_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/BC_hi_1850_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/Bio_1849_2015_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/Bio_1850_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/OCFF_1849_2015_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/OCFF_1850_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/ozone_1849_2015_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/ozone_1850_ESM1.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/scycl_1849_2015_ESM1_v4.anc
+[txz599@raijin4 aerosol_forcing]$ python ~access/apps/pythonlib/umfile_utils/polar_anom.py /g/data1a/p66/txz599/data/ancil/CMIP6/scycl_1850_ESM1_v4.anc
+
+ 
+
+To fix a file (replace all polar values by zonal mean)
+
+python ~access/apps/pythonlib/umfile_utils/fix_polar_anom.py scycl_1850_ESM1.anc
+
+Fixed 58 0 SULPHUR DIOXIDE 
+
+ 
+
+You can also run these on model dump files.
+
+ 
+
+MartinEMISSIONS
+
+458
+
+ 
+

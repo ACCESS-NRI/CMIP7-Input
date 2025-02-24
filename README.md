@@ -22,3 +22,22 @@ Similarly, as much documentation as possible would be contained in the Wiki for 
 5. CMIP7 ancillary suite for CMIP7 MIPs for ACCESS-*M3.
 
 Each of these milestones is to be broken down into goals, subgoals, and project items.
+
+## Directory structure
+
+* `attachments`
+
+  Documents describing CMIP forcings that are not available elsewhere.
+
+* `scripts`
+
+  Scripts used to process CMIP forcings into model inputs.
+
+* `scripts/mrd599/src/python`
+
+  Python scripts selected from `gadi:/home/599/mrd599/src/python` and not contained in other repositories. These are scripts containing functions imported by some of the Python scripts in `scripts/txz599/ACCESS-ESM_tools`.
+
+* `scripts/txz599/ACCESS-ESM_tools`
+
+  Scripts selected from `gadi:/g/data/p66/txz599/ACCESS-ESM_tools` and not contained in other repositories. Some of these scripts were used in the processing of CMIP6 forcings into ESM1.5 inputs.
+

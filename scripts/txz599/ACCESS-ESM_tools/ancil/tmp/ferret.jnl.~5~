@@ -1,0 +1,20 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.6 (optimized)
+ ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
+ ! 25-Oct-23 12:59     
+
+use co2_cdr.nc
+show d
+shade CO2EMISS[l=1]
+shade CO2EMISS[l=1] - CO2EMISS[l=12]
+shade CO2EMISS[l=1] - CO2EMISS[l=2]
+shade CO2EMISS[l=1] - CO2EMISS[l=12]
+shade CO2EMISS[l=1] - CO2EMISS[l=11]
+list co2emisss[i=1,j=1,l=1]
+list co2emiss[i=1,j=1,l=1]
+list co2emiss[i=1:12,j=1,l=1]
+list co2emiss[i=1:24,j=1,l=1]
+list co2emiss[i=:,j=1,l=1]
+list co2emiss[i=1,j=1,l=1:12]
+list co2emiss[i=1,j=1,l=1:24]
+EXIT /PROGRAM

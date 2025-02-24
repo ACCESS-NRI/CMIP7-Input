@@ -1,0 +1,8 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.5 (optimized)
+ ! Linux 4.18.0-80.el8.x86_64 64-bit - 12/16/19
+ !  5-Oct-20 16:42     
+
+use ozone_1849_2015_ESM1.nc
+show d
+exit

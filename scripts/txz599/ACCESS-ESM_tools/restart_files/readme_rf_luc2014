@@ -1,0 +1,6 @@
+module load python2/2.7.16
+module use ~access/modules
+module load pythonlib/umfile_utils
+
+python /g/data/p66/txz599/ACCESSESM1/scripts/um_replace_field_multilevel.py -v 835 -V fraction -n /g/data1a/p66/txz599/data/luc_hist_maps/cableCMIP6_LC_2014.nc AM-rf-01.astart-01210101_luc2014
+python /g/data/p66/txz599/ACCESSESM1/scripts/um_replace_field_multilevel.py -v 216 -V fraction -n /g/data1a/p66/txz599/data/luc_hist_maps/cableCMIP6_LC_2014.nc AM-rf-01.astart-01210101_luc2014

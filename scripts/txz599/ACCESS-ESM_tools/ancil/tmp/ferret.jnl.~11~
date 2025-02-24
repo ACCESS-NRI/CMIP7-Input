@@ -1,0 +1,27 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.6 (optimized)
+ ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
+ ! 16-Jan-24 13:48     
+
+use co2_10pgc_NH.nc
+show d
+shade CO2EMISS
+shade CO2EMISS[l=1]
+list CO2EMISS[i=1,j=74:145l=1]
+list CO2EMISS[i=1,j=74:145,l=1]
+list CO2EMISS[i=1,j=73:145,l=1]
+show d
+use areacella_fx_ACCESS-ESM1-5_historical_r1i1p1f1_gn.nc
+show d
+list co2emiss[i=@ave,j=@ave]*60*60*24*365.25*510e12/3.67/1e12*2
+list co2emiss[i=@ave,j=@ave,d=1]*60*60*24*365.25*510e12/3.67/1e12*2
+list co2emiss[i=@ave,j=@ave,d=1,l=1]*60*60*24*365.25*510e12/3.67/1e12*2
+list co2emiss[i=@ave,j=@ave,d=1,l=1]*60*60*24*365.25*510e12/3.67/1e12
+shade CO2EMISS[l=1]
+shade CO2EMISS[l=1,d=1]
+show d
+co2_area=co2emiss[d=1,l=1]*areacella
+let co2_area=co2emiss[d=1,l=1]*areacella
+list co2_area[i=@sum,j=@sum]
+list co2_area[i=@sum,j=@sum]*60*60*24*365.25/3.67/1e12
+exit

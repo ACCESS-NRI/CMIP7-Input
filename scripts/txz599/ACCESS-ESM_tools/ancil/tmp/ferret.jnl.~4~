@@ -1,0 +1,8 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.6 (optimized)
+ ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
+ ! 25-Oct-23 12:50     
+
+use co2_cdr.nc
+show d
+exit

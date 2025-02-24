@@ -1,0 +1,10 @@
+module rm python
+module load python/2.7.6
+module use ~access/modules
+module load pythonlib/umfile_utils
+
+python ../python/um_copy_field.py -i PI-C2C-1p5r35.astart-10010101-new -o PI-C2C-1p5r42.astart-07010101_NPPprog_EDC -v 33001
+python ../python/um_copy_field.py -i PI-C2C-1p5r35.astart-10010101-new -o PI-C2C-1p5r42.astart-07010101_NPPprog_EDC -v 33002
+python ../python/um_copy_field.py -i PI-C2C-1p5r35.astart-10010101-new -o PI-C2C-1p5r42.astart-07010101_NPPprog_EDC -v 0251
+python ../python/um_copy_field.py -i PI-C2C-1p5r35.astart-10010101-new -o PI-C2C-1p5r42.astart-07010101_NPPprog_EDC -v 0252
+

@@ -1,0 +1,24 @@
+ ! NOAA/PMEL TMAP
+ ! FERRET v7.5 (optimized)
+ ! Linux 4.18.0-80.el8.x86_64 64-bit - 12/16/19
+ ! 31-Aug-20 14:47     
+
+use veg_frac_unsw_orig.nc
+sjpw d
+show d
+shade field1391[k=1] - field1391_1[k=1]
+shade field1391[k=@sum] - field1391_1[k=@sum]
+use veg_frac_unsw_changed.nc
+show d
+shade field1391[k=@sum,d=1] - field1391[k=@sum,d=2]
+shade field1391[k=1,d=1] - field1391[k=1,d=2]
+shade field1391[k=2,d=1] - field1391[k=2,d=2]
+shade field1391[k=3,d=1] - field1391[k=3,d=2]
+shade field1391[k=4,d=1] - field1391[k=4,d=2]
+shade field1391[k=5,d=1] - field1391[k=5,d=2]
+shade field1391[k=6,d=1] - field1391[k=6,d=2]
+shade field1391[k=7,d=1] - field1391[k=7,d=2]
+shade field1391[k=8,d=1] - field1391[k=8,d=2]
+shade field1391[k=@sum,d=1]
+shade field1391[k=@sum,d=2]
+exit

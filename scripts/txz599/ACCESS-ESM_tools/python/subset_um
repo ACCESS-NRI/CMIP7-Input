@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python /projects/access/bin/subset_um.py $*
