@@ -1,8 +1,0 @@
- ! NOAA/PMEL TMAP
- ! FERRET v7.6 (optimized)
- ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
- ! 20-Sep-23 14:49     
-
-use Ndep_1850_ESM1.nc
-show d
-exit

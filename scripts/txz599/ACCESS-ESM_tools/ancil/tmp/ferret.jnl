@@ -1,9 +1,0 @@
- ! NOAA/PMEL TMAP
- ! FERRET v7.6 (optimized)
- ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
- ! 18-Jan-24 09:53     
-
-use co2_cdr.nc
-show d
-plot CO2EMISS[i=@ave,j=@ave,l=@sbx:12]
-exit

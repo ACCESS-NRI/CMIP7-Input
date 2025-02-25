@@ -1,9 +1,0 @@
- ! NOAA/PMEL TMAP
- ! FERRET v7.6 (optimized)
- ! Linux 4.18.0-240.1.1.el8.nci.x86_64 64-b - 03/09/21
- ! 17-Oct-23 09:42     
-
-use co2_new.nc
-use co2_modified_new.nc
-shade co2emiss[d=2,l=1]
-exit
