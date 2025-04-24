@@ -1,0 +1,31 @@
+For reference, to regenerate the files
+
+module use ~access/modules
+module load pythonlib/mule/2017.06.1
+module load pythonlib/netCDF4       
+python ~mrd599/src/python/aerosol_ancil.py --vars field573 --stash 129 -f 1849 BC_hi_1849_2015_ESM1.nc $WORKDIR/ESM_CMIP6/BC_hi_1849_2015_ESM1.anc
+python ~mrd599/src/python/aerosol_ancil.py  --vars field570 field572 field569 field569_1 --stash 59 127 58 126 -f 1849 scycl_1849_2015_ESM1_v4.nc scycl_1849_2015_ESM1_v4.anc
+
+module load pythonlib/f90nml
+python ~mrd599/src/python/ozone_ancil.py -f 1849 ozone_1849_2015_ESM1.nc ozone_1849_2015_ESM1.anc
+
+
+ 
+
+To compare files, ignoring some changed header fields
+
+mule-cumf --ignore lookup=27,34,35,36,37,43 BC_hi_1849_2015_ESM1.anc $WORKDIR/ESM_CMIP6/BC_hi_1849_2015_ESM1.anc
+
+File 1: BC_hi_1849_2015_ESM1.anc
+File 2: /short/p66/mrd599/ESM_CMIP6/BC_hi_1849_2015_ESM1.anc
+Files compare
+  * 0 differences in fixed_length_header (with 7 ignored indices)
+  * 0 field differences, of which 0 are in data
+
+Compared 2004/2004 fields, with 2004 matches
+
+I've created a script that just fixes the header directly to make it a bit simpler
+
+module use ~access/modules
+module load pythonlib/umfile_utils
+python ~mrd599/src/python/um_extras/set_fixhead_monthly_ancil.py BC_hi_1849_2015_ESM1.anc

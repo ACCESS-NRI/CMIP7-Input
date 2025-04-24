@@ -1,0 +1,32 @@
+# to load the correct modules:
+module unload python
+module use ~access/modules
+module load pythonlib/mule/2017.06.1 pythonlib/netCDF4 pythonlib/f90nml
+
+# to get just year 1850:
+  # if don't have nco yet
+  module load nco
+  # historical file starts from 1849 and at monthly interval
+  ncks -d time,12,23 scycl_1849_2015.nc scycl_1850.nc
+  # generate anc file
+  python ~mrd599/src/python/aerosol_ancil.py --vars field570 field572 field569 field569_1 --stash 59 127 58 126 -c scycl_1850.nc scycl_1850.anc
+  python ~mrd599/src/python/aerosol_ancil.py --vars field570 field572 field569 field569_1 --stash 59 127 58 126 -c ../scycl_1850_ESM1_v4.nc ../scycl_1850_ESM1_v4.anc
+
+
+# to get the whole time series:
+python ~mrd599/src/python/aerosol_ancil.py --vars field573 --stash 129 -f 1849 BC_hi_1849_2015_ESM1.nc BC.anc
+python ~mrd599/src/python/aerosol_ancil.py --vars field573 --stash 135 -f 1849 OCFF_1849_2015_ESM1.nc OCFF.anc
+python ~mrd599/src/python/aerosol_ancil.py --vars field574 field574_1 --stash 130 131 -f 1849 Bio_1849_2015_ESM1.nc Bio.anc
+
+N.B. Please check the variable names in the netCDF files and matching them to the stash codes from the stashmaster file, ~access/umdir/vn7.3/ctldata/STASHmaster/STASHmaster_A
+
+Options:
+-c   climatology
+-f   start year for time series
+
+Corresponding files between CMIP5 and CMIP6:
+BIO.nc - sum of BC_biomass_high, BC_biomass_low, OC_biomass_high, OC_biomass_low
+BC_hi  - sum of BC_biofuel, BC_fossil
+OCFF   - sum of OC_biofuel, OC_fossil
+scycl  - 4 separate variables: SO2_high(126), SO2_low(58), DMS(59) and ammonia(127)
+
