@@ -1,0 +1,34 @@
+from aerosol.cmip7_aerosol_common import *
+
+CMIP7_AEROSOL_BIOMASS_VERSION = os.environ['CMIP7_AEROSOL_BIOMASS_VERSION']
+CMIP7_AEROSOL_BIOMASS_VDATE = os.environ['CMIP7_AEROSOL_BIOMASS_VDATE']
+CMIP7_AEROSOL_BIOMASS_DATE_RANGE = os.environ['CMIP7_AEROSOL_BIOMASS_DATE_RANGE']
+CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE = os.environ['CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE']
+
+def cmip7_aerosol_biomass_base(version):
+    return Path(CMIP7_SOURCE_DATA / 'DRES' / version / 'atmos/mon')
+
+def cmip7_aerosol_biomass_path(species, version, vdate, date_range):
+    base = cmip7_aerosol_biomass_base(version)
+    filename = f'{species}_input4MIPs_emissions_CMIP_{version}_gn_{date_range}.nc'
+    return base / species / 'gn' / vdate / filename
+
+def load_cmip7_aerosol_biomass(species, version, vdate, date_range, constraint):
+    return iris.load_cube(cmip7_aerosol_biomass_path(species, version, vdate, date_range), constraint)
+
+def load_cmip7_aerosol_biomass_1850(species):
+    return load_cmip7_aerosol_biomass(
+            species, 
+            CMIP7_AEROSOL_BIOMASS_VERSION, 
+            CMIP7_AEROSOL_BIOMASS_VDATE, 
+            CMIP7_AEROSOL_BIOMASS_DATE_RANGE,
+            constraint_1850)
+
+def load_cmip7_aerosol_biomass_percentage_1850(species):
+    return load_cmip7_aerosol_biomass(
+            species, 
+            CMIP7_AEROSOL_BIOMASS_VERSION, 
+            CMIP7_AEROSOL_BIOMASS_VDATE, 
+            CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE,
+            constraint_1850)
+
