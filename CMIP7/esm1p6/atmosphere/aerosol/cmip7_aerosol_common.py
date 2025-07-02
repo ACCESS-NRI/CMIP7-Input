@@ -8,14 +8,15 @@ import cftime, cf_units
 from pathlib import Path
 import os, tempfile
 
+from cmip7_ancil_constants import * 
 from cmip7_ancil_paths import *
 
-CMIP7_AEROSOL_SAVE_DIR = Path(ANCIL_TARGET_PATH / 'esm16_aerosols')
+CMIP7_AEROSOL_SAVE_DIR = Path(ANCIL_TARGET_PATH) / 'esm16_aerosols'
 # Ensure that the directory exists.
 os.makedirs(CMIP7_AEROSOL_SAVE_DIR, mode=0o755, exist_ok=True)
 
 def cmip7_aerosol_save_path(filename):
-    return str(Path(CMIP7_AEROSOL_SAVE_DIR / filename))
+    return str(Path(CMIP7_AEROSOL_SAVE_DIR) / filename)
 
 mask_esm15 = iris.load_cube(ESM16_GRID_MASK_FILE)
 mask_esm15.coord('latitude').guess_bounds()
@@ -68,8 +69,7 @@ def save_ancil(cubes, filename):
     # interprets 201 as an old unsupported dump format.
     # Need to reset to 703
 
-    um_version = '7.3'
-    ants.__version__ = um_version
+    ants.__version__ = UM_VERSION
     # Handle both a list and a single cube
     if not type(cubes) is list:
         cubes = [cubes]
@@ -84,7 +84,7 @@ def save_ancil(cubes, filename):
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = os.path.join(tmp, 'ancil')
         save.ancil(cubes, tmp_path)
-        sm = mule.STASHmaster.from_version(um_version)
+        sm = mule.STASHmaster.from_version(UM_VERSION)
         ff = mule.AncilFile.from_file(tmp_path, stashmaster=sm)
         ff.fixed_length_header.calendar = 1
         ff.to_file(filename)
