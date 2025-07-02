@@ -1,5 +1,7 @@
 # Interpolate CMIP7 PI SO2 emissions to ESM1-6 grid
 from aerosol.cmip7_aerosol_anthro import *
+from fix_esm15_PI_ancil_date import fix_esm15_PI_ancil_date
+from pathlib import Path
 import netCDF4
 
 so2_cmip7 = load_cmip7_aerosol_anthro_1850('SO2')
@@ -33,28 +35,33 @@ so2_hi_esm16.attributes['STASH'] = iris.fileformats.pp.STASH(model=1, section=0,
 so2_lo_esm16.remove_coord('sector')
 
 # Use the CMIP6 DMS
-ESM15_PI_DMS_ANCIL_FILE = str(
+ESM15_PI_DMS_ANCIL_FILENAME = 'scycl_1850_ESM1_v4.anc'
+ESM15_PI_DMS_ANCIL_PATHNAME = str(
         ESM15_INPUTS_PATH / 
         ESM_PI_AEROSOL_REL_PATH / 
         ESM_GRID_DIRNAME / 
         ESM15_PI_AEROSOL_VERSION / 
-        'scycl_1850_ESM1_v4.anc')
-# Temporary until differences with the file above are investigated
-# and the file below is moved to a standard location
-ESM15_PI_DMS_ANCIL_FILE = '/g/data/tm70/mrd599/esm15_aerosols/scycl_1850_ESM1_v4.anc'
-dms = iris.load_cube(
-        ESM15_PI_DMS_ANCIL_FILE,
-        'tendency_of_atmosphere_mass_content_of_dimethyl_sulfide_expressed_as_sulfur_due_to_emission')
+        ESM15_PI_DMS_ANCIL_FILENAME)
 
-# Make the attributes and coordinates match
-so2_time = so2_lo_esm16.coord('time')
-dms_time = dms.coord('time')
-dms_time.units = so2_time.units
-dms_time.points = so2_time.points
-dms_time.bounds = so2_time.bounds
-dms_time.long_name = so2_time.long_name
-dms_time.var_name = so2_time.var_name
-for attr, value in so2_time.attributes.items():
-    dms_time.attributes[attr] = value
+with tempfile.TemporaryDirectory() as temp:
+    # Create a temporary file with fixed dates from the CMIP6 DMS file
+    ESM15_PI_DMS_ANCIL_TEMPNAME = str(Path(temp) / ESM15_PI_DMS_ANCIL_FILENAME)
+    fix_esm15_PI_ancil_date(
+            ifile=ESM15_PI_DMS_ANCIL_PATHNAME, 
+            ofile=ESM15_PI_DMS_ANCIL_TEMPNAME)
+    dms = iris.load_cube(
+            ESM15_PI_DMS_ANCIL_TEMPNAME,
+            'tendency_of_atmosphere_mass_content_of_dimethyl_sulfide_expressed_as_sulfur_due_to_emission')
 
-save_ancil([so2_lo_esm16, so2_hi_esm16, dms], cmip7_aerosol_save_path('scycl_1850_cmip7.anc'))
+    # Make the attributes and coordinates match
+    so2_time = so2_lo_esm16.coord('time')
+    dms_time = dms.coord('time')
+    dms_time.units = so2_time.units
+    dms_time.points = so2_time.points
+    dms_time.bounds = so2_time.bounds
+    dms_time.long_name = so2_time.long_name
+    dms_time.var_name = so2_time.var_name
+    for attr, value in so2_time.attributes.items():
+        dms_time.attributes[attr] = value
+    
+    save_ancil([so2_lo_esm16, so2_hi_esm16, dms], cmip7_aerosol_save_path('scycl_1850_cmip7.anc'))
