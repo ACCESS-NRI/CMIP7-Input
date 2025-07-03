@@ -24,8 +24,7 @@ def cmip7_aerosol_biomass_base(version):
 def cmip7_aerosol_biomass_path(species, version, vdate, date_range):
     base = cmip7_aerosol_biomass_base(version)
     filename = (
-        f'{species}_input4MIPs_emissions_'
-        'CMIP_{version}_gn_{date_range}.nc')
+        f'{species}_input4MIPs_emissions_CMIP_{version}_gn_{date_range}.nc')
     return base / species / 'gn' / vdate / filename
 
 
