@@ -26,8 +26,8 @@ def cmip7_aerosol_anthro_base(version):
 def cmip7_aerosol_anthro_path(species, version, vdate):
     base = cmip7_aerosol_anthro_base(version)
     filename = (
-        f'{species}-em-anthro_input4MIPs_emissions_'
-        'CMIP_{version}_gn_185001-189912.nc')
+        f'{species}-em-anthro_input4MIPs_emissions_CMIP_{version}'
+        '_gn_185001-189912.nc')
     return base / f'{species}_em_anthro' / 'gn' / vdate / filename
 
 
