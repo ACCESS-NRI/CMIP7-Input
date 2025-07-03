@@ -1,6 +1,6 @@
-from aerosol.cmip7_aerosol_common import (
-        CMIP7_SOURCE_DATA,
-        CMIP7_PI_DATE_CONSTRAINT)
+from aerosol.cmip7_aerosol_common import CMIP7_PI_DATE_CONSTRAINT
+
+from cmip7_ancil_paths import CMIP7_SOURCE_DATA
 
 from pathlib import Path
 

@@ -1,5 +1,4 @@
 from aerosol.cmip7_aerosol_common import (
-        CMIP7_SOURCE_DATA,
         cmip7_aerosol_save_path,
         CMIP7_PI_DATE_CONSTRAINT,
         fix_coords,
@@ -7,6 +6,8 @@ from aerosol.cmip7_aerosol_common import (
         mask_esm15,
         save_ancil,
         zero_poles)
+
+from cmip7_ancil_paths import CMIP7_SOURCE_DATA
 
 from pathlib import Path
 
