@@ -37,7 +37,7 @@ interpolation_scheme = iris.analysis.AreaWeighted(mdtol=0.5)
 CMIP7_PI_BEG_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 1, 1)
 CMIP7_PI_END_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 12, 31)
 CMIP7_PI_DATE_CONSTRAINT = iris.Constraint(
-        time=lambda cell: CMIP7_PI_BEG_DATE <= cell.point < CMIP7_PI_END_DATE)
+    time=lambda cell: CMIP7_PI_BEG_DATE <= cell.point <= CMIP7_PI_END_DATE)
 
 
 def zero_poles(cube):
