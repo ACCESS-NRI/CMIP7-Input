@@ -48,7 +48,7 @@ def load_cmip7_pi_aerosol_anthro(species):
 
 
 def cmip7_aerosol_anthro_interpolate(species, stash_item, ancil_filename):
-    cube = load_cmip7_pi_aerosol_anthro('BC')
+    cube = load_cmip7_pi_aerosol_anthro(species)
     cube_tot = cube.collapsed(['sector'], iris.analysis.SUM)
     esm16_cube = cube_tot.regrid(mask_esm15, interpolation_scheme)
     esm16_cube.data = esm16_cube.data.filled(0.)
