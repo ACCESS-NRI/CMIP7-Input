@@ -1,19 +1,20 @@
 # Interpolate CMIP7 PI Biomass burning emissions to ESM1-6 grid
-from aerosol.cmip7_aerosol_biomass import (
-        cmip7_aerosol_biomass_path,
-        CMIP7_AEROSOL_BIOMASS_DATE_RANGE,
-        CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE,
-        CMIP7_AEROSOL_BIOMASS_VDATE,
-        CMIP7_AEROSOL_BIOMASS_VERSION)
 
-from aerosol.cmip7_aerosol_common import (
-        cmip7_aerosol_save_path,
+from cmip7_ancil_common import (
         CMIP7_PI_DATE_CONSTRAINT,
         interpolation_scheme,
         mask_esm15,
         save_ancil,
-        set_coord_system,
+        set_coord_system)
+from aerosol.cmip7_aerosol_common import (
+        ESM_PI_AEROSOL_SAVE_DIR,
         zero_poles)
+from aerosol.cmip7_aerosol_biomass import (
+        cmip7_aerosol_biomass_pathname,
+        CMIP7_AEROSOL_BIOMASS_DATE_RANGE,
+        CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE,
+        CMIP7_AEROSOL_BIOMASS_VDATE,
+        CMIP7_AEROSOL_BIOMASS_VERSION)
 
 import iris
 
@@ -26,16 +27,16 @@ import iris
 force_load = True
 
 
-def cmip7_bb_path(species):
-    return cmip7_aerosol_biomass_path(
+def cmip7_bb_pathname(species):
+    return cmip7_aerosol_biomass_pathname(
             species,
             CMIP7_AEROSOL_BIOMASS_VERSION,
             CMIP7_AEROSOL_BIOMASS_VDATE,
             CMIP7_AEROSOL_BIOMASS_DATE_RANGE)
 
 
-def cmip7_bb_percent_path(species):
-    return cmip7_aerosol_biomass_path(
+def cmip7_bb_percent_pathname(species):
+    return cmip7_aerosol_biomass_pathname(
             species,
             CMIP7_AEROSOL_BIOMASS_VERSION,
             CMIP7_AEROSOL_BIOMASS_VDATE,
@@ -44,11 +45,11 @@ def cmip7_bb_percent_path(species):
 
 def cmip7_bb_load_pi_percent_cube(species):
     return iris.load_cube(
-            cmip7_bb_percent_path(species),
+            cmip7_bb_percent_pathname(species),
             CMIP7_PI_DATE_CONSTRAINT)
 
 
-bb_bc_cmip7 = iris.load_cube(cmip7_bb_path('BC'), CMIP7_PI_DATE_CONSTRAINT)
+bb_bc_cmip7 = iris.load_cube(cmip7_bb_pathname('BC'), CMIP7_PI_DATE_CONSTRAINT)
 bb_bc_agri_cmip7 = cmip7_bb_load_pi_percent_cube('BCpercentageAGRI')
 bb_bc_peat_cmip7 = cmip7_bb_load_pi_percent_cube('BCpercentagePEAT')
 bb_bc_sava_cmip7 = cmip7_bb_load_pi_percent_cube('BCpercentageSAVA')
@@ -68,7 +69,7 @@ if force_load:
     _ = bb_bc_frac_high_cmip7.data
     print('Realised bb_bc high')
 
-bb_oc_cmip7 = iris.load_cube(cmip7_bb_path('OC'), CMIP7_PI_DATE_CONSTRAINT)
+bb_oc_cmip7 = iris.load_cube(cmip7_bb_pathname('OC'), CMIP7_PI_DATE_CONSTRAINT)
 bb_oc_agri_cmip7 = cmip7_bb_load_pi_percent_cube('OCpercentageAGRI')
 bb_oc_peat_cmip7 = cmip7_bb_load_pi_percent_cube('OCpercentagePEAT')
 bb_oc_sava_cmip7 = cmip7_bb_load_pi_percent_cube('OCpercentageSAVA')
@@ -121,4 +122,5 @@ bb_hi_esm16.attributes['STASH'] = iris.fileformats.pp.STASH(
 
 save_ancil(
         [bb_lo_esm16, bb_hi_esm16],
-        cmip7_aerosol_save_path('Bio_1850_cmip7.anc'))
+        ESM_PI_AEROSOL_SAVE_DIR,
+        'Bio_1850_cmip7.anc')

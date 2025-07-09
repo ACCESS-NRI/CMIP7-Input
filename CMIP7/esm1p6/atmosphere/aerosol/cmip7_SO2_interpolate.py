@@ -1,27 +1,25 @@
 # Interpolate CMIP7 PI SO2 emissions to ESM1-6 grid
 
-from aerosol.cmip7_aerosol_common import (
-        cmip7_aerosol_save_path,
+from cmip7_ancil_common import (
         interpolation_scheme,
+        join_pathname,
         mask_esm15,
-        save_ancil,
+        save_ancil)
+from aerosol.cmip7_aerosol_common import (
+        ESM_PI_AEROSOL_SAVE_DIR,
         zero_poles)
-
 from aerosol.cmip7_aerosol_anthro import (
-        cmip7_aerosol_anthro_path,
+        CMIP7_AEROSOL_ANTHRO_DATE_RANGE,
+        cmip7_aerosol_anthro_pathname,
         CMIP7_AEROSOL_ANTHRO_VDATE,
         CMIP7_AEROSOL_ANTHRO_VERSION,
         load_cmip7_pi_aerosol_anthro)
-
 from cmip7_ancil_paths import (
         ESM15_INPUTS_PATH,
         ESM15_PI_AEROSOL_VERSION,
         ESM_GRID_DIRNAME,
         ESM_PI_AEROSOL_REL_PATH)
-
-from fix_esm15_PI_ancil_date import fix_esm15_PI_ancil_date
-
-from pathlib import Path
+from fix_esm15_PI_ancil_date import fix_esm15_pi_ancil_date
 
 import iris
 import netCDF4
@@ -30,10 +28,11 @@ import tempfile
 so2_cmip7 = load_cmip7_pi_aerosol_anthro('SO2')
 
 # Iris doesn't read the sector coordinate so use netCDF4
-d = netCDF4.Dataset(cmip7_aerosol_anthro_path(
+d = netCDF4.Dataset(cmip7_aerosol_anthro_pathname(
         'SO2',
         CMIP7_AEROSOL_ANTHRO_VERSION,
-        CMIP7_AEROSOL_ANTHRO_VDATE))
+        CMIP7_AEROSOL_ANTHRO_VDATE,
+        CMIP7_AEROSOL_ANTHRO_DATE_RANGE))
 sectord = {}
 for s in d['sector'].ids.split(';'):
     i, name = s.split(':')
@@ -80,8 +79,10 @@ ESM15_PI_DMS_ANCIL_PATHNAME = str(
 
 with tempfile.TemporaryDirectory() as temp:
     # Create a temporary file with fixed dates from the CMIP6 DMS file
-    ESM15_PI_DMS_ANCIL_TEMPNAME = str(Path(temp) / ESM15_PI_DMS_ANCIL_FILENAME)
-    fix_esm15_PI_ancil_date(
+    ESM15_PI_DMS_ANCIL_TEMPNAME = join_pathname(
+            temp,
+            ESM15_PI_DMS_ANCIL_FILENAME)
+    fix_esm15_pi_ancil_date(
             ifile=ESM15_PI_DMS_ANCIL_PATHNAME,
             ofile=ESM15_PI_DMS_ANCIL_TEMPNAME)
     dms = iris.load_cube(
@@ -102,4 +103,5 @@ with tempfile.TemporaryDirectory() as temp:
 
     save_ancil(
             [so2_lo_esm16, so2_hi_esm16, dms],
-            cmip7_aerosol_save_path('scycl_1850_cmip7.anc'))
+            ESM_PI_AEROSOL_SAVE_DIR,
+            'scycl_1850_cmip7.anc')
