@@ -6,7 +6,7 @@ import calendar
 import mule
 
 
-def fix_esm15_PI_ancil_date(ifile, ofile):
+def fix_esm15_pi_ancil_date(ifile, ofile):
     """
     Correct the dates of the ESM1.5 preindustrial ancillaries
     so that they can be read by Iris.

@@ -1,5 +1,4 @@
-from aerosol.cmip7_aerosol_common import CMIP7_PI_DATE_CONSTRAINT
-
+from cmip7_ancil_common import CMIP7_PI_DATE_CONSTRAINT
 from cmip7_ancil_paths import CMIP7_SOURCE_DATA
 
 from pathlib import Path
@@ -18,14 +17,14 @@ CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE = os.environ[
 
 
 def cmip7_aerosol_biomass_base(version):
-    return Path(CMIP7_SOURCE_DATA / 'DRES' / version / 'atmos/mon')
+    return Path(CMIP7_SOURCE_DATA) / 'DRES' / version / 'atmos' / 'mon'
 
 
-def cmip7_aerosol_biomass_path(species, version, vdate, date_range):
+def cmip7_aerosol_biomass_pathname(species, version, vdate, date_range):
     base = cmip7_aerosol_biomass_base(version)
     filename = (
         f'{species}_input4MIPs_emissions_CMIP_{version}_gn_{date_range}.nc')
-    return base / species / 'gn' / vdate / filename
+    return str(base / species / 'gn' / vdate / filename)
 
 
 def load_cmip7_aerosol_biomass(
@@ -35,7 +34,11 @@ def load_cmip7_aerosol_biomass(
         date_range,
         constraint):
     return iris.load_cube(
-            cmip7_aerosol_biomass_path(species, version, vdate, date_range),
+            cmip7_aerosol_biomass_pathname(
+                species,
+                version,
+                vdate,
+                date_range),
             constraint)
 
 
