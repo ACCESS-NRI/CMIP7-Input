@@ -9,6 +9,16 @@
 
 module use /g/data/xp65/public/modules
 module load conda/analysis3
-python convert_UM_restart_to_netcdf.py -i /g/data/vk83/configurations/inputs/access-esm1p6/modern/pre-industrial/restart/atmosphere/PI-02.astart-01010101 -o /g/data/p66/lw5085/ACCESS-ESM1p6-restarts/ESM1p6-atmosphere-restart.nc
-python remap_vegetation.py -i /g/data/p66/lw5085/ACCESS-ESM1p6-restarts/ESM1p6-atmosphere-restart.nc -o /g/data/p66/lw5085/ACCESS-ESM1p6-restarts/ESM1p6-remapped-for-LUH3.nc -m newvegfrac.1850-2024.nc -c config-LUH3-2025-03-14.yaml
-python add_netcdf_fields_to_UM_restart.py
+
+reference_restart=""
+restart_as_netcdf=""
+new_vegetation_dist=""
+remap_config=""
+remapped_restart_as_netcdf=""
+output_restart=""
+
+# Add the -s/--stash arguments to scripts 1 and 3 if you don't have access to the defaults
+
+python convert_UM_restart_to_netcdf.py -i ${reference_restart} -o ${restart_as_netcdf}
+python remap_vegetation.py -i ${restart_as_netcdf} -o ${remapped_restart_as_netcdf} -m ${new_vegetation_dist} -c ${remap_config}
+python add_netcdf_fields_to_UM_restart.py -i ${remapped_restart_as_netcdf} -o ${output_restart}
