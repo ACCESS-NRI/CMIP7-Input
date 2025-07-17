@@ -49,11 +49,12 @@ def prepare_mapping(nVeg, ConfigFile):
     VegetationMapping = {i: [i] for i in range(nVeg)}
 
     # Apply the supplied mappings
-    for OutVegType, InVegTypes in MappingConf['vegetation_map'].items():
-        # The user specified mappings are going to offset by -1, since in the
-        # Fortran world we use 1 based indexing and that's how people think
-        # about the vegetation types.
-        VegetationMapping[OutVegType-1] = [InVeg-1 for InVeg in InVegTypes]
+    if 'vegetation_map' in MappingConf:
+        for OutVegType, InVegTypes in MappingConf['vegetation_map'].items():
+            # The user specified mappings are going to offset by -1, since in 
+            # the Fortran world we use 1 based indexing and that's how people 
+            # think about the vegetation types.
+            VegetationMapping[OutVegType-1] = [InVeg-1 for InVeg in InVegTypes]
     
     MappingConf['vegetation_map'] = VegetationMapping
 
@@ -204,6 +205,12 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
     OutDataset = setup_output_dataset(OutputVegetation, PerCellVariables +
                                       PerTileVariables)
 
+    # Add the land fractions- also include previous year as same for LUC
+    OutDataset['FRACTIONS OF SURFACE TYPES'] = (('veg', 'lat', 'lon'),
+                                               NewVegetation)
+    OutDataset['PREVIOUS YEAR SURF FRACTIONS (TILES)'] =
+        (('veg', 'lat', 'lon'), NewVegetation)
+
     # Perform the per-cell averaging
     # Apply a mask to the array, so we don't mess up our summations with
     # near-zero vegetation fractions
@@ -295,10 +302,12 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
         # Reset the search mask to false
         SearchMask[:] = False
 
+    # Finally set the 
     return OutDataset
 
 if __name__ == '__main__':
 
+    # Process command line args
     args = _parse_args()
     OrigDataset = xarray.open_dataset(args.input)
     OrigVegetation = OrigDataset['FRACTIONS OF SURFACE TYPES'].to_numpy()
@@ -311,6 +320,5 @@ if __name__ == '__main__':
             NewVegetation,
             args.config
             )
-    OutDataset['FRACTIONS OF SURFACE TYPES'] = (('veg', 'lat', 'lon'),
-                                               NewVegetation)
+
     OutDataset.to_netcdf(args.output)
