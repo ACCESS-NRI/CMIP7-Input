@@ -302,7 +302,6 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
         # Reset the search mask to false
         SearchMask[:] = False
 
-    # Finally set the 
     return OutDataset
 
 if __name__ == '__main__':
