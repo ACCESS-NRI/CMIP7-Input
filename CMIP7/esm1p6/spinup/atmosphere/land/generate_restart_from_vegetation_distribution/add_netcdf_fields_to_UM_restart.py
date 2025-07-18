@@ -2,6 +2,39 @@ import xarray
 import mule
 import six
 
+def _parse_args():
+    """Read the command line arguments."""
+
+    parser = argparse.ArgumentParser(
+            prog="add_netcdf_fields_to_UM_restart",
+            description="Take NetCDF fields and placed them in the " +
+            "corresponding UM fields."
+            )
+
+    parser.add_argument(
+            "-i",
+            "--input",
+            help="NetCDF file to merge in"
+            )
+    parser.add_argument(
+            "-o",
+            "--output",
+            help="Name to write the resulting restart to"
+            )
+    parser.add_argument(
+            "-r",
+            "--restart",
+            help="UM restart to use as a template"
+            )
+    parser.add_argument(
+            "-s",
+            "--stash",
+            help="Comma separated list of stashmaster files to use",
+            default="/g/data/access/umdir/vn7.3/ctldata/STASHmaster/STASHmaster_A,/g/data/rp23/experiments/2024-03-12_CABLE4-dev/lw5085/CABLE-as-ACCESS/prefix.PRESM_A"
+            )
+
+    return parser.parse_args()
+
 def modify_UM_field_by_name(FieldsFile, Dataset, VarName):
     """Take the DataArray attached to Dataset[VarName] and map it to the
     equivalent field in the UM fields file."""
@@ -11,12 +44,13 @@ def modify_UM_field_by_name(FieldsFile, Dataset, VarName):
     VariableData = Dataset[VarName].to_numpy()
     nVeg, nLat, nLon = VariableData.shape
 
-    # Retrieve the stash code
+    # Retrieve the stash code- UM does regex searching, so make sure to escape
+    # any brackets
     UMName = VarName.replace('(', '\(').replace(')', '\)')
-    # A little catch for the "/" for " PER " replacement
     try:
         StashCode = list(FieldsFile.stashmaster.by_regex(UMName).values())[0].item
     except:
+        # A little catch for the "/" for " PER " replacement
         print(f"Finding {UMName} failed; try again replacing PER")
         UMName = UMName.replace(' PER ', '/')
         StashCode = list(FieldsFile.stashmaster.by_regex(UMName).values())[0].item
@@ -33,7 +67,6 @@ def modify_UM_field_by_name(FieldsFile, Dataset, VarName):
     Tile = 0
     for Field in FieldsFile.fields:
         if Field.lbuser4 == StashCode:
-            OrigData = Field.get_data()
             NewData = VariableData[Tile, :, :]
             DataProvider = mule.ArrayDataProvider(NewData)
             Field.set_data_provider(DataProvider)
@@ -70,15 +103,26 @@ def to_file(self, output_file_or_path):
             self._write_to_file(output_file_or_path)
 
 if __name__ == '__main__':
-    FieldsFile = mule.FieldsFile.from_file('PI-02-WithLUH3VegetationMap_2025-03-14.astart')
-    STASHmasterBase = mule.STASHmaster.from_file('/g/data/access/umdir/vn7.3/ctldata/STASHmaster/STASHmaster_A')
-    STASHmasterExt = mule.STASHmaster.from_file('/g/data/rp23/experiments/2024-03-12_CABLE4-dev/lw5085/CABLE-as-ACCESS/prefix.PRESM_A')
-    STASHmasterBase.update(STASHmasterExt)
-    FieldsFile.attach_stashmaster_info(STASHmasterBase.by_section(0))
-    Dataset = xarray.open_dataset('Restart-2025-03-20.nc')
 
+    args = _parse_args()
+
+    # Process command line args
+    ProcessedRestart = xarray.open_dataset(args.input)
+
+    # Build the STASHmaster and attach it to the UM restart
+    SMBase = mule.STASHmaster()
+    for SM in args.stash.split(','):
+        SM = mule.STASHmaster.from_file(SM)
+        SMBase.update(SM)
+
+    BaseRestart = mule.FieldsFile.from_file(args.restart)
+    BaseRestart.attach_stashmaster_info(STASHmasterBase.by_section(0))
+
+    # Drop in the variables to modify
     for Variable in Dataset.data_vars:
-        modify_UM_field_by_name(FieldsFile, Dataset, Variable)
+        modify_UM_field_by_name(BaseRestart, ProcessedRestart, Variable)
 
-    FieldsFile.to_file = to_file
-    FieldsFile.to_file(FieldsFile, 'Restart-2025-03-20.astart')
+    # Write to file- since the UM7 restart doesn't match their expected format
+    # for some reason, we need to override the existing to_file
+    BaseRestart.to_file = to_file
+    BaseRestart.to_file(BaseRestartFile, args.output)
