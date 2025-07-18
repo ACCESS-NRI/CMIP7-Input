@@ -1,6 +1,6 @@
 # Produce atmosphere restart for ESM1.6
 
-Creates a new restart file with a new vegetation distribution, based on a previous UM restart. The default STASHmaster files used require ```access``` and ```rp23``` group memberships on Gadi, with the ```hh5``` analysis environment for ```mule```.
+Creates a new restart file with a new vegetation distribution, based on a previous UM restart. The default STASHmaster files used require ```access``` and ```rp23``` group memberships on Gadi, with the ```xp65``` analysis environment for ```mule```.
 
 The process is comprised of 3 scripts:
 
