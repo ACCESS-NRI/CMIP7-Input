@@ -1,6 +1,6 @@
 # Produce atmosphere restart for ESM1.6
 
-Creates a new restart file with a new vegetation distribution, based on a previous UM restart. The default STASHmaster files used require ```access``` and ```rp23``` group memberships on Gadi, with the ```hh5``` analysis environment for ```mule```.
+Creates a new restart file with a new vegetation distribution, based on a previous UM restart. The default STASHmaster files used require ```access``` and ```rp23``` group memberships on Gadi, with the ```xp65``` analysis environment for ```mule```.
 
 The process is comprised of 3 scripts:
 
@@ -39,7 +39,7 @@ The vegetation agnostic variables, like soil moisture and temperature. These var
 
 The vegetation specific variables, primarily the nutrient pools. These variables should remain distinct across tiles. The fill process is as follows:
 
-1. Identified valid vegetation type mappings from the old vegetation types to the new. For most vegetation types, this is a 1-to-1 relationship i.e. only vegetation type 1 is valid for filling vegetation type 2, type 2 is valid for type 2 etc. For instances of new vegetation types being added, it is possible to map existing types to the new type, so that new types get an average of the types that were mapped to it. For example, in ESM1.6, C4 grasses (type 10) were added as a vegetation type, which was not included in ACCESS-ESM1.5. Vegetation types 6, 7 and 9 were considered valid vegetation types to fill the C4 grasses.
+1. Identify valid vegetation type mappings from the old vegetation types to the new. For most vegetation types, this is a 1-to-1 relationship i.e. only vegetation type 1 is valid for filling vegetation type 1, type 2 is valid for type 2 etc. For instances of new vegetation types being added, it is possible to map existing types to the new type, so that new types get an average of the types that were mapped to it. For example, in ESM1.6, C4 grasses (type 10) were added as a vegetation type, which was not included in ACCESS-ESM1.5. Vegetation types 6, 7 and 9 were considered valid vegetation types to fill the C4 grasses.
 
 Following steps are applied at every tile on all land grid cell:
 
@@ -47,7 +47,7 @@ Following steps are applied at every tile on all land grid cell:
 
 3. Check for valid vegetated tiles in a small area around the original cell, where the area is defined by a number of latitude and longitude indices either side of the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no valid tiles exist, continue to step 4. In this instance, 2 cells either side are used (i.e. a 5x5 square of cells around the original cell).
 
-4. Check for valid vegetation tiles in a latitude band around the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then continue to step 5. The latitude band is this instance is 8 cells either side (+- 10 degrees).
+4. Check for valid vegetation tiles in a latitude band around the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then continue to step 5. The latitude band in this instance is 8 cells either side (+- 10 degrees).
 
 5. Check for valid vegetation tiles globally. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then set the value to 0.0.
 
