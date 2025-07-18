@@ -39,15 +39,15 @@ The vegetation agnostic variables, like soil moisture and temperature. These var
 
 The vegetation specific variables, primarily the nutrient pools. These variables should remain distinct across tiles. The fill process is as follows:
 
-1. Identified valid vegetation type mappings from the old vegetation types to the new. For most vegetation types, this is a 1-to-1 relationship i.e. only vegetation type 1 is valid for filling vegetation type 2, type 2 is valid for type 2 etc. For instances of new vegetation types being added, it is possible to map existing types to the new type, so that new types get an average of the types that were mapped to it. For example, in ESM1.6, C4 grasses (type 10) were added as a vegetation type, which was not included in ACCESS-ESM1.5. Vegetation types 6, 7 and 9 were considered valid vegetation types to fill the C4 grasses.
+1. Identified valid vegetation type mappings from the old vegetation types to the new. For most vegetation types, this is a 1-to-1 relationship i.e. only vegetation type 1 is valid for filling vegetation type 2, type 2 is valid for type 2 etc. For instances of new vegetation types being added, it is possible to map existing types to the new type, so that new types get an average of the types that were mapped to it. For example, in ESM1.6, C4 grasses (type 10) were added as a vegetation type, which was not included in ACCESS-ESM1.5. Vegetation types 6, 7 and 9 were considered valid vegetation types to fill the C4 grasses. This is demonstrated in the provided example configuration.
 
 Following steps are applied at every tile on all land grid cell:
 
 2. Check if the old vegetation surface fractions contained non-zero fraction of a vegetation type valid for the current tile. If yes, then the new value is set to the old value on that tile (non-weighted average if multiple valid vegetation types have non-zero fraction, as with C4 grasses). If not, continue to stage 3.
 
-3. Check for valid vegetated tiles in a small area around the original cell, where the area is defined by a number of latitude and longitude indices either side of the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no valid tiles exist, continue to step 4. In this instance, 2 cells either side are used (i.e. a 5x5 square of cells around the original cell).
+3. Check for valid vegetated tiles in a small area around the original cell, where the area is defined by a number of latitude and longitude indices either side of the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no valid tiles exist, continue to step 4. In the example configuration, 2 cells either side are used (i.e. a 5x5 square of cells around the original cell).
 
-4. Check for valid vegetation tiles in a latitude band around the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then continue to step 5. The latitude band is this instance is 8 cells either side (+- 10 degrees).
+4. Check for valid vegetation tiles in a latitude band around the original cell. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then continue to step 5. The latitude band in the example configuration is 8 cells either side (+- 10 degrees).
 
 5. Check for valid vegetation tiles globally. If any valid tiles exist, then take the non-weighted average of all valid tiles. If no tiles exist, then set the value to 0.0.
 
@@ -55,7 +55,7 @@ Following steps are applied at every tile on all land grid cell:
 
 The configuration file contains is a YAML file which contains:
 
-* ```vegetation_map```: A dictionary of lists which designates which PFTs can be used as sources for new PFTs. In the above example, where PFTs 6, 7 and 9 were valid sources for PFT 10 on the new distribution, then it would read ```vegetation_map: 10: [6, 7, 9]```. All PFTs not specified only have the equivalent PFT as a source i.e. PFT 1 on the old distribution is the only source for PFT 1 on the new distribution, PFT 2 for PFT 2 and so on. The provided configuration file demonstrates this example.
+* ```vegetation_map```: A dictionary of lists which designates which PFTs can be used as sources for new PFTs. In the above example, where PFTs 6, 7 and 9 were valid sources for PFT 10 on the new distribution, then it would read ```vegetation_map: 10: [6, 7, 9]```. Note this uses 1-based indexing. All PFTs not specified only have the equivalent PFT as a source i.e. PFT 1 on the old distribution is the only source for PFT 1 on the new distribution, PFT 2 for PFT 2 and so on. The provided configuration file demonstrates this example.
 * ```search_radius```: Cell "radius" to search in during the second search stage. For example, if ```search_radius: 2```, then it will search within a 5x5 box around the given point for valid tiles. Defaults to 2.
 * ```latitude_band```: Cell band to search in during the third search stage. For example, if ```latitude_band: 8```, then it will search within a latitude band of 19 cells for valid tiles. Defaults to 8.
 * ```minimum_tiles```: Minimum number of valid tiles found in a search to be considered "successful". For example, if ```minimum_tiles: 3```, and the second search (nearby box) only found 2 valid tiles, that search would be considered unsuccessful and the process would move onto the third search stage (latitude band). Defaults to 1.
