@@ -11,23 +11,15 @@ import tempfile
 
 from pathlib import Path
 
-from cmip7_ancil_constants import (
-        CMIP7_PI_YEAR,
-        UM_VERSION)
+from cmip7_ancil_constants import UM_VERSION
 from cmip7_ancil_paths import ESM16_GRID_MASK_FILE
 
 
-mask_esm15 = iris.load_cube(ESM16_GRID_MASK_FILE)
-mask_esm15.coord('latitude').guess_bounds()
-mask_esm15.coord('longitude').guess_bounds()
+esm_grid_mask = iris.load_cube(ESM16_GRID_MASK_FILE)
+esm_grid_mask.coord('latitude').guess_bounds()
+esm_grid_mask.coord('longitude').guess_bounds()
 
 interpolation_scheme = iris.analysis.AreaWeighted(mdtol=0.5)
-
-# For CMIP6 and CMIP7 data
-CMIP7_PI_BEG_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 1, 1)
-CMIP7_PI_END_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 12, 31)
-CMIP7_PI_DATE_CONSTRAINT = iris.Constraint(
-    time=lambda cell: CMIP7_PI_BEG_DATE <= cell.point <= CMIP7_PI_END_DATE)
 
 
 def join_pathname(path_prefix, path_suffix):
@@ -75,9 +67,9 @@ def set_coord_system(cube):
 
 def fix_coords(cube):
     cube.coord('latitude').coord_system = (
-        mask_esm15.coord('latitude').coord_system)
+        esm_grid_mask.coord('latitude').coord_system)
     cube.coord('longitude').coord_system = (
-        mask_esm15.coord('longitude').coord_system)
+        esm_grid_mask.coord('longitude').coord_system)
 
 
 def zero_poles(cube):
