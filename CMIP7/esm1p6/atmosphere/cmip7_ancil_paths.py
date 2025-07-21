@@ -14,6 +14,3 @@ ESM16_GRID_MASK_FILE = str(
         / ESM_GRID_DIRNAME
         / ESM15_GRID_VERSION
         / 'qrparm.mask')
-
-ESM_PI_AEROSOL_REL_PATH = 'modern/pre-industrial/atmosphere/aerosol'
-ESM15_PI_AEROSOL_VERSION = os.environ['ESM15_PI_AEROSOL_VERSION']

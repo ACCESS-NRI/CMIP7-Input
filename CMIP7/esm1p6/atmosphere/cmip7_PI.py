@@ -1,9 +1,17 @@
-from cmip7_ancil_constants import (
-        CMIP7_PI_YEAR,
-        UM_VERSION)
+from cmip7_ancil_constants import UM_VERSION
 
 import calendar
+import cftime
+import iris
 import mule
+
+CMIP7_PI_YEAR = 1850
+
+# For CMIP6 and CMIP7 data
+CMIP7_PI_BEG_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 1, 1)
+CMIP7_PI_END_DATE = cftime.DatetimeNoLeap(CMIP7_PI_YEAR, 12, 31)
+CMIP7_PI_DATE_CONSTRAINT = iris.Constraint(
+    time=lambda cell: CMIP7_PI_BEG_DATE <= cell.point <= CMIP7_PI_END_DATE)
 
 
 def fix_esm15_pi_ancil_date(ifile, ofile):

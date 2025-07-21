@@ -1,15 +1,13 @@
+from aerosol.cmip7_aerosol_common import zero_poles
+
 from cmip7_ancil_common import (
-        CMIP7_PI_DATE_CONSTRAINT,
+        esm_grid_mask,
         fix_coords,
         interpolation_scheme,
-        mask_esm15,
         save_ancil)
 from cmip7_ancil_paths import CMIP7_SOURCE_DATA
 
-from aerosol.cmip7_aerosol_common import (
-        ESM_PI_AEROSOL_SAVE_DIR,
-        zero_poles)
-
+from iris.util import equalise_attributes
 from pathlib import Path
 
 import iris
@@ -20,8 +18,6 @@ CMIP7_AEROSOL_ANTHRO_VERSION = os.environ[
         'CMIP7_AEROSOL_ANTHRO_VERSION']
 CMIP7_AEROSOL_ANTHRO_VDATE = os.environ[
         'CMIP7_AEROSOL_ANTHRO_VDATE']
-CMIP7_AEROSOL_ANTHRO_DATE_RANGE = os.environ[
-        'CMIP7_AEROSOL_ANTHRO_DATE_RANGE']
 
 
 def cmip7_aerosol_anthro_base(version):
@@ -36,40 +32,66 @@ def cmip7_aerosol_anthro_pathname(species, version, vdate, date_range):
     return str(base / f'{species}_em_anthro' / 'gn' / vdate / filename)
 
 
+def cmip7_aerosol_anthro_pathname_list(
+        species,
+        version,
+        vdate,
+        date_range_list):
+    return [cmip7_aerosol_anthro_pathname(species, version, vdate, date_range)
+            for date_range in date_range_list]
+
+
 def load_cmip7_aerosol_anthro(
         species,
         version,
         vdate,
         date_range,
         constraint):
+    pathname = cmip7_aerosol_anthro_pathname(
+            species,
+            version,
+            vdate,
+            date_range)
     cube = iris.load_cube(
-            cmip7_aerosol_anthro_pathname(
-                species,
-                version,
-                vdate,
-                date_range),
+            pathname,
             constraint)
     fix_coords(cube)
     return cube
 
 
-def load_cmip7_pi_aerosol_anthro(species):
-    return load_cmip7_aerosol_anthro(
+def load_cmip7_aerosol_anthro_list(
+        species,
+        version,
+        vdate,
+        date_range_list,
+        constraint):
+    pathname_list = cmip7_aerosol_anthro_pathname_list(
             species,
-            CMIP7_AEROSOL_ANTHRO_VERSION,
-            CMIP7_AEROSOL_ANTHRO_VDATE,
-            CMIP7_AEROSOL_ANTHRO_DATE_RANGE,
-            CMIP7_PI_DATE_CONSTRAINT)
+            version,
+            vdate,
+            date_range_list)
+    cube_list = iris.load_raw(
+            pathname_list,
+            constraint)
+    equalise_attributes(cube_list)
+    cube = cube_list.concatenate_cube()
+    fix_coords(cube)
+    return cube
 
 
-def cmip7_aerosol_anthro_interpolate(species, stash_item, ancil_filename):
-    cube = load_cmip7_pi_aerosol_anthro(species)
+def cmip7_aerosol_anthro_interpolate(
+        load_fn,
+        species,
+        stash_item,
+        save_dir,
+        ancil_filename):
+    cube = load_fn(species)
     cube_tot = cube.collapsed(['sector'], iris.analysis.SUM)
-    esm_cube = cube_tot.regrid(mask_esm15, interpolation_scheme)
-    esm_cube.data = esm_cube.data.filled(0.)
+    esm_cube = cube_tot.regrid(esm_grid_mask, interpolation_scheme)
+    esm_cube.data = esm_cube.data.filled(0.0)
     zero_poles(esm_cube)
     esm_cube.attributes['STASH'] = iris.fileformats.pp.STASH(
         model=1,
         section=0,
         item=stash_item)
-    save_ancil(esm_cube, ESM_PI_AEROSOL_SAVE_DIR, ancil_filename)
+    save_ancil(esm_cube, save_dir, ancil_filename)
