@@ -80,7 +80,7 @@ def match_time_attributes(from_cube, to_cube):
         to_time.attributes[attr] = value
 
 
-def save_cmip7_aerosol_anthro(
+def save_cmip7_so2_aerosol_anthro(
         cmip7_load_fn,
         date_range,
         dms_load_fn,

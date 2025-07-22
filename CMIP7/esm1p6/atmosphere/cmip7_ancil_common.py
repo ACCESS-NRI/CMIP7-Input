@@ -83,23 +83,28 @@ def zero_poles(cube):
 
 def save_ancil(cubes, ancil_dirname, ancil_filename):
     """
-    Single year creates file with correct time_type=2
-    ants creates files with the model_version header set to the ants version.
-    UM vn7.3 interprets 201 as an old unsupported dump format.
-    Need to reset to 703.
+    Handle both a list and a single cube
     """
-    ants.__version__ = UM_VERSION
-    # Handle both a list and a single cube
     if not type(cubes) is list:
         cubes = [cubes]
+    """
+    Set correct cube grid and time attributes
+    Single year creates file with correct time_type=2
+    """
     for cube in cubes:
         cube.attributes["grid_staggering"] = 3  # New dynamics
         cube.attributes["time_type"] = 1  # Gregorian
         set_gregorian(cube)
-    # ants doesn't set the calendar header for monthly fields
-    # See fileformats/ancil/time_headers.py
-    # UM vn7.3 doesn't handle the missing value, so set the value with mule
-    # mule doesn't work in place on a file, so inital save to a temporary
+    """
+    ANTS doesn't set the calendar header for monthly fields
+    See fileformats/ancil/time_headers.py
+    UM vn7.3 doesn't handle the missing value, so set the value with mule
+    Mule doesn't work in place on a file, so inital save to a temporary
+    ANTS creates files with the model_version header set to the ants version.
+    UM vn7.3 interprets 201 as an old unsupported dump format.
+    Need to reset to 703.
+    """
+    ants.__version__ = UM_VERSION
     with tempfile.TemporaryDirectory() as temp:
         ancil_tempname = join_pathname(temp, ancil_filename)
         save.ancil(cubes, ancil_tempname)
