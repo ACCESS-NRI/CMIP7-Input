@@ -1,4 +1,7 @@
-from aerosol.cmip7_aerosol_common import zero_poles
+from aerosol.cmip7_aerosol_common import (
+        load_cmip7_aerosol,
+        load_cmip7_aerosol_list,
+        zero_poles)
 
 from cmip7_ancil_common import (
         esm_grid_mask,
@@ -8,7 +11,6 @@ from cmip7_ancil_common import (
 from cmip7_ancil_paths import CMIP7_SOURCE_DATA
 
 from datetime import datetime
-from iris.util import equalise_attributes
 from pathlib import Path
 
 import concurrent.futures as cf
@@ -54,15 +56,13 @@ def load_cmip7_aerosol_biomass(
         vdate,
         date_range,
         constraint):
-    pathname = cmip7_aerosol_biomass_pathname(
+    return load_cmip7_aerosol(
+            cmip7_aerosol_biomass_pathname,
             species,
             version,
             vdate,
-            date_range)
-    cube = iris.load_cube(
-            pathname,
+            date_range,
             constraint)
-    return cube
 
 
 def load_cmip7_aerosol_biomass_list(
@@ -71,17 +71,13 @@ def load_cmip7_aerosol_biomass_list(
         vdate,
         date_range_list,
         constraint):
-    pathname_list = cmip7_aerosol_biomass_pathname_list(
+    return load_cmip7_aerosol_list(
+            cmip7_aerosol_biomass_pathname_list,
             species,
             version,
             vdate,
-            date_range_list),
-    cube_list = iris.load_raw(
-            pathname_list,
+            date_range_list,
             constraint)
-    equalise_attributes(cube_list)
-    cube = cube_list.concatenate_cube()
-    return cube
 
 
 force_load = True
@@ -93,7 +89,8 @@ def split_frac_low_high(
     sources = ['AGRI', 'BORF', 'DEFO', 'PEAT', 'SAVA', 'TEMF']
     pc = dict()
     futures = dict()
-    with cf.ProcessPoolExecutor(max_workers=len(sources)) as ex:
+    max_workers = len(sources)
+    with cf.ProcessPoolExecutor(max_workers=max_workers) as ex:
         for source in sources:
             futures[source] = ex.submit(
                     load_pc_fn,
