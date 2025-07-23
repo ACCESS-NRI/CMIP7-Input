@@ -206,10 +206,8 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
                                       PerTileVariables)
 
     # Add the land fractions- also include previous year as same for LUC
-    OutDataset['FRACTIONS OF SURFACE TYPES'] = (('veg', 'lat', 'lon'),
-                                               NewVegetation)
-    OutDataset['PREVIOUS YEAR SURF FRACTIONS (TILES)'] = \
-        (('veg', 'lat', 'lon'), NewVegetation)
+    OutDataset['FRACTIONS OF SURFACE TYPES'] = (('veg', 'lat', 'lon'),NewVegetation)
+    OutDataset['PREVIOUS YEAR SURF FRACTIONS (TILES)'] = (('veg', 'lat', 'lon'), NewVegetation)
 
     # Perform the per-cell averaging
     # Apply a mask to the array, so we don't mess up our summations with
