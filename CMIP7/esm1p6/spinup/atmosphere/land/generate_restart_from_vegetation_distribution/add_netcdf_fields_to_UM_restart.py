@@ -117,7 +117,7 @@ if __name__ == '__main__':
         SMBase.update(SM)
 
     BaseRestart = mule.FieldsFile.from_file(args.restart)
-    BaseRestart.attach_stashmaster_info(STASHmasterBase.by_section(0))
+    BaseRestart.attach_stashmaster_info(SMBase.by_section(0))
 
     # Drop in the variables to modify
     for Variable in Dataset.data_vars:
