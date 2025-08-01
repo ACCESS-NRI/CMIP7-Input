@@ -21,4 +21,4 @@ output_restart=""
 
 python convert_UM_restart_to_netcdf.py -i ${reference_restart} -o ${restart_as_netcdf}
 python remap_vegetation.py -i ${restart_as_netcdf} -o ${remapped_restart_as_netcdf} -m ${new_vegetation_dist} -c ${remap_config}
-python add_netcdf_fields_to_UM_restart.py -i ${remapped_restart_as_netcdf} -o ${output_restart}
+python add_netcdf_fields_to_UM_restart.py -i ${remapped_restart_as_netcdf} -o ${output_restart} -r ${reference_restart}
