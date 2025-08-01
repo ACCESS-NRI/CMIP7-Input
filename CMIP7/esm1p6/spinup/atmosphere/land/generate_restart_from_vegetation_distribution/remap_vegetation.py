@@ -214,7 +214,7 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
     # Perform the per-cell averaging
     # Apply a mask to the array, so we don't mess up our summations with
     # near-zero vegetation fractions
-    InputVegetation = numpy.ma.masked_less(InputVegetation, 1e-3)
+    InputVegetation = numpy.ma.masked_less(InputVegetation, 1e-6)
 
     for Variable in PerCellVariables:
         res = numpy.sum(InputDataset[Variable].to_numpy() * InputVegetation, axis=0)
