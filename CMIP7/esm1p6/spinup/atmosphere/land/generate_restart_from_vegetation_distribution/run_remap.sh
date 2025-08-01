@@ -8,7 +8,7 @@
 #PBS -l wd
 
 module use /g/data/xp65/public/modules
-module load conda/analysis3
+module load conda/analysis3-25.08
 
 reference_restart=""
 restart_as_netcdf=""
