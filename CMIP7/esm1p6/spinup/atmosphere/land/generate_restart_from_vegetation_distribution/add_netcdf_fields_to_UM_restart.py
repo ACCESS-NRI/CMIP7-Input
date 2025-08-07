@@ -126,4 +126,4 @@ if __name__ == '__main__':
     # Write to file- since the UM7 restart doesn't match their expected format
     # for some reason, we need to override the existing to_file
     BaseRestart.to_file = to_file
-    BaseRestart.to_file(BaseRestartFile, args.output)
+    BaseRestart.to_file(BaseRestart, args.output)
