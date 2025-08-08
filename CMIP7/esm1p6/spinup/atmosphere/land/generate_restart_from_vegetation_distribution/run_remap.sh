@@ -11,7 +11,7 @@ module use /g/data/xp65/public/modules
 module load conda/analysis3-25.08
 
 reference_restart=""    # UM restart to use as a start point
-restart_as_netcdf=""    # Intermediate NetCDF file to gold the CABLE relevant fields
+restart_as_netcdf=""    # Intermediate NetCDF file to hold the CABLE relevant fields
 new_vegetation_dist=""  # New vegetation distribution to substitute in
 remap_config=""         # Config file to configure the remapping
 remapped_restart_as_netcdf=""  # Remapped CABLE fields 
