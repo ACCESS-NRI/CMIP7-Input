@@ -85,6 +85,7 @@ def split_frac_low_high(
                     load_pc_fn,
                     args,
                     f'{species}percentage{source}')
+        for source in sources:
             pc[source] = futures[source].result()
     # For the low/high split follow Met Office CMIP6
     # low: AGRI, PEAT, SAVA
