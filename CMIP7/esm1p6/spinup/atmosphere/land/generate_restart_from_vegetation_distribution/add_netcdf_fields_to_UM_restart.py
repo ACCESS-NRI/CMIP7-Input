@@ -1,6 +1,7 @@
 import xarray
 import mule
 import six
+import argparse
 
 def _parse_args():
     """Read the command line arguments."""
@@ -116,7 +117,7 @@ if __name__ == '__main__':
         SMBase.update(SM)
 
     BaseRestart = mule.FieldsFile.from_file(args.restart)
-    BaseRestart.attach_stashmaster_info(STASHmasterBase.by_section(0))
+    BaseRestart.attach_stashmaster_info(SMBase.by_section(0))
 
     # Drop in the variables to modify
     for Variable in Dataset.data_vars:
@@ -125,4 +126,4 @@ if __name__ == '__main__':
     # Write to file- since the UM7 restart doesn't match their expected format
     # for some reason, we need to override the existing to_file
     BaseRestart.to_file = to_file
-    BaseRestart.to_file(BaseRestartFile, args.output)
+    BaseRestart.to_file(BaseRestart, args.output)

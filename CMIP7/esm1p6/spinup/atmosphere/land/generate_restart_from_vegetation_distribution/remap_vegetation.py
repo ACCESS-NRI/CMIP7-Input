@@ -208,13 +208,13 @@ def remap_vegetation(InputDataset, InputVegetation, OutputVegetation, Config):
     # Add the land fractions- also include previous year as same for LUC
     OutDataset['FRACTIONS OF SURFACE TYPES'] = (('veg', 'lat', 'lon'),
                                                NewVegetation)
-    OutDataset['PREVIOUS YEAR SURF FRACTIONS (TILES)'] =
+    OutDataset['PREVIOUS YEAR SURF FRACTIONS (TILES)'] = \
         (('veg', 'lat', 'lon'), NewVegetation)
 
     # Perform the per-cell averaging
     # Apply a mask to the array, so we don't mess up our summations with
     # near-zero vegetation fractions
-    InputVegetation = numpy.ma.masked_less(InputVegetation, 1e-3)
+    InputVegetation = numpy.ma.masked_less(InputVegetation, 1e-6)
 
     for Variable in PerCellVariables:
         res = numpy.sum(InputDataset[Variable].to_numpy() * InputVegetation, axis=0)
