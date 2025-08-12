@@ -17,9 +17,3 @@ repos:
         args: ['--fix']
     -   id: ruff-format
         types_or: [ python, pyi ] # Exclude jupyter notebooks
-# Run the type checker.
-# -   repo: https://github.com/pre-commit/mirrors-mypy
-#     rev: 'v1.17.0'
-#     hooks:
-#     -   id: mypy
-#         name: mypy
