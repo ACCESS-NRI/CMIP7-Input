@@ -6,47 +6,24 @@ import cf_units
 import iris
 import mule
 import numpy as np
+import os
 import tempfile
 
-from os import fsdecode
 from pathlib import Path
 
 from cmip7_ancil_constants import UM_VERSION
+from cmip7_ancil_paths import ESM16_GRID_MASK_FILE
 
 
-INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
+esm_grid_mask = iris.load_cube(ESM16_GRID_MASK_FILE)
+esm_grid_mask.coord('latitude').guess_bounds()
+esm_grid_mask.coord('longitude').guess_bounds()
+
+interpolation_scheme = iris.analysis.AreaWeighted(mdtol=0.5)
 
 
-def cmip7_date_constraint_from_years(beg_year, end_year):
-    # For CMIP6 and CMIP7 data
-    beg_date = cftime.DatetimeNoLeap(beg_year, 1, 1)
-    end_date = cftime.DatetimeNoLeap(end_year, 12, 31)
-    return iris.Constraint(
-            time=lambda cell: beg_date <= cell.point <= end_date)
-
-
-def cmip7_date_constraint_from_args(args):
-    return cmip7_date_constraint_from_years(
-            args.constraint_beg_year,
-            args.constraint_end_year)
-
-
-def esm_grid_mask_filepath(args):
-    return (Path(args.esm15_inputs_dirname)
-            / 'modern'
-            / 'share'
-            / 'atmosphere'
-            / 'grids'
-            / args.esm_grid_rel_dirname
-            / args.esm15_grid_version
-            / 'qrparm.mask')
-
-
-def esm_grid_mask_cube(args):
-    cube = iris.load_cube(esm_grid_mask_filepath(args))
-    cube.coord('latitude').guess_bounds()
-    cube.coord('longitude').guess_bounds()
-    return cube
+def join_pathname(path_prefix, path_suffix):
+    return str(Path(path_prefix) / path_suffix)
 
 
 def set_gregorian(var):
@@ -88,8 +65,7 @@ def set_coord_system(cube):
     cube.coord('longitude').coord_system = coord_system
 
 
-def fix_coords(args, cube):
-    esm_grid_mask = esm_grid_mask_cube(args)
+def fix_coords(cube):
     cube.coord('latitude').coord_system = (
         esm_grid_mask.coord('latitude').coord_system)
     cube.coord('longitude').coord_system = (
@@ -105,7 +81,7 @@ def zero_poles(cube):
     cube.data[:, -1] = 0.
 
 
-def save_ancil(cubes, save_dirpath, save_filename):
+def save_ancil(cubes, ancil_dirname, ancil_filename):
     """
     Handle both a list and a single cube
     """
@@ -129,13 +105,13 @@ def save_ancil(cubes, save_dirpath, save_filename):
     Need to reset to 703.
     """
     ants.__version__ = UM_VERSION
-    with tempfile.TemporaryDirectory() as temp_dirname:
-        save_temp_pathname = fsdecode(Path(temp_dirname) / save_filename)
-        save.ancil(cubes, save_temp_pathname)
+    with tempfile.TemporaryDirectory() as temp:
+        ancil_tempname = join_pathname(temp, ancil_filename)
+        save.ancil(cubes, ancil_tempname)
         sm = mule.STASHmaster.from_version(UM_VERSION)
-        ff = mule.AncilFile.from_file(save_temp_pathname, stashmaster=sm)
+        ff = mule.AncilFile.from_file(ancil_tempname, stashmaster=sm)
         ff.fixed_length_header.calendar = 1
         # Ensure that the directory exists.
-        save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
-        save_file_pathname = fsdecode(save_dirpath / save_filename)
-        ff.to_file(save_file_pathname)
+        os.makedirs(ancil_dirname, mode=0o755, exist_ok=True)
+        ancil_pathname = join_pathname(ancil_dirname, ancil_filename)
+        ff.to_file(ancil_pathname)

@@ -1,42 +1,32 @@
 from aerosol.cmip7_aerosol_anthro import (
         cmip7_aerosol_anthro_interpolate,
+        CMIP7_AEROSOL_ANTHRO_VERSION,
+        CMIP7_AEROSOL_ANTHRO_VDATE,
         load_cmip7_aerosol_anthro)
-from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_save_dirpath
+from aerosol.cmip7_PI_aerosol import ESM_PI_AEROSOL_SAVE_DIR
 
-from cmip7_ancil_argparse import common_parser
-from cmip7_PI import cmip7_pi_date_constraint
+from cmip7_PI import CMIP7_PI_DATE_CONSTRAINT
 
-from argparse import ArgumentParser
-
-
-def parse_args(species, save_filename):
-
-    parser = ArgumentParser(
-            prog=f'cmip7_PI_{species}_interpolate',
-            description=(
-                'Generate input files from CMIP7 pre-industrial '
-                f'{species} forcings'),
-            parents=[common_parser()])
-    parser.add_argument('--dataset-date-range')
-    parser.add_argument('--save-filename', default=save_filename)
-    return parser.parse_args()
+import os
 
 
-def load_cmip7_pi_aerosol_anthro(args, species):
+CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE = os.environ[
+        'CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE']
+
+
+def load_cmip7_pi_aerosol_anthro(species):
     return load_cmip7_aerosol_anthro(
-            args,
             species,
-            args.dataset_date_range,
-            cmip7_pi_date_constraint())
+            CMIP7_AEROSOL_ANTHRO_VERSION,
+            CMIP7_AEROSOL_ANTHRO_VDATE,
+            CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE,
+            CMIP7_PI_DATE_CONSTRAINT)
 
 
-def cmip7_pi_aerosol_anthro_interpolate(
-        args,
-        species,
-        stash_item):
+def cmip7_pi_aerosol_anthro_interpolate(species, stash_item, ancil_filename):
     cmip7_aerosol_anthro_interpolate(
-            args,
             load_cmip7_pi_aerosol_anthro,
             species,
             stash_item,
-            esm_pi_aerosol_save_dirpath(args))
+            ESM_PI_AEROSOL_SAVE_DIR,
+            ancil_filename)

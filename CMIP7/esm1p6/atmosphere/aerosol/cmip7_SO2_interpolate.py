@@ -1,14 +1,15 @@
 # Interpolate CMIP7 PI SO2 emissions to ESM1-6 grid
 
 from cmip7_ancil_common import (
-        esm_grid_mask_cube,
-        INTERPOLATION_SCHEME,
+        esm_grid_mask,
+        interpolation_scheme,
+        join_pathname,
         save_ancil)
 from aerosol.cmip7_aerosol_common import zero_poles
-from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
-
-from os import fsdecode
-from pathlib import Path
+from aerosol.cmip7_aerosol_anthro import (
+        cmip7_aerosol_anthro_pathname,
+        CMIP7_AEROSOL_ANTHRO_VDATE,
+        CMIP7_AEROSOL_ANTHRO_VERSION)
 
 import iris
 import netCDF4
@@ -20,14 +21,18 @@ DMS_NAME_CONSTRAINT = iris.Constraint(
              'dimethyl_sulfide_expressed_as_sulfur_due_to_emission')
 
 
-def load_sector_dict(args, date_range_maybe_list):
+def load_sector_dict(date_range_maybe_list):
     date_range = (
             date_range_maybe_list[0]
             if isinstance(date_range_maybe_list, list)
             else
             date_range_maybe_list)
     # Iris doesn't read the sector coordinate so use netCDF4
-    d = netCDF4.Dataset(cmip7_aerosol_anthro_filepath(args, 'SO2', date_range))
+    d = netCDF4.Dataset(cmip7_aerosol_anthro_pathname(
+            'SO2',
+            CMIP7_AEROSOL_ANTHRO_VERSION,
+            CMIP7_AEROSOL_ANTHRO_VDATE,
+            date_range))
     sectord = dict()
     for s in d['sector'].ids.split(';'):
         i, name = s.split(':')
@@ -37,15 +42,18 @@ def load_sector_dict(args, date_range_maybe_list):
 
 
 def load_dms(
-        args,
-        dms_ancil_dirpath,
+        dms_ancil_dirname,
+        dms_ancil_filename,
         fix_ancil_date_fn):
     # Use the CMIP6 DMS
-    dms_ancil_pathname = fsdecode(
-            dms_ancil_dirpath / args.dms_ancil_filename)
+    dms_ancil_pathname = join_pathname(
+            dms_ancil_dirname,
+            dms_ancil_filename)
+
     with tempfile.TemporaryDirectory() as temp:
-        dms_ancil_tempname = fsdecode(
-                Path(temp) / args.dms_ancil_filename)
+        dms_ancil_tempname = join_pathname(
+                temp,
+                dms_ancil_filename)
         # Create a temporary file with fixed dates
         # from the CMIP6 DMS file
         fix_ancil_date_fn(
@@ -73,16 +81,16 @@ def match_time_attributes(from_cube, to_cube):
 
 
 def save_cmip7_so2_aerosol_anthro(
-        args,
         cmip7_load_fn,
         date_range,
         dms_load_fn,
-        save_dirpath):
+        ancil_dirname,
+        ancil_filename):
 
-    cmip7_so2 = cmip7_load_fn(args, 'SO2')
+    cmip7_so2 = cmip7_load_fn('SO2')
 
     # Iris doesn't read the sector coordinate
-    sectord = load_sector_dict(args, date_range)
+    sectord = load_sector_dict(date_range)
 
     cmip7_so2_high = (
             cmip7_so2[:, sectord['Energy']]
@@ -92,11 +100,11 @@ def save_cmip7_so2_aerosol_anthro(
 
     # For ESM1.6, factor of 0.5 to go to mass of S
     so2_low = 0.5 * cmip7_so2_low.regrid(
-            esm_grid_mask_cube(args),
-            INTERPOLATION_SCHEME)
+            esm_grid_mask,
+            interpolation_scheme)
     so2_high = 0.5 * cmip7_so2_high.regrid(
-            esm_grid_mask_cube(args),
-            INTERPOLATION_SCHEME)
+            esm_grid_mask,
+            interpolation_scheme)
 
     so2_low.data = so2_low.data.filled(0.0)
     so2_high.data = so2_high.data.filled(0.0)
@@ -116,13 +124,14 @@ def save_cmip7_so2_aerosol_anthro(
     # Need to remove the sector coordinate before saving
     # because high doesn't have it
     so2_low.remove_coord('sector')
+
     # Use the CMIP6 DMS
-    dms = dms_load_fn(args)
+    dms = dms_load_fn()
 
     # Make the attributes and coordinates match
     match_time_attributes(so2_low, dms)
 
     save_ancil(
             [so2_low, so2_high, dms],
-            save_dirpath,
-            args.save_filename)
+            ancil_dirname,
+            ancil_filename)

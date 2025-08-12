@@ -1,17 +1,11 @@
-from cmip7_ancil_constants import ANCIL_TODAY
+from cmip7_ancil_common import join_pathname
+from cmip7_ancil_paths import ANCIL_TARGET_PATH
 
-from pathlib import Path
-
-
-def esm_pi_aerosol_ancil_dirpath(ancil_root_dirname):
-    return (Path(ancil_root_dirname)
-            / 'modern'
-            / 'pre-industrial'
-            / 'atmosphere'
-            / 'aerosol')
+import os
 
 
-def esm_pi_aerosol_save_dirpath(args):
-    return (esm_pi_aerosol_ancil_dirpath(args.ancil_target_dirname)
-            / args.esm_grid_rel_dirname
-            / ANCIL_TODAY)
+ESM15_PI_AEROSOL_VERSION = os.environ['ESM15_PI_AEROSOL_VERSION']
+ESM_PI_AEROSOL_REL_PATH = 'modern/pre-industrial/atmosphere/aerosol'
+ESM_PI_AEROSOL_SAVE_DIR = join_pathname(
+        ANCIL_TARGET_PATH,
+        ESM_PI_AEROSOL_REL_PATH)
