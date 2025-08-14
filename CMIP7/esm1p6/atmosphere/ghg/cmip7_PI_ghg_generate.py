@@ -36,9 +36,9 @@ def cmip7_pi_ghg_filename(args, ghg):
 def load_cmip7_pi_ghg_mmr(args, ghg):
 
     cmip7_filepath = (
-            cmip7_ghg_dirpath(args, ghg) 
+            cmip7_ghg_dirpath(args, ghg)
             / cmip7_pi_ghg_filename(args, ghg))
-    
+
     # Read in the CMIP7 cube
     full_cube = iris.load_cube(cmip7_filepath)
     # ghg_cube = ghg_cube_list.concatenate_cube()
@@ -51,7 +51,7 @@ def load_cmip7_pi_ghg_mmr(args, ghg):
 
     # Check that we have the right greenhouse gas
     variable_id = pi_cube.metadata.attributes['variable_id']
-    assert(ghg == variable_id)
+    assert ghg == variable_id
 
     # Determine the mass mixing ratio
     pi_ghg_conc = pi_cube.data
@@ -112,4 +112,4 @@ if __name__ == '__main__':
         ghg_mmr_dict[ghg] = load_cmip7_pi_ghg_mmr(args, ghg)
 
     # Patch the greenhouse gas variables in the RUN_Radiation namelist
-    cmip7_pi_ghg_patch(ghg_mmr_dict) 
+    cmip7_pi_ghg_patch(ghg_mmr_dict)
