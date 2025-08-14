@@ -1,18 +1,6 @@
 from argparse import ArgumentParser
 
 
-def common_parser():
-    parser = ArgumentParser(add_help=False)
-    parser.add_argument('--ancil-target-dirname')
-    parser.add_argument('--cmip7-source-data-dirname')
-    parser.add_argument('--esm15-inputs-dirname')
-    parser.add_argument('--esm-grid-rel-dirname')
-    parser.add_argument('--esm15-grid-version')
-    parser.add_argument('--dataset-version')
-    parser.add_argument('--dataset-vdate')
-    return parser
-
-
 def constraint_year_parser(beg_year=None, end_year=None):
     parser = ArgumentParser(add_help=False)
     parser.add_argument(
@@ -26,6 +14,13 @@ def constraint_year_parser(beg_year=None, end_year=None):
     return parser
 
 
+def dataset_parser():
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument('--dataset-version')
+    parser.add_argument('--dataset-vdate')
+    return parser
+
+
 def dms_filename_parser(dms_ancil_filename=None):
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--esm15-aerosol-version')
@@ -35,9 +30,34 @@ def dms_filename_parser(dms_ancil_filename=None):
     return parser
 
 
+def grid_parser():
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument('--esm-grid-rel-dirname')
+    parser.add_argument('--esm15-grid-version')
+    return parser
+
+
+def path_parser():
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument('--ancil-target-dirname')
+    parser.add_argument('--cmip7-source-data-dirname')
+    parser.add_argument('--esm15-inputs-dirname')
+    return parser
+
+
 def percent_parser():
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--percent-version')
     parser.add_argument('--percent-vdate')
     parser.add_argument('--percent-date-range')
+    return parser
+
+
+def common_parser():
+    parser = ArgumentParser(
+            parents=[
+                path_parser(),
+                grid_parser(),
+                dataset_parser()],
+            add_help=False)
     return parser
