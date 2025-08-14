@@ -120,7 +120,7 @@ if __name__ == '__main__':
     BaseRestart.attach_stashmaster_info(SMBase.by_section(0))
 
     # Drop in the variables to modify
-    for Variable in Dataset.data_vars:
+    for Variable in ProcessedRestart.data_vars:
         modify_UM_field_by_name(BaseRestart, ProcessedRestart, Variable)
 
     # Write to file- since the UM7 restart doesn't match their expected format
