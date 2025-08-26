@@ -3,11 +3,11 @@ from cmip7_ancil_argparse import (
         path_parser)
 from cmip7_PI import CMIP7_PI_YEAR
 from ghg.cmip7_ghg import (
-        DRY_AIR_MOLAR_MASS,
-        GHG_MOLAR_MASS,
-        SCALE_FACTOR,
         cmip7_pro_greg_date_constraint_from_years,
-        cmip7_ghg_dirpath)
+        cmip7_ghg_dirpath,
+        cmip7_ghg_filename,
+        cmip7_ghg_mmr,
+        GHG_MOLAR_MASS)
 
 from argparse import ArgumentParser
 from pathlib import Path
@@ -27,21 +27,18 @@ def parse_args():
     return parser.parse_args()
 
 
-def cmip7_pi_ghg_filename(args, ghg):
-
-    return (f'{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_'
-            f'{args.dataset_date_range}.nc')
-
-
 def load_cmip7_pi_ghg_mmr(args, ghg):
 
     cmip7_filepath = (
             cmip7_ghg_dirpath(args, ghg)
-            / cmip7_pi_ghg_filename(args, ghg))
+            / cmip7_ghg_filename(args, ghg))
 
     # Read in the CMIP7 cube
     full_cube = iris.load_cube(cmip7_filepath)
-    # ghg_cube = ghg_cube_list.concatenate_cube()
+
+    # Check that we have the right greenhouse gas
+    variable_id = full_cube.metadata.attributes['variable_id']
+    assert ghg == variable_id
 
     # Extract the pre-industrial year
     date_constraint = cmip7_pro_greg_date_constraint_from_years(
@@ -49,14 +46,8 @@ def load_cmip7_pi_ghg_mmr(args, ghg):
             CMIP7_PI_YEAR)
     pi_cube = full_cube.extract(date_constraint)
 
-    # Check that we have the right greenhouse gas
-    variable_id = pi_cube.metadata.attributes['variable_id']
-    assert ghg == variable_id
-
     # Determine the mass mixing ratio
-    pi_ghg_conc = pi_cube.data
-    scale = SCALE_FACTOR[pi_cube.metadata.units.origin]
-    return pi_ghg_conc * scale * GHG_MOLAR_MASS[ghg] / DRY_AIR_MOLAR_MASS
+    return cmip7_ghg_mmr(pi_cube, ghg)
 
 
 def cmip7_pi_ghg_patch(ghg_mmr_dict):

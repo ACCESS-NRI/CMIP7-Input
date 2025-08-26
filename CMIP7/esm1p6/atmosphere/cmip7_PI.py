@@ -6,6 +6,7 @@ import mule
 
 
 CMIP7_PI_YEAR = 1850
+DAYS_IN_CMIP7_PI_YEAR = 365.0
 
 
 def cmip7_pi_date_constraint():
