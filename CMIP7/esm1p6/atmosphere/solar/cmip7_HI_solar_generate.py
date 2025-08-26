@@ -1,14 +1,13 @@
-from cmip7_ancil_constants import ANCIL_TODAY
 from cmip7_ancil_argparse import (
         common_parser,
         constraint_year_parser)
+from cmip7_HI import esm_hi_forcing_save_dirpath
 
 from solar.cmip7_solar import (
         load_cmip7_solar_cube,
         cmip7_solar_dirpath)
 
 from argparse import ArgumentParser
-from pathlib import Path
 
 import iris
 
@@ -16,7 +15,6 @@ import iris
 def parse_args():
     CMIP7_HI_SOLAR_BEG_YEAR = 1850
     CMIP7_HI_SOLAR_END_YEAR = 2023
-    ESM_HI_SOLAR_SAVE_FILENAME = 'TSI_CMIP7_ESM'
 
     parser = ArgumentParser(
             prog='cmip7_HI_solar_generate',
@@ -28,14 +26,13 @@ def parse_args():
                     beg_year=CMIP7_HI_SOLAR_BEG_YEAR,
                     end_year=CMIP7_HI_SOLAR_END_YEAR)])
     parser.add_argument('--dataset-date-range')
-    parser.add_argument(
-            '--save-filename',
-            default=ESM_HI_SOLAR_SAVE_FILENAME)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 
-def cmip7_hi_solar_save(args, cube, save_dirpath):
-    # Ensure that the directory exists.
+def cmip7_hi_solar_save(args, cube):
+    save_dirpath = esm_hi_forcing_save_dirpath(args)
+    # Ensure that the save directory exists.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
     with open(save_filepath, 'w') as save_file:
@@ -60,13 +57,4 @@ if __name__ == '__main__':
 
     solar_irradiance_cube = load_cmip7_solar_cube(cmip7_filepath)
 
-    save_dirpath = (
-            Path(args.ancil_target_dirname)
-            / 'modern'
-            / 'historical'
-            / 'atmosphere'
-            / 'forcing'
-            / 'resolution_independent'
-            / ANCIL_TODAY)
-
-    cmip7_hi_solar_save(args, solar_irradiance_cube, save_dirpath)
+    cmip7_hi_solar_save(args, solar_irradiance_cube)

@@ -1,7 +1,22 @@
-from cmip7_ancil_constants import UM_VERSION
+from cmip7_ancil_constants import (
+    ANCIL_TODAY,
+    UM_VERSION)
+
+from pathlib import Path
 
 import calendar
 import mule
+
+
+def esm_hi_forcing_save_dirpath(args):
+
+    return (Path(args.ancil_target_dirname)
+            / 'modern'
+            / 'historical'
+            / 'atmosphere'
+            / 'forcing'
+            / 'resolution_independent'
+            / ANCIL_TODAY)
 
 
 def fix_esm15_hi_ancil_date(ifile, ofile):
