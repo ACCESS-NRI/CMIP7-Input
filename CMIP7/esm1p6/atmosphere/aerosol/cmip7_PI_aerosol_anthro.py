@@ -9,7 +9,7 @@ from cmip7_PI import cmip7_pi_date_constraint
 from argparse import ArgumentParser
 
 
-def parse_args(species, save_filename):
+def parse_args(species):
 
     parser = ArgumentParser(
             prog=f'cmip7_PI_{species}_interpolate',
@@ -18,7 +18,7 @@ def parse_args(species, save_filename):
                 f'{species} forcings'),
             parents=[common_parser()])
     parser.add_argument('--dataset-date-range')
-    parser.add_argument('--save-filename', default=save_filename)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 

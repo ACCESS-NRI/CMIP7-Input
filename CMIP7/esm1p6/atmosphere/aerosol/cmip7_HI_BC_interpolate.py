@@ -4,11 +4,8 @@ from aerosol.cmip7_HI_aerosol_anthro import (
         cmip7_hi_aerosol_anthro_interpolate)
 
 
-SAVE_FILENAME = 'BC_1849_2015_cmip7.anc'
-
-
 if __name__ == '__main__':
 
-    args = parse_args(species='BC', save_filename=SAVE_FILENAME)
+    args = parse_args(species='BC')
 
     cmip7_hi_aerosol_anthro_interpolate(args, species='BC', stash_item=129)

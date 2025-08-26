@@ -14,7 +14,7 @@ from cmip7_ancil_common import cmip7_date_constraint_from_args
 from argparse import ArgumentParser
 
 
-def parse_args(species, save_filename):
+def parse_args(species):
 
     parser = ArgumentParser(
             prog=f'cmip7_HI_{species}_interpolate',
@@ -27,7 +27,7 @@ def parse_args(species, save_filename):
                     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
                     end_year=CMIP7_HI_AEROSOL_END_YEAR)])
     parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename', default=save_filename)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 

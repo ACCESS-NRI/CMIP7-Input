@@ -20,8 +20,6 @@ from argparse import ArgumentParser
 
 def parse_args():
 
-    SAVE_FILENAME = 'Bio_1849_2015_cmip7.anc'
-
     parser = ArgumentParser(
             prog='cmip7_HI_Bio_interpolate',
             description=(
@@ -33,7 +31,7 @@ def parse_args():
                     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
                     end_year=CMIP7_HI_AEROSOL_END_YEAR)])
     parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename', default=SAVE_FILENAME)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 

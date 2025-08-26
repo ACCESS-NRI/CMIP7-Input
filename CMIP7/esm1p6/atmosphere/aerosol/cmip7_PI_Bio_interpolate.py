@@ -15,8 +15,6 @@ from argparse import ArgumentParser
 
 def parse_args():
 
-    SAVE_FILENAME = 'Bio_1850_cmip7.anc'
-
     parser = ArgumentParser(
             prog='cmip7_PI_Bio_interpolate',
             description=(
@@ -26,7 +24,7 @@ def parse_args():
                 common_parser(),
                 percent_parser()])
     parser.add_argument('--dataset-date-range')
-    parser.add_argument('--save-filename', default=SAVE_FILENAME)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 

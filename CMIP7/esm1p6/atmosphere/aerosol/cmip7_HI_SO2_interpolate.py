@@ -22,7 +22,6 @@ from argparse import ArgumentParser
 def parse_args():
 
     DMS_ANCIL_FILENAME = 'scycl_1849_2015_ESM1_v4.anc'
-    SAVE_FILENAME = 'scycl_1849_2015_cmip7.anc'
 
     parser = ArgumentParser(
             prog='cmip7_HI_SO2_interpolate',
@@ -35,7 +34,7 @@ def parse_args():
                     end_year=CMIP7_HI_AEROSOL_END_YEAR),
                 dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME)])
     parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename', default=SAVE_FILENAME)
+    parser.add_argument('--save-filename')
     return parser.parse_args()
 
 
