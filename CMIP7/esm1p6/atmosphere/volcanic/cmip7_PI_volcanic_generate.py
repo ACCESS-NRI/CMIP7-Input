@@ -41,10 +41,10 @@ def mean_over_pi_months(cube):
     in the pre-industrial year, weighted by month length.
     """
     time_coord = next(
-        c for c in cube.coords() 
+        c for c in cube.coords()
         if c.standard_name == "time")
     time_weights = (
-        np.diff(np.append(time_coord.points, [DAYS_IN_CMIP7_PI_YEAR])) 
+        np.diff(np.append(time_coord.points, [DAYS_IN_CMIP7_PI_YEAR]))
         / DAYS_IN_CMIP7_PI_YEAR)
     return cube.collapsed(
         ["time"],
@@ -60,20 +60,20 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
     """
     # Load the dataset into an Iris cube.
     cube = iris.load_cube(dataset_path)
-    
+
     # Constrain to just the CMIP7 prescribed wavelength.
     cube = constrain_to_wavelength(cube, SAOD_WAVELENGTH)
-    
+
     # Replace NaN values with 0.
     np.nan_to_num(cube.data, copy=False)
 
     # Average over months in the pre-industrial year,
     #weighted by month length.
     cube = mean_over_pi_months(cube)
-    
+
     # Find the mean over all latitude bands, weighted by area.
     cube = mean_over_latitudes(cube)
-    
+
     # Calculate the stratospheric aerosol optical depth by
     # summing over stratospheric layers, weighted by layer height.
     cube = sum_over_height_layers(cube)
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     dataset_path = (
-            cmip7_volcanic_dirpath(args, period='monC') 
+            cmip7_volcanic_dirpath(args, period='monC')
             / cmip7_pi_volcanic_filename(args))
 
     # Calculate the average stratospheric optical depth.

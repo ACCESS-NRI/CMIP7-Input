@@ -21,7 +21,7 @@ def cmip7_volcanic_dirpath(args, period):
 
 
 def constrain_to_wavelength(cube, wavelength):
-    """ 
+    """
     Constrain to just the prescribed wavelength.
     """
     wl_constraint = iris.Constraint(radiation_wavelength=wavelength)
@@ -45,7 +45,7 @@ def sum_over_height_layers(cube):
     summing over stratospheric layers, weighted by layer height.
     """
     height_coord = next(
-        c for c in cube.coords() 
+        c for c in cube.coords()
         if c.standard_name == "height_above_mean_sea_level")
     height_weights = np.diff(height_coord.bounds).flatten()
     return cube.collapsed(

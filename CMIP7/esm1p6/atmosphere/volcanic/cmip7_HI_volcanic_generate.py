@@ -75,10 +75,10 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     """
     # Load the dataset into an Iris cube.
     cube = iris.load_cube(dataset_path)
-    
+
     # Constrain to just the CMIP7 prescribed wavelength.
     cube = constrain_to_wavelength(cube, SAOD_WAVELENGTH)
-    
+
     # Replace NaN values with 0.
     np.nan_to_num(cube.data, copy=False)
 
@@ -97,15 +97,15 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     end='',
                     file=save_file)
                 ym_cube = constrain_to_year_month(cube, year, month)
-                
+
                 # Divide into 4 latitude bands.
                 for lat_band_nbr in range(4):
                     lat_cube = constrain_to_latitude_band(ym_cube, lat_band_nbr)
-                    
+
                     # Find the mean over all latitudes included in this band,
                     # weighted by area.
                     lat_cube = mean_over_latitudes(lat_cube)
-                    
+
                     # Calculate the stratospheric aerosol optical depth
                     # by summing over stratospheric layers,
                     # weighted by layer height.
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     dataset_path = (
-            cmip7_volcanic_dirpath(args, period='mon') 
+            cmip7_volcanic_dirpath(args, period='mon')
             / cmip7_hi_volcanic_filename(args))
 
     # Calculate and save the average stratospheric aerosol optical depth.
