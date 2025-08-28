@@ -1,8 +1,7 @@
-import cftime
-import iris
-
 from pathlib import Path
 
+import cftime
+import iris
 
 # Specify the molar mass of each gas in grams per mole
 DRY_AIR_MOLAR_MASS = 28.97

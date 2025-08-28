@@ -1,16 +1,14 @@
 # Interpolate CMIP7 PI Biomass burning emissions to ESM1.6 grid
 
-from aerosol.cmip7_aerosol_biomass import (
-        load_cmip7_aerosol_biomass,
-        save_cmip7_aerosol_biomass)
-from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_save_dirpath
-
-from cmip7_ancil_argparse import (
-        common_parser,
-        percent_parser)
-from cmip7_PI import cmip7_pi_date_constraint
-
 from argparse import ArgumentParser
+
+from aerosol.cmip7_aerosol_biomass import (
+    load_cmip7_aerosol_biomass,
+    save_cmip7_aerosol_biomass,
+)
+from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_save_dirpath
+from cmip7_ancil_argparse import common_parser, percent_parser
+from cmip7_PI import cmip7_pi_date_constraint
 
 
 def parse_args():

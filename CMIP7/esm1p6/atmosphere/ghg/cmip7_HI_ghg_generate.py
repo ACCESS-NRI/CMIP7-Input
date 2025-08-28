@@ -1,20 +1,17 @@
-from cmip7_ancil_argparse import (
-        dataset_parser,
-        path_parser)
-from ghg.cmip7_ghg import (
-        cmip7_pro_greg_date_constraint_from_years,
-        cmip7_ghg_dirpath,
-        cmip7_ghg_filename,
-        cmip7_ghg_mmr,
-        GHG_MOLAR_MASS)
-
 from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
 import iris
 import numpy as np
-
+from cmip7_ancil_argparse import dataset_parser, path_parser
+from ghg.cmip7_ghg import (
+    GHG_MOLAR_MASS,
+    cmip7_ghg_dirpath,
+    cmip7_ghg_filename,
+    cmip7_ghg_mmr,
+    cmip7_pro_greg_date_constraint_from_years,
+)
 
 CMIP7_GHG_HI_BEG_YEAR = 1850
 CMIP7_GHG_HI_END_YEAR = 2022

@@ -1,19 +1,18 @@
 # Interpolate CMIP7 PI SO2 emissions to ESM1-6 grid
 
-from cmip7_ancil_common import (
-        esm_grid_mask_cube,
-        INTERPOLATION_SCHEME,
-        save_ancil)
-from aerosol.cmip7_aerosol_common import zero_poles
-from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
-
+import tempfile
 from os import fsdecode
 from pathlib import Path
 
 import iris
 import netCDF4
-import tempfile
-
+from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
+from aerosol.cmip7_aerosol_common import zero_poles
+from cmip7_ancil_common import (
+    INTERPOLATION_SCHEME,
+    esm_grid_mask_cube,
+    save_ancil,
+)
 
 DMS_NAME_CONSTRAINT = iris.Constraint(
         name='tendency_of_atmosphere_mass_content_of_'

@@ -1,11 +1,8 @@
-from cmip7_ancil_constants import (
-    ANCIL_TODAY,
-    UM_VERSION)
-
+import calendar
 from pathlib import Path
 
-import calendar
 import mule
+from cmip7_ancil_constants import ANCIL_TODAY, UM_VERSION
 
 
 def esm_hi_forcing_save_dirpath(args):

@@ -1,7 +1,5 @@
 import iris
-from iris.util import (
-        equalise_attributes,
-        unify_time_units)
+from iris.util import equalise_attributes, unify_time_units
 
 
 def load_cmip7_aerosol(

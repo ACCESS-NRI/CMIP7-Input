@@ -1,20 +1,18 @@
-from cmip7_ancil_argparse import (
-        dataset_parser,
-        path_parser)
-from cmip7_PI import DAYS_IN_CMIP7_PI_YEAR
-from volcanic.cmip7_volcanic import (
-        SAOD_WAVELENGTH,
-        cmip7_volcanic_dirpath,
-        constrain_to_wavelength,
-        mean_over_latitudes,
-        sum_over_height_layers)
-
 from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
 import iris
 import numpy as np
+from cmip7_ancil_argparse import dataset_parser, path_parser
+from cmip7_PI import DAYS_IN_CMIP7_PI_YEAR
+from volcanic.cmip7_volcanic import (
+    SAOD_WAVELENGTH,
+    cmip7_volcanic_dirpath,
+    constrain_to_wavelength,
+    mean_over_latitudes,
+    sum_over_height_layers,
+)
 
 
 def parse_args():

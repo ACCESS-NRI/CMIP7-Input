@@ -1,18 +1,16 @@
-import ants
-import ants.io
-import ants.io.save as save
-import cftime
-import cf_units
-import iris
-import mule
-import numpy as np
 import tempfile
-
 from os import fsdecode
 from pathlib import Path
 
+import ants
+import ants.io
+import ants.io.save as save
+import cf_units
+import cftime
+import iris
+import mule
+import numpy as np
 from cmip7_ancil_constants import UM_VERSION
-
 
 INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
@@ -109,7 +107,7 @@ def save_ancil(cubes, save_dirpath, save_filename):
     """
     Handle both a list and a single cube
     """
-    if not type(cubes) is list:
+    if type(cubes) is not list:
         cubes = [cubes]
     """
     Set correct cube grid and time attributes

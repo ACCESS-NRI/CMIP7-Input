@@ -1,19 +1,19 @@
-from aerosol.cmip7_aerosol_common import (
-        load_cmip7_aerosol,
-        load_cmip7_aerosol_list,
-        zero_poles)
-
-from cmip7_ancil_common import (
-        esm_grid_mask_cube,
-        INTERPOLATION_SCHEME,
-        save_ancil,
-        set_coord_system)
-
+import concurrent.futures as cf
 from datetime import datetime
 from pathlib import Path
 
-import concurrent.futures as cf
 import iris
+from aerosol.cmip7_aerosol_common import (
+    load_cmip7_aerosol,
+    load_cmip7_aerosol_list,
+    zero_poles,
+)
+from cmip7_ancil_common import (
+    INTERPOLATION_SCHEME,
+    esm_grid_mask_cube,
+    save_ancil,
+    set_coord_system,
+)
 
 
 def cmip7_aerosol_biomass_rootpath(args):

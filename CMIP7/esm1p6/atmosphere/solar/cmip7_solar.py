@@ -1,6 +1,6 @@
-import iris
-
 from pathlib import Path
+
+import iris
 
 
 def cmip7_solar_dirpath(args, period):

@@ -1,7 +1,6 @@
-from cmip7_ancil_constants import ANCIL_TODAY
-
 from pathlib import Path
 
+from cmip7_ancil_constants import ANCIL_TODAY
 
 CMIP7_HI_AEROSOL_BEG_YEAR = 1849
 CMIP7_HI_AEROSOL_END_YEAR = 2015

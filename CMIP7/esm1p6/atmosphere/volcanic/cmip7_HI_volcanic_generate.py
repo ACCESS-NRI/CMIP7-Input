@@ -1,23 +1,18 @@
 
-from cmip7_ancil_argparse import (
-        dataset_parser,
-        path_parser)
-from cmip7_HI import esm_hi_forcing_save_dirpath
-from volcanic.cmip7_volcanic import (
-        SAOD_WAVELENGTH,
-        cmip7_volcanic_dirpath,
-        constrain_to_wavelength,
-        mean_over_latitudes,
-        sum_over_height_layers)
-
 from argparse import ArgumentParser
-from pathlib import Path
 
 import cftime
-import f90nml
 import iris
 import numpy as np
-
+from cmip7_ancil_argparse import dataset_parser, path_parser
+from cmip7_HI import esm_hi_forcing_save_dirpath
+from volcanic.cmip7_volcanic import (
+    SAOD_WAVELENGTH,
+    cmip7_volcanic_dirpath,
+    constrain_to_wavelength,
+    mean_over_latitudes,
+    sum_over_height_layers,
+)
 
 CMIP7_HI_VOLCANIC_BEG_YEAR = 1850
 CMIP7_HI_VOLCANIC_END_YEAR = 2023

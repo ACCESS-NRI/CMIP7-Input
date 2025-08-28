@@ -1,17 +1,17 @@
-from aerosol.cmip7_aerosol_common import (
-        load_cmip7_aerosol,
-        load_cmip7_aerosol_list,
-        zero_poles)
-
-from cmip7_ancil_common import (
-        esm_grid_mask_cube,
-        fix_coords,
-        INTERPOLATION_SCHEME,
-        save_ancil)
-
 from pathlib import Path
 
 import iris
+from aerosol.cmip7_aerosol_common import (
+    load_cmip7_aerosol,
+    load_cmip7_aerosol_list,
+    zero_poles,
+)
+from cmip7_ancil_common import (
+    INTERPOLATION_SCHEME,
+    esm_grid_mask_cube,
+    fix_coords,
+    save_ancil,
+)
 
 
 def cmip7_aerosol_anthro_rootpath(args):

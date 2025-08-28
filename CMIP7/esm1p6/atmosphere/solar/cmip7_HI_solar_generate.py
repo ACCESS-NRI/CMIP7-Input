@@ -1,15 +1,9 @@
-from cmip7_ancil_argparse import (
-        common_parser,
-        constraint_year_parser)
-from cmip7_HI import esm_hi_forcing_save_dirpath
-
-from solar.cmip7_solar import (
-        load_cmip7_solar_cube,
-        cmip7_solar_dirpath)
-
 from argparse import ArgumentParser
 
 import iris
+from cmip7_ancil_argparse import common_parser, constraint_year_parser
+from cmip7_HI import esm_hi_forcing_save_dirpath
+from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 
 def parse_args():

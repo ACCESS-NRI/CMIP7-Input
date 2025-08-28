@@ -3,7 +3,6 @@ from pathlib import Path
 import iris
 import numpy as np
 
-
 # The prescribed wavelength for stratospheric aerosol optical depth
 SAOD_WAVELENGTH = 550.0 * 1e-9
 

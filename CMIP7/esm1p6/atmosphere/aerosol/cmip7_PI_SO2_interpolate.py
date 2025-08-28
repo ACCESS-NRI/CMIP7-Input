@@ -1,19 +1,18 @@
 # Interpolate CMIP7 PI SO2 emissions to ESM1.6 grid
 
+from argparse import ArgumentParser
+
 from aerosol.cmip7_PI_aerosol import (
-        esm_pi_aerosol_ancil_dirpath,
-        esm_pi_aerosol_save_dirpath)
+    esm_pi_aerosol_ancil_dirpath,
+    esm_pi_aerosol_save_dirpath,
+)
 from aerosol.cmip7_PI_aerosol_anthro import load_cmip7_pi_aerosol_anthro
 from aerosol.cmip7_SO2_interpolate import (
-        load_dms,
-        save_cmip7_so2_aerosol_anthro)
-
-from cmip7_ancil_argparse import (
-        common_parser,
-        dms_filename_parser)
+    load_dms,
+    save_cmip7_so2_aerosol_anthro,
+)
+from cmip7_ancil_argparse import common_parser, dms_filename_parser
 from cmip7_PI import fix_esm15_pi_ancil_date
-
-from argparse import ArgumentParser
 
 
 def parse_args():

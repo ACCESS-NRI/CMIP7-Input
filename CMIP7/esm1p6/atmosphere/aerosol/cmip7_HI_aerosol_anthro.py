@@ -1,17 +1,16 @@
-from aerosol.cmip7_aerosol_anthro import (
-        cmip7_aerosol_anthro_interpolate,
-        load_cmip7_aerosol_anthro_list)
-from aerosol.cmip7_HI_aerosol import (
-        CMIP7_HI_AEROSOL_BEG_YEAR,
-        CMIP7_HI_AEROSOL_END_YEAR,
-        esm_hi_aerosol_save_dirpath)
-
-from cmip7_ancil_argparse import (
-        common_parser,
-        constraint_year_parser)
-from cmip7_ancil_common import cmip7_date_constraint_from_args
-
 from argparse import ArgumentParser
+
+from aerosol.cmip7_aerosol_anthro import (
+    cmip7_aerosol_anthro_interpolate,
+    load_cmip7_aerosol_anthro_list,
+)
+from aerosol.cmip7_HI_aerosol import (
+    CMIP7_HI_AEROSOL_BEG_YEAR,
+    CMIP7_HI_AEROSOL_END_YEAR,
+    esm_hi_aerosol_save_dirpath,
+)
+from cmip7_ancil_argparse import common_parser, constraint_year_parser
+from cmip7_ancil_common import cmip7_date_constraint_from_args
 
 
 def parse_args(species):
