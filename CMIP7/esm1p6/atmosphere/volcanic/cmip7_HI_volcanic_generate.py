@@ -52,19 +52,18 @@ def constrain_to_year_month(cube, year, month):
     end_year = year + 1 if month == 12 else year
     end_month = 1 if month == 12 else month + 1
     end_date = cftime.datetime(end_year, end_month, 1, calendar=calendar)
-    ym_constraint_fn = lambda cell: beg_date <= cell < end_date
-    ym_constraint =  iris.Constraint(time=ym_constraint_fn)
+    ym_constraint = iris.Constraint(
+        time=lambda cell: beg_date <= cell < end_date)
     return cube.extract(ym_constraint)
 
 
-def constrain_to_latitude_band(cube, band_nbr):
+def constrain_to_latitude_band(cube, band):
     """
     Constrain to one of four equal latitude bands.
     """
-    lat_band_bound = [-90, -30, 0, 30, 90]
-    lat_constraint_fn = lambda cell: (
-        lat_band_bound[band_nbr] <= cell < lat_band_bound[band_nbr + 1])
-    lat_constraint = iris.Constraint(latitude=lat_constraint_fn)
+    lat_bound = [-90, -30, 0, 30, 90]
+    lat_constraint = iris.Constraint(
+        latitude=lambda cell: lat_bound[band] <= cell < lat_bound[band + 1])
     return cube.extract(lat_constraint)
 
 
