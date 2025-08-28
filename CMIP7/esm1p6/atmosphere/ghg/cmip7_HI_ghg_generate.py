@@ -79,7 +79,7 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
         "hfc134a": 10,
         "n2o": 2}
     GHG_HI_NAMELIST_NBR_SPECIES = 11
-    OLD_REAL_MISSING_DATA_INDICATOR = -32768.0
+    OLD_REAL_MISSING_DATA_VALUE = -32768.0
 
     # Create arrays to populate the namelist.
     namelist_nyears_shape = (GHG_HI_NAMELIST_NBR_SPECIES,)
@@ -92,7 +92,7 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
     for ghg in GHG_HI_NAMELIST_INDEX:
         ghg_index = GHG_HI_NAMELIST_INDEX[ghg]
         namelist_levls[:, ghg_index] = ghg_mmr_dict[ghg]
-    namelist_rates = np.full(namelist_years.shape, OLD_REAL_MISSING_DATA_INDICATOR)
+    namelist_rates = np.full(namelist_years.shape, OLD_REAL_MISSING_DATA_VALUE)
 
     # Create a dictionary to use to patch the namelist.
     namelist_dict = {

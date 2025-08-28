@@ -106,8 +106,9 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     # weighted by area.
                     lat_cube = mean_over_latitudes(lat_cube)
                     
-                    # Calculate the stratospheric aerosol optical depth by
-                    # summing over stratospheric layers, weighted by layer height.
+                    # Calculate the stratospheric aerosol optical depth
+                    # by summing over stratospheric layers,
+                    # weighted by layer height.
                     lat_cube = sum_over_height_layers(lat_cube)
                     print(
                         f'{int(lat_cube.data * 10000.0):5d}',
