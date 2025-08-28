@@ -16,7 +16,8 @@ def cmip7_volcanic_dirpath(args, period):
         / period
         / 'ext'
         / 'gnz'
-        / args.dataset_vdate)
+        / args.dataset_vdate
+    )
 
 
 def constrain_to_wavelength(cube, wavelength):
@@ -32,10 +33,7 @@ def mean_over_latitudes(cube):
     Find the mean over all latitude bands, weighted by area.
     """
     lat_weights = iris.analysis.cartography.cosine_latitude_weights(cube)
-    return cube.collapsed(
-        ["latitude"],
-        iris.analysis.MEAN,
-        weights=lat_weights)
+    return cube.collapsed(['latitude'], iris.analysis.MEAN, weights=lat_weights)
 
 
 def sum_over_height_layers(cube):
@@ -44,10 +42,13 @@ def sum_over_height_layers(cube):
     summing over stratospheric layers, weighted by layer height.
     """
     height_coord = next(
-        c for c in cube.coords()
-        if c.standard_name == "height_above_mean_sea_level")
+        c
+        for c in cube.coords()
+        if c.standard_name == 'height_above_mean_sea_level'
+    )
     height_weights = np.diff(height_coord.bounds).flatten()
     return cube.collapsed(
-        ["height_above_mean_sea_level"],
+        ['height_above_mean_sea_level'],
         iris.analysis.SUM,
-        weights=height_weights)
+        weights=height_weights,
+    )

@@ -9,9 +9,7 @@ DAYS_IN_CMIP7_PI_YEAR = 365.0
 
 
 def cmip7_pi_date_constraint():
-    return cmip7_date_constraint_from_years(
-            CMIP7_PI_YEAR,
-            CMIP7_PI_YEAR)
+    return cmip7_date_constraint_from_years(CMIP7_PI_YEAR, CMIP7_PI_YEAR)
 
 
 def fix_esm15_pi_ancil_date(ifile, ofile):

@@ -12,7 +12,8 @@ def cmip7_solar_dirpath(args, period):
         / period
         / 'multiple'
         / 'gn'
-        / args.dataset_vdate)
+        / args.dataset_vdate
+    )
 
 
 def load_cmip7_solar_cube(path):

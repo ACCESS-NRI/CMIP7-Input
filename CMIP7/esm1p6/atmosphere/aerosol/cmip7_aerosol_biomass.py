@@ -17,11 +17,13 @@ from cmip7_ancil_common import (
 
 
 def cmip7_aerosol_biomass_rootpath(args):
-    return (Path(args.cmip7_source_data_dirname)
-            / 'DRES'
-            / args.dataset_version
-            / 'atmos'
-            / 'mon')
+    return (
+        Path(args.cmip7_source_data_dirname)
+        / 'DRES'
+        / args.dataset_version
+        / 'atmos'
+        / 'mon'
+    )
 
 
 def cmip7_aerosol_biomass_filepath(args, species, date_range):
@@ -29,52 +31,38 @@ def cmip7_aerosol_biomass_filepath(args, species, date_range):
     filename = (
         f'{species}_input4MIPs_emissions_CMIP_'
         f'{args.dataset_version}_gn_'
-        f'{date_range}.nc')
-    return (rootpath
-            / species
-            / 'gn'
-            / args.dataset_vdate
-            / filename)
+        f'{date_range}.nc'
+    )
+    return rootpath / species / 'gn' / args.dataset_vdate / filename
 
 
 def cmip7_aerosol_biomass_filepath_list(args, species, date_range_list):
-    return [cmip7_aerosol_biomass_filepath(args, species, date_range)
-            for date_range in date_range_list]
+    return [
+        cmip7_aerosol_biomass_filepath(args, species, date_range)
+        for date_range in date_range_list
+    ]
 
 
-def load_cmip7_aerosol_biomass(
-        args,
-        species,
-        date_range,
-        constraint):
+def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
     return load_cmip7_aerosol(
-            args,
-            cmip7_aerosol_biomass_filepath,
-            species,
-            date_range,
-            constraint)
+        args, cmip7_aerosol_biomass_filepath, species, date_range, constraint
+    )
 
 
-def load_cmip7_aerosol_biomass_list(
+def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
+    return load_cmip7_aerosol_list(
         args,
+        cmip7_aerosol_biomass_filepath_list,
         species,
         date_range_list,
-        constraint):
-    return load_cmip7_aerosol_list(
-            args,
-            cmip7_aerosol_biomass_filepath_list,
-            species,
-            date_range_list,
-            constraint)
+        constraint,
+    )
 
 
 force_load = True
 
 
-def split_frac_low_high(
-        args,
-        load_pc_fn,
-        species):
+def split_frac_low_high(args, load_pc_fn, species):
     sources = ['AGRI', 'BORF', 'DEFO', 'PEAT', 'SAVA', 'TEMF']
     pc = dict()
     futures = dict()
@@ -82,18 +70,15 @@ def split_frac_low_high(
     with cf.ProcessPoolExecutor(max_workers=max_workers) as ex:
         for source in sources:
             futures[source] = ex.submit(
-                    load_pc_fn,
-                    args,
-                    f'{species}percentage{source}')
+                load_pc_fn, args, f'{species}percentage{source}'
+            )
         for source in sources:
             pc[source] = futures[source].result()
     # For the low/high split follow Met Office CMIP6
     # low: AGRI, PEAT, SAVA
     # high: BORF, DEFO, TEMF
-    frac_low = (
-        0.01 * (pc['AGRI'] + pc['PEAT'] + pc['SAVA']))
-    frac_high = (
-        0.01 * (pc['BORF'] + pc['DEFO'] + pc['TEMF']))
+    frac_low = 0.01 * (pc['AGRI'] + pc['PEAT'] + pc['SAVA'])
+    frac_high = 0.01 * (pc['BORF'] + pc['DEFO'] + pc['TEMF'])
     if force_load:
         _ = frac_low.data
         now = datetime.now()
@@ -104,16 +89,9 @@ def split_frac_low_high(
     return frac_low, frac_high
 
 
-def save_cmip7_aerosol_biomass(
-        args,
-        load_pc_fn,
-        load_fn,
-        save_dirpath):
-
-    bc_frac_low, bc_frac_high = split_frac_low_high(
-            args, load_pc_fn, 'BC')
-    oc_frac_low, oc_frac_high = split_frac_low_high(
-            args, load_pc_fn, 'OC')
+def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
+    bc_frac_low, bc_frac_high = split_frac_low_high(args, load_pc_fn, 'BC')
+    oc_frac_low, oc_frac_high = split_frac_low_high(args, load_pc_fn, 'OC')
 
     bc = load_fn(args, 'BC')
     oc = load_fn(args, 'OC')
@@ -156,13 +134,11 @@ def save_cmip7_aerosol_biomass(
     print(f'{now}: zero_poles done')
 
     low_esm.attributes['STASH'] = iris.fileformats.pp.STASH(
-            model=1,
-            section=0,
-            item=130)
+        model=1, section=0, item=130
+    )
     high_esm.attributes['STASH'] = iris.fileformats.pp.STASH(
-            model=1,
-            section=0,
-            item=131)
+        model=1, section=0, item=131
+    )
 
     save_ancil([low_esm, high_esm], save_dirpath, args.save_filename)
 

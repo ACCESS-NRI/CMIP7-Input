@@ -3,14 +3,8 @@ from argparse import ArgumentParser
 
 def constraint_year_parser(beg_year=None, end_year=None):
     parser = ArgumentParser(add_help=False)
-    parser.add_argument(
-            '--constraint-beg-year',
-            type=int,
-            default=beg_year)
-    parser.add_argument(
-            '--constraint-end-year',
-            type=int,
-            default=end_year)
+    parser.add_argument('--constraint-beg-year', type=int, default=beg_year)
+    parser.add_argument('--constraint-end-year', type=int, default=end_year)
     return parser
 
 
@@ -24,9 +18,7 @@ def dataset_parser():
 def dms_filename_parser(dms_ancil_filename=None):
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--esm15-aerosol-version')
-    parser.add_argument(
-            '--dms-ancil-filename',
-            default=dms_ancil_filename)
+    parser.add_argument('--dms-ancil-filename', default=dms_ancil_filename)
     return parser
 
 
@@ -55,9 +47,6 @@ def percent_parser():
 
 def common_parser():
     parser = ArgumentParser(
-            parents=[
-                path_parser(),
-                grid_parser(),
-                dataset_parser()],
-            add_help=False)
+        parents=[path_parser(), grid_parser(), dataset_parser()], add_help=False
+    )
     return parser

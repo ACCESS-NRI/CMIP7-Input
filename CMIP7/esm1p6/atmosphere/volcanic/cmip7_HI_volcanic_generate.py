@@ -1,4 +1,3 @@
-
 from argparse import ArgumentParser
 
 import cftime
@@ -20,22 +19,23 @@ CMIP7_HI_VOLCANIC_END_YEAR = 2023
 
 def parse_args():
     parser = ArgumentParser(
-            prog='cmip7_HI_volcanic_generate',
-            description=(
-                'Generate input files from CMIP7 historical volcanic forcings'),
-            parents=[
-                path_parser(),
-                dataset_parser()])
+        prog='cmip7_HI_volcanic_generate',
+        description=(
+            'Generate input files from CMIP7 historical volcanic forcings'
+        ),
+        parents=[path_parser(), dataset_parser()],
+    )
     parser.add_argument('--dataset-date-range')
     parser.add_argument('--save-filename')
     return parser.parse_args()
 
 
 def cmip7_hi_volcanic_filename(args):
-
-    return (f'ext_input4MIPs_aerosolProperties_CMIP_'
-            f'{args.dataset_version}_gnz_'
-            f'{args.dataset_date_range}.nc')
+    return (
+        f'ext_input4MIPs_aerosolProperties_CMIP_'
+        f'{args.dataset_version}_gnz_'
+        f'{args.dataset_date_range}.nc'
+    )
 
 
 def constrain_to_year_month(cube, year, month):
@@ -48,7 +48,8 @@ def constrain_to_year_month(cube, year, month):
     end_month = 1 if month == 12 else month + 1
     end_date = cftime.datetime(end_year, end_month, 1, calendar=calendar)
     ym_constraint = iris.Constraint(
-        time=lambda cell: beg_date <= cell < end_date)
+        time=lambda cell: beg_date <= cell < end_date
+    )
     return cube.extract(ym_constraint)
 
 
@@ -58,7 +59,8 @@ def constrain_to_latitude_band(cube, band):
     """
     lat_bound = [-90, -30, 0, 30, 90]
     lat_constraint = iris.Constraint(
-        latitude=lambda cell: lat_bound[band] <= cell < lat_bound[band + 1])
+        latitude=lambda cell: lat_bound[band] <= cell < lat_bound[band + 1]
+    )
     return cube.extract(lat_constraint)
 
 
@@ -84,13 +86,10 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     with open(save_filepath, 'w') as save_file:
         # Iterate over years and months.
         for year in range(
-                CMIP7_HI_VOLCANIC_BEG_YEAR,
-                CMIP7_HI_VOLCANIC_END_YEAR + 1):
+            CMIP7_HI_VOLCANIC_BEG_YEAR, CMIP7_HI_VOLCANIC_END_YEAR + 1
+        ):
             for month in range(1, 13):
-                print(
-                    f'{year:4d} {month:4d}',
-                    end='',
-                    file=save_file)
+                print(f'{year:4d} {month:4d}', end='', file=save_file)
                 ym_cube = constrain_to_year_month(cube, year, month)
 
                 # Divide into 4 latitude bands.
@@ -108,17 +107,17 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     print(
                         f'{int(lat_cube.data * 10000.0):5d}',
                         end='',
-                        file=save_file)
+                        file=save_file,
+                    )
                 print(file=save_file)
 
 
 if __name__ == '__main__':
-
     args = parse_args()
 
-    dataset_path = (
-            cmip7_volcanic_dirpath(args, period='mon')
-            / cmip7_hi_volcanic_filename(args))
+    dataset_path = cmip7_volcanic_dirpath(
+        args, period='mon'
+    ) / cmip7_hi_volcanic_filename(args)
 
     # Calculate and save the average stratospheric aerosol optical depth.
     save_hi_stratospheric_aerosol_optical_depth(args, dataset_path)

@@ -8,10 +8,12 @@ from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 def parse_args():
     parser = ArgumentParser(
-            parents=[common_parser()],
-            prog='cmip7_PI_solar_generate',
-            description=('Generate input files from '
-                         'CMIP7 pre-industrial solar forcings'))
+        parents=[common_parser()],
+        prog='cmip7_PI_solar_generate',
+        description=(
+            'Generate input files from CMIP7 pre-industrial solar forcings'
+        ),
+    )
     return parser.parse_args()
 
 
@@ -32,23 +34,23 @@ def cmip7_pi_solar_patch(solar_irradiance):
     # Create a new namelist by patching the original namelist
     pi_solar_namelist_filepath = Path('atmosphere') / 'input_atm.nml'
 
-    new_namelist_filepath = (
-            pi_solar_namelist_filepath.with_suffix('.nml.patched'))
+    new_namelist_filepath = pi_solar_namelist_filepath.with_suffix(
+        '.nml.patched'
+    )
     parser.read(
-            pi_solar_namelist_filepath,
-            patch_str_namelist,
-            new_namelist_filepath)
+        pi_solar_namelist_filepath, patch_str_namelist, new_namelist_filepath
+    )
 
     # Replace the original namelist
     new_namelist_filepath.replace(pi_solar_namelist_filepath)
 
 
 if __name__ == '__main__':
-
     args = parse_args()
 
     cmip7_filename = (
-            f'multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc')
+        f'multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc'
+    )
     cmip7_filepath = cmip7_solar_dirpath(args, 'fx') / cmip7_filename
 
     solar_irradiance_cube = load_cmip7_solar_cube(cmip7_filepath)

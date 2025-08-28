@@ -5,7 +5,6 @@ from aerosol.cmip7_HI_aerosol_anthro import (
 )
 
 if __name__ == '__main__':
-
     args = parse_args(species='BC')
 
     cmip7_hi_aerosol_anthro_interpolate(args, species='BC', stash_item=129)

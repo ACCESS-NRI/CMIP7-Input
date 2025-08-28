@@ -16,20 +16,21 @@ from ghg.cmip7_ghg import (
 
 def parse_args():
     parser = ArgumentParser(
-            parents=[path_parser(),
-                     dataset_parser()],
-            prog='cmip7_PI_ghg_generate',
-            description=('Generate input files from '
-                         'CMIP7 pre-industrial greenhouse gas forcings'))
+        parents=[path_parser(), dataset_parser()],
+        prog='cmip7_PI_ghg_generate',
+        description=(
+            'Generate input files from '
+            'CMIP7 pre-industrial greenhouse gas forcings'
+        ),
+    )
     parser.add_argument('--dataset-date-range')
     return parser.parse_args()
 
 
 def load_cmip7_pi_ghg_mmr(args, ghg):
-
-    cmip7_filepath = (
-            cmip7_ghg_dirpath(args, ghg)
-            / cmip7_ghg_filename(args, ghg))
+    cmip7_filepath = cmip7_ghg_dirpath(args, ghg) / cmip7_ghg_filename(
+        args, ghg
+    )
 
     # Read in the CMIP7 cube
     full_cube = iris.load_cube(cmip7_filepath)
@@ -40,8 +41,8 @@ def load_cmip7_pi_ghg_mmr(args, ghg):
 
     # Extract the pre-industrial year
     date_constraint = cmip7_pro_greg_date_constraint_from_years(
-            CMIP7_PI_YEAR,
-            CMIP7_PI_YEAR)
+        CMIP7_PI_YEAR, CMIP7_PI_YEAR
+    )
     pi_cube = full_cube.extract(date_constraint)
 
     # Determine the mass mixing ratio
@@ -61,7 +62,8 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
         'cfc113': 'C113MMR',
         'hcfc22': 'HCFC22MMR',
         'hfc125': 'HFC125MMR',
-        'hfc134a': 'HFC134AMMR'}
+        'hfc134a': 'HFC134AMMR',
+    }
 
     namelist_dict = dict()
     for ghg in ghg_mmr_dict:
@@ -80,20 +82,18 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     pi_ghg_namelist_filepath = Path('atmosphere') / 'namelists'
     if not pi_ghg_namelist_filepath.exists():
         raise FileNotFoundError(
-                f'Namelist file {pi_ghg_namelist_filepath} does not exist')
-    new_namelist_filepath = (
-            pi_ghg_namelist_filepath.with_suffix('.nml.patched'))
+            f'Namelist file {pi_ghg_namelist_filepath} does not exist'
+        )
+    new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix('.nml.patched')
     parser.read(
-            pi_ghg_namelist_filepath,
-            patch_str_namelist,
-            new_namelist_filepath)
+        pi_ghg_namelist_filepath, patch_str_namelist, new_namelist_filepath
+    )
 
     # Replace the original namelist
     new_namelist_filepath.replace(pi_ghg_namelist_filepath)
 
 
 if __name__ == '__main__':
-
     args = parse_args()
 
     ghg_mmr_dict = dict()

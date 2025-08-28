@@ -22,19 +22,20 @@ from cmip7_HI import fix_esm15_hi_ancil_date
 
 
 def parse_args():
-
     DMS_ANCIL_FILENAME = 'scycl_1849_2015_ESM1_v4.anc'
 
     parser = ArgumentParser(
-            prog='cmip7_HI_SO2_interpolate',
-            description=(
-                'Generate input files from CMIP7 historical SO2 forcings'),
-            parents=[
-                common_parser(),
-                constraint_year_parser(
-                    beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
-                    end_year=CMIP7_HI_AEROSOL_END_YEAR),
-                dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME)])
+        prog='cmip7_HI_SO2_interpolate',
+        description=('Generate input files from CMIP7 historical SO2 forcings'),
+        parents=[
+            common_parser(),
+            constraint_year_parser(
+                beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
+                end_year=CMIP7_HI_AEROSOL_END_YEAR,
+            ),
+            dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
+        ],
+    )
     parser.add_argument('--dataset-date-range-list', type=eval)
     parser.add_argument('--save-filename')
     return parser.parse_args()
@@ -43,22 +44,20 @@ def parse_args():
 def load_hi_dms(args):
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
-            esm_hi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)
-            / args.esm_grid_rel_dirname
-            / args.esm15_aerosol_version)
-    return load_dms(
-            args,
-            dms_ancil_dirpath,
-            fix_esm15_hi_ancil_date)
+        esm_hi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)
+        / args.esm_grid_rel_dirname
+        / args.esm15_aerosol_version
+    )
+    return load_dms(args, dms_ancil_dirpath, fix_esm15_hi_ancil_date)
 
 
 if __name__ == '__main__':
-
     args = parse_args()
 
     save_cmip7_so2_aerosol_anthro(
-            args,
-            load_cmip7_hi_aerosol_anthro,
-            args.dataset_date_range_list,
-            load_hi_dms,
-            esm_hi_aerosol_save_dirpath(args))
+        args,
+        load_cmip7_hi_aerosol_anthro,
+        args.dataset_date_range_list,
+        load_hi_dms,
+        esm_hi_aerosol_save_dirpath(args),
+    )
