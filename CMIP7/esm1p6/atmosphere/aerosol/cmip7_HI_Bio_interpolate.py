@@ -22,9 +22,9 @@ from cmip7_ancil_common import cmip7_date_constraint_from_args
 
 def parse_args():
     parser = ArgumentParser(
-        prog='cmip7_HI_Bio_interpolate',
+        prog="cmip7_HI_Bio_interpolate",
         description=(
-            'Generate input files from CMIP7 historical biomass forcings'
+            "Generate input files from CMIP7 historical biomass forcings"
         ),
         parents=[
             common_parser(),
@@ -35,8 +35,8 @@ def parse_args():
             ),
         ],
     )
-    parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename')
+    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
@@ -58,7 +58,7 @@ def load_cmip7_hi_aerosol_biomass_percentage(args, species):
     )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     save_cmip7_aerosol_biomass(

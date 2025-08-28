@@ -15,9 +15,9 @@ from cmip7_ancil_common import cmip7_date_constraint_from_args
 
 def parse_args(species):
     parser = ArgumentParser(
-        prog=f'cmip7_HI_{species}_interpolate',
+        prog=f"cmip7_HI_{species}_interpolate",
         description=(
-            f'Generate input files from CMIP7 historical {species} forcings'
+            f"Generate input files from CMIP7 historical {species} forcings"
         ),
         parents=[
             common_parser(),
@@ -27,8 +27,8 @@ def parse_args(species):
             ),
         ],
     )
-    parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename')
+    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--save-filename")
     return parser.parse_args()
 
 

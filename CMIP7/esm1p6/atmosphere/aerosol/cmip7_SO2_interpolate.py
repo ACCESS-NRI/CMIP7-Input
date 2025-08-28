@@ -15,8 +15,8 @@ from cmip7_ancil_common import (
 )
 
 DMS_NAME_CONSTRAINT = iris.Constraint(
-    name='tendency_of_atmosphere_mass_content_of_'
-    'dimethyl_sulfide_expressed_as_sulfur_due_to_emission'
+    name="tendency_of_atmosphere_mass_content_of_"
+    "dimethyl_sulfide_expressed_as_sulfur_due_to_emission"
 )
 
 
@@ -27,10 +27,10 @@ def load_sector_dict(args, date_range_maybe_list):
         else date_range_maybe_list
     )
     # Iris doesn't read the sector coordinate so use netCDF4
-    d = netCDF4.Dataset(cmip7_aerosol_anthro_filepath(args, 'SO2', date_range))
+    d = netCDF4.Dataset(cmip7_aerosol_anthro_filepath(args, "SO2", date_range))
     sectord = dict()
-    for s in d['sector'].ids.split(';'):
-        i, name = s.split(':')
+    for s in d["sector"].ids.split(";"):
+        i, name = s.split(":")
         sectord[name.strip()] = int(i)
     d.close()
     return sectord
@@ -52,8 +52,8 @@ def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
 
 def match_time_attributes(from_cube, to_cube):
     # Make the time attributes and coordinates match
-    from_time = from_cube.coord('time')
-    to_time = to_cube.coord('time')
+    from_time = from_cube.coord("time")
+    to_time = to_cube.coord("time")
     to_time.units = from_time.units
     to_time.points = from_time.points
     to_time.bounds = from_time.bounds
@@ -66,16 +66,16 @@ def match_time_attributes(from_cube, to_cube):
 def save_cmip7_so2_aerosol_anthro(
     args, cmip7_load_fn, date_range, dms_load_fn, save_dirpath
 ):
-    cmip7_so2 = cmip7_load_fn(args, 'SO2')
+    cmip7_so2 = cmip7_load_fn(args, "SO2")
 
     # Iris doesn't read the sector coordinate
     sectord = load_sector_dict(args, date_range)
 
     cmip7_so2_high = (
-        cmip7_so2[:, sectord['Energy']]
-        + 0.5 * cmip7_so2[:, sectord['Industrial']]
+        cmip7_so2[:, sectord["Energy"]]
+        + 0.5 * cmip7_so2[:, sectord["Industrial"]]
     )
-    cmip7_so2_tot = cmip7_so2.collapsed(['sector'], iris.analysis.SUM)
+    cmip7_so2_tot = cmip7_so2.collapsed(["sector"], iris.analysis.SUM)
     cmip7_so2_low = cmip7_so2_tot - cmip7_so2_high
 
     # For ESM1.6, factor of 0.5 to go to mass of S
@@ -92,16 +92,16 @@ def save_cmip7_so2_aerosol_anthro(
     zero_poles(so2_low)
     zero_poles(so2_high)
 
-    so2_low.attributes['STASH'] = iris.fileformats.pp.STASH(
+    so2_low.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=58
     )
-    so2_high.attributes['STASH'] = iris.fileformats.pp.STASH(
+    so2_high.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=126
     )
 
     # Need to remove the sector coordinate before saving
     # because high doesn't have it
-    so2_low.remove_coord('sector')
+    so2_low.remove_coord("sector")
     # Use the CMIP6 DMS
     dms = dms_load_fn(args)
 

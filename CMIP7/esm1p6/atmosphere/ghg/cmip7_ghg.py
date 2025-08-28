@@ -6,15 +6,15 @@ import iris
 # Specify the molar mass of each gas in grams per mole
 DRY_AIR_MOLAR_MASS = 28.97
 GHG_MOLAR_MASS = {
-    'cfc11': 137.37,
-    'cfc12': 120.91,
-    'cfc113': 187.375,
-    'ch4': 16.04,
-    'co2': 44.01,
-    'hcfc22': 86.47,
-    'hfc125': 120.02,
-    'hfc134a': 102.03,
-    'n2o': 44.01,
+    "cfc11": 137.37,
+    "cfc12": 120.91,
+    "cfc113": 187.375,
+    "ch4": 16.04,
+    "co2": 44.01,
+    "hcfc22": 86.47,
+    "hfc125": 120.02,
+    "hfc134a": 102.03,
+    "n2o": 44.01,
 }
 
 
@@ -22,7 +22,7 @@ def cmip7_scale(cube):
     """
     Determine the scaling factor used for the given cube
     """
-    SCALE_FACTOR = {'ppm': 1.0e-6, 'ppb': 1.0e-9, 'ppt': 1.0e-12}
+    SCALE_FACTOR = {"ppm": 1.0e-6, "ppb": 1.0e-9, "ppt": 1.0e-12}
     return SCALE_FACTOR[cube.metadata.units.origin]
 
 
@@ -38,20 +38,20 @@ def cmip7_ghg_mmr(cube, ghg):
 def cmip7_ghg_dirpath(args, ghg):
     return (
         Path(args.cmip7_source_data_dirname)
-        / 'CR'
+        / "CR"
         / args.dataset_version
-        / 'atmos'
-        / 'yr'
+        / "atmos"
+        / "yr"
         / ghg
-        / 'gm'
+        / "gm"
         / args.dataset_vdate
     )
 
 
 def cmip7_ghg_filename(args, ghg):
     return (
-        f'{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_'
-        f'{args.dataset_date_range}.nc'
+        f"{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_"
+        f"{args.dataset_date_range}.nc"
     )
 
 

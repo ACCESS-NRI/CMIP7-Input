@@ -18,20 +18,20 @@ from volcanic.cmip7_volcanic import (
 def parse_args():
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
-        prog='cmip7_PI_volcanic_generate',
+        prog="cmip7_PI_volcanic_generate",
         description=(
-            'Generate input files from CMIP7 pre-industrial volcanic forcings'
+            "Generate input files from CMIP7 pre-industrial volcanic forcings"
         ),
     )
-    parser.add_argument('--dataset-date-range')
+    parser.add_argument("--dataset-date-range")
     return parser.parse_args()
 
 
 def cmip7_pi_volcanic_filename(args):
     return (
-        f'ext_input4MIPs_aerosolProperties_CMIP_'
-        f'{args.dataset_version}_gnz_'
-        f'{args.dataset_date_range}-clim.nc'
+        f"ext_input4MIPs_aerosolProperties_CMIP_"
+        f"{args.dataset_version}_gnz_"
+        f"{args.dataset_date_range}-clim.nc"
     )
 
 
@@ -40,12 +40,12 @@ def mean_over_pi_months(cube):
     Find the time average SAOD by averaging over months
     in the pre-industrial year, weighted by month length.
     """
-    time_coord = next(c for c in cube.coords() if c.standard_name == 'time')
+    time_coord = next(c for c in cube.coords() if c.standard_name == "time")
     time_weights = (
         np.diff(np.append(time_coord.points, [DAYS_IN_CMIP7_PI_YEAR]))
         / DAYS_IN_CMIP7_PI_YEAR
     )
-    return cube.collapsed(['time'], iris.analysis.MEAN, weights=time_weights)
+    return cube.collapsed(["time"], iris.analysis.MEAN, weights=time_weights)
 
 
 def average_stratospheric_aerosol_optical_depth(dataset_path):
@@ -82,11 +82,11 @@ def cmip7_pi_volcanic_patch(average_saod):
     Patch the VOLCTS_val variable in the coupling namelist
     """
     namelist_dict = dict()
-    namelist_dict['VOLCTS_val'] = average_saod * 10000.0
-    patch = {'coupling': namelist_dict}
+    namelist_dict["VOLCTS_val"] = average_saod * 10000.0
+    patch = {"coupling": namelist_dict}
     patch_namelist = f90nml.namelist.Namelist(patch)
     # Set the floating point format to the right value
-    patch_namelist.float_format = '6.2f'
+    patch_namelist.float_format = "6.2f"
     # The floating point format is ignored unless
     # you print the namelist or convert it to a string
     patch_str = str(patch_namelist)
@@ -94,13 +94,13 @@ def cmip7_pi_volcanic_patch(average_saod):
     patch_str_namelist = parser.reads(patch_str)
 
     # Create a new namelist by patching the original namelist.
-    pi_volcanic_namelist_filepath = Path('atmosphere') / 'input_atm.nml'
+    pi_volcanic_namelist_filepath = Path("atmosphere") / "input_atm.nml"
     if not pi_volcanic_namelist_filepath.exists():
         raise FileNotFoundError(
-            f'Namelist file {pi_volcanic_namelist_filepath} does not exist'
+            f"Namelist file {pi_volcanic_namelist_filepath} does not exist"
         )
     new_namelist_filepath = pi_volcanic_namelist_filepath.with_suffix(
-        '.nml.patched'
+        ".nml.patched"
     )
     parser.read(
         pi_volcanic_namelist_filepath, patch_str_namelist, new_namelist_filepath
@@ -110,11 +110,11 @@ def cmip7_pi_volcanic_patch(average_saod):
     new_namelist_filepath.replace(pi_volcanic_namelist_filepath)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     dataset_path = cmip7_volcanic_dirpath(
-        args, period='monC'
+        args, period="monC"
     ) / cmip7_pi_volcanic_filename(args)
 
     # Calculate the average stratospheric optical depth.

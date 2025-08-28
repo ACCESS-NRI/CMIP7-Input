@@ -6,10 +6,10 @@ from cmip7_ancil_constants import ANCIL_TODAY
 def esm_pi_aerosol_ancil_dirpath(ancil_root_dirname):
     return (
         Path(ancil_root_dirname)
-        / 'modern'
-        / 'pre-industrial'
-        / 'atmosphere'
-        / 'aerosol'
+        / "modern"
+        / "pre-industrial"
+        / "atmosphere"
+        / "aerosol"
     )
 
 

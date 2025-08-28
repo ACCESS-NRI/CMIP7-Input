@@ -22,11 +22,11 @@ from cmip7_HI import fix_esm15_hi_ancil_date
 
 
 def parse_args():
-    DMS_ANCIL_FILENAME = 'scycl_1849_2015_ESM1_v4.anc'
+    DMS_ANCIL_FILENAME = "scycl_1849_2015_ESM1_v4.anc"
 
     parser = ArgumentParser(
-        prog='cmip7_HI_SO2_interpolate',
-        description=('Generate input files from CMIP7 historical SO2 forcings'),
+        prog="cmip7_HI_SO2_interpolate",
+        description=("Generate input files from CMIP7 historical SO2 forcings"),
         parents=[
             common_parser(),
             constraint_year_parser(
@@ -36,8 +36,8 @@ def parse_args():
             dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
         ],
     )
-    parser.add_argument('--dataset-date-range-list', type=eval)
-    parser.add_argument('--save-filename')
+    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
@@ -51,7 +51,7 @@ def load_hi_dms(args):
     return load_dms(args, dms_ancil_dirpath, fix_esm15_hi_ancil_date)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     save_cmip7_so2_aerosol_anthro(

@@ -11,9 +11,9 @@ def parse_args():
     CMIP7_HI_SOLAR_END_YEAR = 2023
 
     parser = ArgumentParser(
-        prog='cmip7_HI_solar_generate',
+        prog="cmip7_HI_solar_generate",
         description=(
-            'Generate input files from CMIP7 historical solar forcings'
+            "Generate input files from CMIP7 historical solar forcings"
         ),
         parents=[
             common_parser(),
@@ -23,8 +23,8 @@ def parse_args():
             ),
         ],
     )
-    parser.add_argument('--dataset-date-range')
-    parser.add_argument('--save-filename')
+    parser.add_argument("--dataset-date-range")
+    parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
@@ -33,7 +33,7 @@ def cmip7_hi_solar_save(args, cube):
     # Ensure that the save directory exists.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
-    with open(save_filepath, 'w') as save_file:
+    with open(save_filepath, "w") as save_file:
         for year in range(
             args.constraint_beg_year, args.constraint_end_year + 1
         ):
@@ -41,18 +41,18 @@ def cmip7_hi_solar_save(args, cube):
                 time=lambda cell: cell.point.year == year
             )
             year_cube = cube.extract(year_cons)
-            year_mean = year_cube.collapsed('time', iris.analysis.MEAN).data
-            print(year, f'{year_mean:.3f}', file=save_file)
+            year_mean = year_cube.collapsed("time", iris.analysis.MEAN).data
+            print(year, f"{year_mean:.3f}", file=save_file)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     cmip7_filename = (
-        'multiple_input4MIPs_solar_CMIP_'
-        f'{args.dataset_version}_gn_{args.dataset_date_range}.nc'
+        "multiple_input4MIPs_solar_CMIP_"
+        f"{args.dataset_version}_gn_{args.dataset_date_range}.nc"
     )
-    cmip7_filepath = cmip7_solar_dirpath(args, 'mon') / cmip7_filename
+    cmip7_filepath = cmip7_solar_dirpath(args, "mon") / cmip7_filename
 
     solar_irradiance_cube = load_cmip7_solar_cube(cmip7_filepath)
 

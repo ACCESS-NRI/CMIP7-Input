@@ -16,20 +16,20 @@ from cmip7_PI import fix_esm15_pi_ancil_date
 
 
 def parse_args():
-    DMS_ANCIL_FILENAME = 'scycl_1850_ESM1_v4.anc'
+    DMS_ANCIL_FILENAME = "scycl_1850_ESM1_v4.anc"
 
     parser = ArgumentParser(
-        prog='cmip7_PI_SO2_interpolate',
+        prog="cmip7_PI_SO2_interpolate",
         description=(
-            'Generate input files from CMIP7 pre-industrial SO2 forcings'
+            "Generate input files from CMIP7 pre-industrial SO2 forcings"
         ),
         parents=[
             common_parser(),
             dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
         ],
     )
-    parser.add_argument('--dataset-date-range')
-    parser.add_argument('--save-filename')
+    parser.add_argument("--dataset-date-range")
+    parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
@@ -43,7 +43,7 @@ def load_pi_dms(args):
     return load_dms(args, dms_ancil_dirpath, fix_esm15_pi_ancil_date)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     args = parse_args()
 
     save_cmip7_so2_aerosol_anthro(

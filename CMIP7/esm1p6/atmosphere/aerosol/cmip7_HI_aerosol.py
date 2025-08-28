@@ -9,10 +9,10 @@ CMIP7_HI_AEROSOL_END_YEAR = 2015
 def esm_hi_aerosol_ancil_dirpath(ancil_root_dirname):
     return (
         Path(ancil_root_dirname)
-        / 'modern'
-        / 'historical'
-        / 'atmosphere'
-        / 'aerosol'
+        / "modern"
+        / "historical"
+        / "atmosphere"
+        / "aerosol"
     )
 
 

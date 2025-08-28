@@ -31,28 +31,28 @@ def cmip7_date_constraint_from_args(args):
 def esm_grid_mask_filepath(args):
     return (
         Path(args.esm15_inputs_dirname)
-        / 'modern'
-        / 'share'
-        / 'atmosphere'
-        / 'grids'
+        / "modern"
+        / "share"
+        / "atmosphere"
+        / "grids"
         / args.esm_grid_rel_dirname
         / args.esm15_grid_version
-        / 'qrparm.mask'
+        / "qrparm.mask"
     )
 
 
 def esm_grid_mask_cube(args):
     cube = iris.load_cube(esm_grid_mask_filepath(args))
-    cube.coord('latitude').guess_bounds()
-    cube.coord('longitude').guess_bounds()
+    cube.coord("latitude").guess_bounds()
+    cube.coord("longitude").guess_bounds()
     return cube
 
 
 def set_gregorian(var):
     # Change the calendar to Gregorian for the model
-    time = var.coord('time')
+    time = var.coord("time")
     origin = time.units.origin
-    newunits = cf_units.Unit(origin, calendar='proleptic_gregorian')
+    newunits = cf_units.Unit(origin, calendar="proleptic_gregorian")
 
     tvals = np.array(time.points)
     tbnds = np.array(time.bounds)
@@ -80,24 +80,24 @@ def set_gregorian(var):
 
 def set_coord_system(cube):
     coord_system = iris.coord_systems.GeogCS(6371229.0)
-    cube.coord('latitude').coord_system = coord_system
-    cube.coord('longitude').coord_system = coord_system
+    cube.coord("latitude").coord_system = coord_system
+    cube.coord("longitude").coord_system = coord_system
 
 
 def fix_coords(args, cube):
     esm_grid_mask = esm_grid_mask_cube(args)
-    cube.coord('latitude').coord_system = esm_grid_mask.coord(
-        'latitude'
+    cube.coord("latitude").coord_system = esm_grid_mask.coord(
+        "latitude"
     ).coord_system
-    cube.coord('longitude').coord_system = esm_grid_mask.coord(
-        'longitude'
+    cube.coord("longitude").coord_system = esm_grid_mask.coord(
+        "longitude"
     ).coord_system
 
 
 def zero_poles(cube):
     # Polar values should have no longitude dependence
     # For aerosol emissions they should be zero
-    latdim = cube.coord_dims('latitude')
+    latdim = cube.coord_dims("latitude")
     assert latdim == (1,)
     cube.data[:, 0] = 0.0
     cube.data[:, -1] = 0.0
@@ -114,8 +114,8 @@ def save_ancil(cubes, save_dirpath, save_filename):
     Single year creates file with correct time_type=2
     """
     for cube in cubes:
-        cube.attributes['grid_staggering'] = 3  # New dynamics
-        cube.attributes['time_type'] = 1  # Gregorian
+        cube.attributes["grid_staggering"] = 3  # New dynamics
+        cube.attributes["time_type"] = 1  # Gregorian
         set_gregorian(cube)
     """
     ANTS doesn't set the calendar header for monthly fields
