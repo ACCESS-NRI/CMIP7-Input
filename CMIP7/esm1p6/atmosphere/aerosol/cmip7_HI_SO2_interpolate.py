@@ -1,6 +1,7 @@
 # Interpolate CMIP7 HI SO2 emissions to ESM1.6 grid
 
 from argparse import ArgumentParser
+from ast import literal_eval
 
 from aerosol.cmip7_HI_aerosol import (
     CMIP7_HI_AEROSOL_BEG_YEAR,
@@ -36,7 +37,7 @@ def parse_args():
             dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
         ],
     )
-    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 

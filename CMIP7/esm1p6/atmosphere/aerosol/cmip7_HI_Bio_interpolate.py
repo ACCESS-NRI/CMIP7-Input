@@ -1,6 +1,7 @@
 # Interpolate CMIP7 HI Biomass burning emissions to ESM1.6 grid
 
 from argparse import ArgumentParser
+from ast import literal_eval
 
 from aerosol.cmip7_aerosol_biomass import (
     load_cmip7_aerosol_biomass,
@@ -35,7 +36,7 @@ def parse_args():
             ),
         ],
     )
-    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 

@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from ast import literal_eval
 
 from aerosol.cmip7_aerosol_anthro import (
     cmip7_aerosol_anthro_interpolate,
@@ -27,7 +28,7 @@ def parse_args(species):
             ),
         ],
     )
-    parser.add_argument("--dataset-date-range-list", type=eval)
+    parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
