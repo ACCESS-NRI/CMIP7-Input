@@ -107,7 +107,7 @@ def save_ancil(cubes, save_dirpath, save_filename):
     """
     Handle both a list and a single cube
     """
-    if type(cubes) is not list:
+    if not isinstance(cubes, list):
         cubes = [cubes]
     """
     Set correct cube grid and time attributes
