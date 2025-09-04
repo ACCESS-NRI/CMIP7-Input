@@ -6,6 +6,7 @@ from pathlib import Path
 
 import iris
 import netCDF4
+import numpy as np
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
 from aerosol.cmip7_aerosol_common import zero_poles
 from cmip7_ancil_common import (
@@ -50,17 +51,11 @@ def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
         return dms
 
 
-def match_time_attributes(from_cube, to_cube):
-    # Make the time attributes and coordinates match
-    from_time = from_cube.coord("time")
-    to_time = to_cube.coord("time")
-    to_time.units = from_time.units
-    to_time.points = from_time.points
-    to_time.bounds = from_time.bounds
-    to_time.long_name = from_time.long_name
-    to_time.var_name = from_time.var_name
-    for attr, value in from_time.attributes.items():
-        to_time.attributes[attr] = value
+def tile_yearly_data(from_cube, to_cube):
+    from_mons = from_cube.data.shape[0]
+    from_years = from_mons // 12
+    to_year0 = to_cube.data[0:12, :, :]
+    return np.tile(to_year0, (from_years, 1, 1))
 
 
 def save_cmip7_so2_aerosol_anthro(
@@ -103,9 +98,26 @@ def save_cmip7_so2_aerosol_anthro(
     # because high doesn't have it
     so2_low.remove_coord("sector")
     # Use the CMIP6 DMS
-    dms = dms_load_fn(args)
+    cmip6_dms = dms_load_fn(args)
 
-    # Make the attributes and coordinates match
-    match_time_attributes(so2_low, dms)
+    # Extend the yearly dms data
+    dms_data = tile_yearly_data(so2_low, cmip6_dms)
+    dms_time = so2_low.coord("time")
+    dms_lat = cmip6_dms.coord("latitude")
+    dms_lon = cmip6_dms.coord("longitude")
+    dms = iris.cube.Cube(
+        dms_data,
+        standard_name=cmip6_dms.standard_name,
+        long_name=cmip6_dms.long_name,
+        var_name=cmip6_dms.var_name,
+        units=cmip6_dms.units,
+        attributes=cmip6_dms.attributes,
+        cell_methods=cmip6_dms.cell_methods,
+        dim_coords_and_dims=[
+            (dms_time, 0),
+            (dms_lat, 1),
+            (dms_lon, 2),
+        ],
+    )
 
     save_ancil([so2_low, so2_high, dms], save_dirpath, args.save_filename)

@@ -5,6 +5,11 @@ import f90nml
 import iris
 import numpy as np
 from cmip7_ancil_argparse import dataset_parser, path_parser
+from cmip7_HI import (
+    CMIP7_HI_BEG_YEAR,
+    CMIP7_HI_END_YEAR,
+    CMIP7_HI_NBR_YEARS,
+)
 from ghg.cmip7_ghg import (
     GHG_MOLAR_MASS,
     cmip7_ghg_dirpath,
@@ -12,10 +17,6 @@ from ghg.cmip7_ghg import (
     cmip7_ghg_mmr,
     cmip7_pro_greg_date_constraint_from_years,
 )
-
-CMIP7_GHG_HI_BEG_YEAR = 1850
-CMIP7_GHG_HI_END_YEAR = 2022
-CMIP7_GHG_HI_NBR_YEARS = CMIP7_GHG_HI_END_YEAR + 1 - CMIP7_GHG_HI_BEG_YEAR
 
 
 def parse_args():
@@ -44,13 +45,13 @@ def load_cmip7_hi_ghg_mmr(args, ghg):
 
     # Extract the historical years.
     date_constraint = cmip7_pro_greg_date_constraint_from_years(
-        CMIP7_GHG_HI_BEG_YEAR, CMIP7_GHG_HI_END_YEAR
+        CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
     )
     hi_cube = full_cube.extract(date_constraint)
 
     # Determine the mass mixing ratio.
     ghg_mmr_list = []
-    for year in range(CMIP7_GHG_HI_BEG_YEAR, CMIP7_GHG_HI_END_YEAR + 1):
+    for year in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1):
         year_constraint = cmip7_pro_greg_date_constraint_from_years(year, year)
         year_cube = hi_cube.extract(year_constraint)
         ghg_mmr_list.append(cmip7_ghg_mmr(year_cube, ghg))
@@ -79,10 +80,10 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
 
     # Create arrays to populate the namelist.
     namelist_nyears_shape = (GHG_HI_NAMELIST_NBR_SPECIES,)
-    namelist_nyears = np.full(namelist_nyears_shape, CMIP7_GHG_HI_NBR_YEARS)
-    namelist_years_shape = (GHG_HI_NAMELIST_NBR_SPECIES, CMIP7_GHG_HI_NBR_YEARS)
+    namelist_nyears = np.full(namelist_nyears_shape, CMIP7_HI_NBR_YEARS)
+    namelist_years_shape = (GHG_HI_NAMELIST_NBR_SPECIES, CMIP7_HI_NBR_YEARS)
     namelist_years = np.broadcast_to(
-        np.array(range(CMIP7_GHG_HI_BEG_YEAR, CMIP7_GHG_HI_END_YEAR + 1)),
+        np.array(range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1)),
         namelist_years_shape,
     ).T
     namelist_levls = np.zeros(namelist_years.shape)
