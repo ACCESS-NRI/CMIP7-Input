@@ -44,27 +44,19 @@ def cmip7_aerosol_biomass_filepath_list(args, species, date_range_list):
 
 
 def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
-    cube = load_cmip7_aerosol(
+    return load_cmip7_aerosol(
         args, cmip7_aerosol_biomass_filepath, species, date_range, constraint
     )
-    # This data is missing over oceans,
-    # so needs to be filled with zero for the model
-    cube.data = cube.data.filled(0.0)
-    return cube
 
 
 def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
-    cube = load_cmip7_aerosol_list(
+    return load_cmip7_aerosol_list(
         args,
         cmip7_aerosol_biomass_filepath_list,
         species,
         date_range_list,
         constraint,
     )
-    # This data is missing over oceans,
-    # so needs to be filled with zero for the model
-    cube.data = cube.data.filled(0.0)
-    return cube
 
 
 force_load = True
@@ -119,6 +111,14 @@ def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
 
     now = datetime.now()
     print(f"{now}: set_coord_system done")
+
+    # This data is missing over oceans,
+    # so needs to be filled with zero for the model
+    low.data = low.data.filled(0.0)
+    high.data = high.data.filled(0.0)
+
+    now = datetime.now()
+    print(f"{now}: filled done")
 
     esm_grid_mask = esm_grid_mask_cube(args)
     low_esm = low.regrid(esm_grid_mask, INTERPOLATION_SCHEME)
