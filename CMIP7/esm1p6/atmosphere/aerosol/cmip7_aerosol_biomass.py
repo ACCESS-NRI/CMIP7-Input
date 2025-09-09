@@ -53,7 +53,6 @@ def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
     return cube
 
 
-
 def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
     cube = load_cmip7_aerosol_list(
         args,
