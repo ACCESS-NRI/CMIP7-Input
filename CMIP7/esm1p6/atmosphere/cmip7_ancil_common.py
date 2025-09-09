@@ -22,12 +22,6 @@ def cmip7_date_constraint_from_years(beg_year, end_year):
     return iris.Constraint(time=lambda cell: beg_date <= cell.point <= end_date)
 
 
-def cmip7_date_constraint_from_args(args):
-    return cmip7_date_constraint_from_years(
-        args.constraint_beg_year, args.constraint_end_year
-    )
-
-
 def esm_grid_mask_filepath(args):
     return (
         Path(args.esm15_inputs_dirname)

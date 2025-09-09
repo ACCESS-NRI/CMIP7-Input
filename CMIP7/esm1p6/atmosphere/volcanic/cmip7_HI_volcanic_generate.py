@@ -4,7 +4,11 @@ import cftime
 import iris
 import numpy as np
 from cmip7_ancil_argparse import dataset_parser, path_parser
-from cmip7_HI import esm_hi_forcing_save_dirpath
+from cmip7_HI import (
+    CMIP7_HI_BEG_YEAR,
+    CMIP7_HI_END_YEAR,
+    esm_hi_forcing_save_dirpath,
+)
 from volcanic.cmip7_volcanic import (
     SAOD_WAVELENGTH,
     cmip7_volcanic_dirpath,
@@ -12,9 +16,6 @@ from volcanic.cmip7_volcanic import (
     mean_over_latitudes,
     sum_over_height_layers,
 )
-
-CMIP7_HI_VOLCANIC_BEG_YEAR = 1850
-CMIP7_HI_VOLCANIC_END_YEAR = 2023
 
 
 def parse_args():
@@ -85,9 +86,7 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     save_filepath = save_dirpath / args.save_filename
     with open(save_filepath, "w") as save_file:
         # Iterate over years and months.
-        for year in range(
-            CMIP7_HI_VOLCANIC_BEG_YEAR, CMIP7_HI_VOLCANIC_END_YEAR + 1
-        ):
+        for year in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1):
             for month in range(1, 13):
                 print(f"{year:4d} {month:4d}", end="", file=save_file)
                 ym_cube = constrain_to_year_month(cube, year, month)

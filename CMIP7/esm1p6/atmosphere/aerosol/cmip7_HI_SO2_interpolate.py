@@ -16,7 +16,6 @@ from aerosol.cmip7_SO2_interpolate import (
 )
 from cmip7_ancil_argparse import (
     common_parser,
-    constraint_year_parser,
     dms_filename_parser,
 )
 from cmip7_HI import fix_esm15_hi_ancil_date
@@ -30,16 +29,21 @@ def parse_args():
         description=("Generate input files from CMIP7 historical SO2 forcings"),
         parents=[
             common_parser(),
-            constraint_year_parser(
-                beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
-                end_year=CMIP7_HI_AEROSOL_END_YEAR,
-            ),
             dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
         ],
     )
     parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
+
+
+def load_cmip7_hi_so2_aerosol_anthro(args, species):
+    return load_cmip7_hi_aerosol_anthro(
+        args,
+        species,
+        beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
+        end_year=CMIP7_HI_AEROSOL_END_YEAR,
+    )
 
 
 def load_hi_dms(args):
@@ -57,7 +61,7 @@ if __name__ == "__main__":
 
     save_cmip7_so2_aerosol_anthro(
         args,
-        load_cmip7_hi_aerosol_anthro,
+        load_cmip7_hi_so2_aerosol_anthro,
         args.dataset_date_range_list,
         load_hi_dms,
         esm_hi_aerosol_save_dirpath(args),
