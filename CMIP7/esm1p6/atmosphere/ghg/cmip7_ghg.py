@@ -50,8 +50,7 @@ def cmip7_ghg_dirpath(args, ghg):
 
 def cmip7_ghg_filename(args, ghg):
     return (
-        f"{ghg}_input4MIPs_GHGConcentrations_CMIP_"
-        f"{args.dataset_version}_gm_"
+        f"{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_"
         f"{args.dataset_date_range}.nc"
     )
 

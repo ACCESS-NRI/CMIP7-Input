@@ -1,16 +1,15 @@
 from argparse import ArgumentParser
 
 import iris
-from cmip7_ancil_argparse import common_parser
-from cmip7_HI import (
-    CMIP7_HI_BEG_YEAR,
-    CMIP7_HI_END_YEAR,
-    esm_hi_forcing_save_dirpath,
-)
+from cmip7_ancil_argparse import common_parser, constraint_year_parser
+from cmip7_HI import esm_hi_forcing_save_dirpath
 from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 
 def parse_args():
+    CMIP7_HI_SOLAR_BEG_YEAR = 1850
+    CMIP7_HI_SOLAR_END_YEAR = 2023
+
     parser = ArgumentParser(
         prog="cmip7_HI_solar_generate",
         description=(
@@ -18,6 +17,10 @@ def parse_args():
         ),
         parents=[
             common_parser(),
+            constraint_year_parser(
+                beg_year=CMIP7_HI_SOLAR_BEG_YEAR,
+                end_year=CMIP7_HI_SOLAR_END_YEAR,
+            ),
         ],
     )
     parser.add_argument("--dataset-date-range")
@@ -31,7 +34,9 @@ def cmip7_hi_solar_save(args, cube):
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
     with open(save_filepath, "w") as save_file:
-        for year in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1):
+        for year in range(
+            args.constraint_beg_year, args.constraint_end_year + 1
+        ):
             year_cons = iris.Constraint(
                 time=lambda cell: cell.point.year == year
             )
@@ -45,8 +50,7 @@ if __name__ == "__main__":
 
     cmip7_filename = (
         "multiple_input4MIPs_solar_CMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{args.dataset_date_range}.nc"
+        f"{args.dataset_version}_gn_{args.dataset_date_range}.nc"
     )
     cmip7_filepath = cmip7_solar_dirpath(args, "mon") / cmip7_filename
 

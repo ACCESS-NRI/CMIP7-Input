@@ -10,8 +10,8 @@ from aerosol.cmip7_HI_aerosol import (
     CMIP7_HI_AEROSOL_END_YEAR,
     esm_hi_aerosol_save_dirpath,
 )
-from cmip7_ancil_argparse import common_parser
-from cmip7_ancil_common import cmip7_date_constraint_from_years
+from cmip7_ancil_argparse import common_parser, constraint_year_parser
+from cmip7_ancil_common import cmip7_date_constraint_from_args
 
 
 def parse_args(species):
@@ -20,24 +20,25 @@ def parse_args(species):
         description=(
             f"Generate input files from CMIP7 historical {species} forcings"
         ),
-        parents=[common_parser()],
+        parents=[
+            common_parser(),
+            constraint_year_parser(
+                beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
+                end_year=CMIP7_HI_AEROSOL_END_YEAR,
+            ),
+        ],
     )
     parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
-def load_cmip7_hi_aerosol_anthro(
-    args,
-    species,
-    beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
-    end_year=CMIP7_HI_AEROSOL_END_YEAR,
-):
+def load_cmip7_hi_aerosol_anthro(args, species):
     return load_cmip7_aerosol_anthro_list(
         args,
         species,
         args.dataset_date_range_list,
-        cmip7_date_constraint_from_years(beg_year, end_year),
+        cmip7_date_constraint_from_args(args),
     )
 
 

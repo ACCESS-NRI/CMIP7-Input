@@ -1,6 +1,13 @@
 from argparse import ArgumentParser
 
 
+def constraint_year_parser(beg_year=None, end_year=None):
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument("--constraint-beg-year", type=int, default=beg_year)
+    parser.add_argument("--constraint-end-year", type=int, default=end_year)
+    return parser
+
+
 def dataset_parser():
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--dataset-version")
