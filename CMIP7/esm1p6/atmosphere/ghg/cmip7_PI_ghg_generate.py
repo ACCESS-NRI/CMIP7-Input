@@ -86,7 +86,7 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     rad_patch_namelist = f90nml.namelist.Namelist(rad_patch_dict)  
     # Set the floating point format to the right value for the rad namelist
     rad_patch_namelist.float_format = ".5g"
-    rad_patch_namelist.logical_repr((".FALSE.", ".TRUE."))
+    rad_patch_namelist.logical_repr = (".FALSE.", ".TRUE.")
     rad_patch_namelist.end_comma = True
     # Use the ghg patch namelist to patch the rad patch namelist
     rad_patch_namelist.patch(ghg_patch_namelist)
