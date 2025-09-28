@@ -64,32 +64,35 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
         "hfc125": "HFC125MMR",
         "hfc134a": "HFC134AMMR",
     }
-
-    namelist_dict = dict()
+    # Use ghg_mmr_dict to create a namelist dict
+    ghg_namelist_dict = dict()
     for ghg in ghg_mmr_dict:
-        namelist_dict[GHG_PI_NAME[ghg]] = ghg_mmr_dict[ghg]
-    patch = {"RUN_Radiation": namelist_dict}
-    patch_namelist = f90nml.namelist.Namelist(patch)
-    # Set the floating point format to the right value
-    patch_namelist.float_format = ".4e"
-    # The floating point format is ignored unless
-    # you print the namelist or convert it to a string
-    patch_str = str(patch_namelist)
+        ghg_namelist_dict[GHG_PI_NAME[ghg]] = ghg_mmr_dict[ghg]
+    # Create a patch namelist from the namelist dict
+    rad_namelist_name = "RUN_Radiation"
+    ghg_patch_dict = {rad_namelist_name: ghg_namelist_dict}
+    ghg_patch_namelist = f90nml.namelist.Namelist(ghg_patch_dict)
+    # Read the original namelist from the namelist file 
     parser = f90nml.Parser()
-    patch_str_namelist = parser.reads(patch_str)
-
-    # Create a new namelist by patching the original namelist
     pi_ghg_namelist_filepath = Path("atmosphere") / "namelists"
     if not pi_ghg_namelist_filepath.exists():
         raise FileNotFoundError(
             f"Namelist file {pi_ghg_namelist_filepath} does not exist"
         )
+    all_namelists = parser.read(pi_ghg_namelist_filepath)
+    rad_namelist = all_namelists[rad_namelist_name]
+    # Set the floating point format to the right value for the rad namelist
+    rad_namelist.float_format = ".5g"
+    rad_namelist.uppercase = True
+    # Use the patch namelist to patch the rad namelist
+    rad_namelist.patch(ghg_patch_namelist)
+    # Create a new namelist file by patching the original namelist file
     new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix(".nml.patched")
     parser.read(
-        pi_ghg_namelist_filepath, patch_str_namelist, new_namelist_filepath
+        pi_ghg_namelist_filepath, rad_namelist, new_namelist_filepath
     )
 
-    # Replace the original namelist
+    # Replace the original namelist file
     new_namelist_filepath.replace(pi_ghg_namelist_filepath)
 
 
