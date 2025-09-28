@@ -88,7 +88,7 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     rad_namelist.patch(ghg_patch_namelist)
     # Create a new namelist file by patching the original namelist file
     new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix(".nml.patched")
-    parser.read(
+    parser.patch(
         pi_ghg_namelist_filepath, rad_namelist, new_namelist_filepath
     )
 
