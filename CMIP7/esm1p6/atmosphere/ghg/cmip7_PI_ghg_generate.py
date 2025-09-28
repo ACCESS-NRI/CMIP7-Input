@@ -86,13 +86,14 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     rad_patch_namelist = f90nml.namelist.Namelist(rad_patch_dict)  
     # Set the floating point format to the right value for the rad namelist
     rad_patch_namelist.float_format = ".5g"
-    rad_patch_namelist.logical_repr = (".FALSE.", ".TRUE.")
     rad_patch_namelist.end_comma = True
     # Use the ghg patch namelist to patch the rad patch namelist
     rad_patch_namelist.patch(ghg_patch_namelist)
     # The floating point format is ignored until the namelist is formatted
     rad_patch_namelist_str = str(rad_patch_namelist)
     rad_patch_namelist = parser.reads(rad_patch_namelist_str)
+    rad_patch_namelist.end_comma = True
+    rad_patch_namelist.logical_repr = (".FALSE.", ".TRUE.")
     rad_patch_namelist.uppercase = True
     # Create a new namelist file by patching the original namelist file
     new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix(".nml.patched")
