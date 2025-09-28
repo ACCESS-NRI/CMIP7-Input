@@ -64,11 +64,11 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
         "hfc125": "HFC125MMR",
         "hfc134a": "HFC134AMMR",
     }
-    # Use ghg_mmr_dict to create a namelist dict
+    # Use ghg_mmr_dict to create a ghg namelist dict
     ghg_namelist_dict = dict()
     for ghg in ghg_mmr_dict:
         ghg_namelist_dict[GHG_PI_NAME[ghg]] = ghg_mmr_dict[ghg]
-    # Create a patch namelist from the namelist dict
+    # Create a patch namelist from the ghg namelist dict
     rad_namelist_name = "RUN_Radiation"
     ghg_patch_dict = {rad_namelist_name: ghg_namelist_dict}
     ghg_patch_namelist = f90nml.namelist.Namelist(ghg_patch_dict)
@@ -80,16 +80,19 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
             f"Namelist file {pi_ghg_namelist_filepath} does not exist"
         )
     all_namelists = parser.read(pi_ghg_namelist_filepath)
-    rad_namelist = all_namelists[rad_namelist_name]
+    rad_namelist_dict = all_namelists[rad_namelist_name]
+    # Create a patch namelist from the rad namelist dict
+    rad_patch_dict = {rad_namelist_name: rad_namelist_dict}
+    rad_patch_namelist = f90nml.namelist.Namelist(rad_patch_dict)  
     # Set the floating point format to the right value for the rad namelist
-    rad_namelist.float_format = ".5g"
-    rad_namelist.uppercase = True
-    # Use the patch namelist to patch the rad namelist
-    rad_namelist.patch(ghg_patch_namelist)
+    rad_patch_namelist.float_format = ".5g"
+    rad_patch_namelist.uppercase = True
+    # Use the ghg patch namelist to patch the rad patch namelist
+    rad_patch_namelist.patch(ghg_patch_namelist)
     # Create a new namelist file by patching the original namelist file
     new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix(".nml.patched")
-    parser.patch(
-        pi_ghg_namelist_filepath, rad_namelist, new_namelist_filepath
+    parser.read(
+        pi_ghg_namelist_filepath, rad_patch_namelist, new_namelist_filepath
     )
 
     # Replace the original namelist file
