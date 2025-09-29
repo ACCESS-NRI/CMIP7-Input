@@ -85,6 +85,7 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     # Set the formats to the right value for the rad namelist
     all_namelists.end_comma = True
     all_namelists.float_format = ".5g"
+    all_namelists.indent = 0
     all_namelists.logical_repr = (".FALSE.", ".TRUE.")
     all_namelists.uppercase = True
     # Write all namelists back to the namlist file
