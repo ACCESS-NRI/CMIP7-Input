@@ -72,7 +72,7 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     rad_namelist_name = "RUN_Radiation"
     ghg_patch_dict = {rad_namelist_name: ghg_namelist_dict}
     ghg_patch_namelist = f90nml.namelist.Namelist(ghg_patch_dict)
-    # Read the original namelist from the namelist file 
+    # Read all namelists from the namelist file 
     parser = f90nml.Parser()
     pi_ghg_namelist_filepath = Path("atmosphere") / "namelists"
     if not pi_ghg_namelist_filepath.exists():
@@ -80,29 +80,14 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
             f"Namelist file {pi_ghg_namelist_filepath} does not exist"
         )
     all_namelists = parser.read(pi_ghg_namelist_filepath)
-    rad_namelist_dict = all_namelists[rad_namelist_name]
-    # Create a patch namelist from the rad namelist dict
-    rad_patch_dict = {rad_namelist_name: rad_namelist_dict}
-    rad_patch_namelist = f90nml.namelist.Namelist(rad_patch_dict)  
-    # Set the floating point format to the right value for the rad namelist
-    rad_patch_namelist.float_format = ".5g"
-    rad_patch_namelist.end_comma = True
-    # Use the ghg patch namelist to patch the rad patch namelist
-    rad_patch_namelist.patch(ghg_patch_namelist)
-    # The floating point format is ignored until the namelist is formatted
-    rad_patch_namelist_str = str(rad_patch_namelist)
-    rad_patch_namelist = parser.reads(rad_patch_namelist_str)
-    rad_patch_namelist.end_comma = True
-    rad_patch_namelist.logical_repr = (".FALSE.", ".TRUE.")
-    rad_patch_namelist.uppercase = True
-    # Create a new namelist file by patching the original namelist file
-    new_namelist_filepath = pi_ghg_namelist_filepath.with_suffix(".nml.patched")
-    parser.read(
-        pi_ghg_namelist_filepath, rad_patch_namelist, new_namelist_filepath
-    )
-
-    # Replace the original namelist file
-    new_namelist_filepath.replace(pi_ghg_namelist_filepath)
+    # Use the ghg patch namelist to patch the rad namelist
+    all_namelists.patch(ghg_patch_namelist)
+    # Set the formats to the right value for the rad namelist
+    all_namelists.float_format = ".5g"
+    all_namelists.end_comma = True
+    all_namelists.logical_repr = (".FALSE.", ".TRUE.")
+    # Write all namelists back to the namlist file
+    all_namelists.write(pi_ghg_namelist_filepath, force=True)
 
 
 if __name__ == "__main__":
