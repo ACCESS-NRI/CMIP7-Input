@@ -3,6 +3,11 @@ from pathlib import Path
 
 import mule
 from cmip7_ancil_constants import ANCIL_TODAY, UM_VERSION
+from cmip7_PI import CMIP7_PI_YEAR
+
+CMIP7_HI_BEG_YEAR = CMIP7_PI_YEAR
+CMIP7_HI_END_YEAR = 2022
+CMIP7_HI_NBR_YEARS = CMIP7_HI_END_YEAR + 1 - CMIP7_HI_BEG_YEAR
 
 
 def esm_hi_forcing_save_dirpath(args):
