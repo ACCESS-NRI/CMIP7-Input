@@ -109,17 +109,15 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     # by summing over stratospheric layers,
                     # weighted by layer height.
                     lat_cube = sum_over_height_layers(lat_cube)
-                    saod_for_lat_band = lat_cube.data * 10000.0
+                    saod = lat_cube.data * 10000.0
                     print(
-                        f"{int(saod_for_lat_band):5d}",
+                        f"{int(saod):5d}",
                         end="",
                         file=save_file,
                     )
                     # Save the SAOD values for CMIP7_HI_VOLCANIC_BEG_YEAR.
                     if year == CMIP7_HI_VOLCANIC_BEG_YEAR:
-                        saod_for_beg_year(month - 1, lat_band_nbr) = (
-                            saod_for_lat_band
-                        )
+                        saod_for_beg_year[month - 1, lat_band_nbr] = saod
                 print(file=save_file)
         # For years from CMIP7_HI_VOLCANIC_END_YEAR + 1 to
         # CMIP7_HI_SAOD_ARRAY_END_YEAR use the saved SAOD values in
@@ -132,12 +130,9 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
 
                 # Divide into latitude bands.
                 for lat_band_nbr in range(NBR_OF_BANDS):
-                    saod_for_lat_band = saod_for_beg_year(
-                        month - 1,
-                        lat_band_nbr
-                    )
+                    saod = saod_for_beg_year[month - 1, lat_band_nbr]
                     print(
-                        f"{int(saod_for_lat_band):5d}",
+                        f"{int(saod):5d}",
                         end="",
                         file=save_file,
                     )
