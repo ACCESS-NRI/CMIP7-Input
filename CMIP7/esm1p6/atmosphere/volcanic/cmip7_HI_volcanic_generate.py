@@ -87,8 +87,9 @@ def save_hi_year_interpolated_saod(
 
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
-            saod = (saod_for_beg_year[month - 1, lat_band_nbr] * ratio
-                + saod_for_end_year[month - 1, lat_band_nbr] * (1.0 - ratio))
+            saod_beg = saod_for_beg_year[month - 1, lat_band_nbr]
+            saod_end = saod_for_end_year[month - 1, lat_band_nbr]
+            saod = saod_beg * ratio + saod_end * (1.0 - ratio)
             print(
                 f"{int(saod):5d}",
                 end="",
