@@ -79,7 +79,7 @@ def save_hi_year_interpolated_saod(
     and saod_for_end_year and save one year's worth of values
     in save_file.
     """
-    ratio = max(
+    ratio = min(
         (year - CMIP7_HI_VOLCANIC_END_YEAR) / float(NBR_TAPER_YEARS), 1.0
     )
     for month in range(1, MONTHS_IN_YEAR + 1):
@@ -87,11 +87,8 @@ def save_hi_year_interpolated_saod(
 
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
-            saod = saod_for_beg_year[
-                month - 1, lat_band_nbr
-            ] * ratio + saod_for_beg_year[month - 1, lat_band_nbr] * (
-                1.0 - ratio
-            )
+            saod = saod_for_beg_year[month - 1, lat_band_nbr] * ratio
+                + saod_for_end_year[month - 1, lat_band_nbr] * (1.0 - ratio)
             print(
                 f"{int(saod):5d}",
                 end="",
