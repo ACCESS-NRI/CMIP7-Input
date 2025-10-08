@@ -5,8 +5,6 @@ import iris
 import numpy as np
 from cmip7_ancil_argparse import dataset_parser, path_parser
 from cmip7_HI import (
-    CMIP7_HI_BEG_YEAR,
-    CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
 from volcanic.cmip7_volcanic import (
@@ -19,7 +17,9 @@ from volcanic.cmip7_volcanic import (
 
 CMIP7_HI_VOLCANIC_BEG_YEAR = 1850
 CMIP7_HI_VOLCANIC_END_YEAR = 2023
+CMIP7_HI_SAOD_TAPER_END_YEAR = 2033
 CMIP7_HI_SAOD_ARRAY_END_YEAR = 2300
+NBR_TAPER_YEARS = CMIP7_HI_SAOD_TAPER_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
 MONTHS_IN_YEAR = 12
 NBR_OF_BANDS = 4
 
@@ -71,6 +71,35 @@ def constrain_to_latitude_band(cube, band):
     return cube.extract(lat_constraint)
 
 
+def save_hi_year_interpolated_saod(
+    year, saod_for_beg_year, saod_for_end_year, save_file
+):
+    """
+    Interpolate between the saod values in saod_for_beg_year
+    and saod_for_end_year and save one year's worth of values
+    in save_file.
+    """
+    ratio = max(
+        (year - CMIP7_HI_VOLCANIC_END_YEAR) / float(NBR_TAPER_YEARS), 1.0
+    )
+    for month in range(1, MONTHS_IN_YEAR + 1):
+        print(f"{year:4d} {month:4d}", end="", file=save_file)
+
+        # Divide into latitude bands.
+        for lat_band_nbr in range(NBR_OF_BANDS):
+            saod = saod_for_beg_year[
+                month - 1, lat_band_nbr
+            ] * ratio + saod_for_beg_year[month - 1, lat_band_nbr] * (
+                1.0 - ratio
+            )
+            print(
+                f"{int(saod):5d}",
+                end="",
+                file=save_file,
+            )
+        print(file=save_file)
+
+
 def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
@@ -90,8 +119,9 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     # Ensure that the save directory exists.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
-    # Keep the BEG_YEAR SAOD values in an array.
+    # Keep the BEG_YEAR and END_YEAR SAOD values in arrays.
     saod_for_beg_year = np.zeros((MONTHS_IN_YEAR, NBR_OF_BANDS))
+    saod_for_end_year = np.zeros((MONTHS_IN_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Iterate over years and months.
         for year in range(
@@ -122,25 +152,20 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     # Save the SAOD values for CMIP7_HI_VOLCANIC_BEG_YEAR.
                     if year == CMIP7_HI_VOLCANIC_BEG_YEAR:
                         saod_for_beg_year[month - 1, lat_band_nbr] = saod
+                    # Save the SAOD values for CMIP7_HI_VOLCANIC_END_YEAR.
+                    if year == CMIP7_HI_VOLCANIC_END_YEAR:
+                        saod_for_end_year[month - 1, lat_band_nbr] = saod
                 print(file=save_file)
         # For years from CMIP7_HI_VOLCANIC_END_YEAR + 1 to
-        # CMIP7_HI_SAOD_ARRAY_END_YEAR use the saved SAOD values in
-        # saod_for_beg_year.
+        # CMIP7_HI_SAOD_ARRAY_END_YEAR interpolate between the saod values
+        # in saod_for_beg_year and saod_for_end_year and save values in
+        # save_file.
         for year in range(
             CMIP7_HI_VOLCANIC_END_YEAR + 1, CMIP7_HI_SAOD_ARRAY_END_YEAR + 1
         ):
-            for month in range(1, MONTHS_IN_YEAR + 1):
-                print(f"{year:4d} {month:4d}", end="", file=save_file)
-
-                # Divide into latitude bands.
-                for lat_band_nbr in range(NBR_OF_BANDS):
-                    saod = saod_for_beg_year[month - 1, lat_band_nbr]
-                    print(
-                        f"{int(saod):5d}",
-                        end="",
-                        file=save_file,
-                    )
-                print(file=save_file)
+            save_hi_year_interpolated_saod(
+                year, saod_for_beg_year, saod_for_end_year, save_file
+            )
 
 
 if __name__ == "__main__":
