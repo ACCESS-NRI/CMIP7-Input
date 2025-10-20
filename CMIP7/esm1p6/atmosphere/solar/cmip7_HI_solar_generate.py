@@ -46,7 +46,7 @@ def cmip7_hi_solar_year_mean(cube):
         solar_array[year - SOLAR_ARRAY_BEG_YEAR] = year_mean
         tsi_sum += year_mean
     # Calculate the mean TSI over the CMIP7 historical years.
-    NBR_CMIP7_HI_YEARS = CMIP7_HI_END_YEAR - CMIP7_HI_BEG_YEAR
+    NBR_CMIP7_HI_YEARS = CMIP7_HI_END_YEAR - CMIP7_HI_BEG_YEAR + 1
     tsi_mean = tsi_sum / NBR_CMIP7_HI_YEARS
 
     # For the years from SOLAR_ARRAY_BEG_YEAR to CMIP7_HI_BEG_YEAR - 1,
