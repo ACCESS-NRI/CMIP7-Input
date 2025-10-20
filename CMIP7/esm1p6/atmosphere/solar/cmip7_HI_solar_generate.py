@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import iris
 import numpy as np
 from cmip7_ancil_argparse import common_parser
-from cmip7_constants import REAL_MISSING_DATA_INDICATOR
+from cmip7_ancil_constants import REAL_MISSING_DATA_INDICATOR
 from cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
