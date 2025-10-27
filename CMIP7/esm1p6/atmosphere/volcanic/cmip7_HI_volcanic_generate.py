@@ -71,27 +71,42 @@ def constrain_to_latitude_band(cube, band):
     return cube.extract(lat_constraint)
 
 
-def save_hi_year_interpolated_saod(
-    year, saod_for_beg_year, saod_for_end_year, save_file
-):
+def taper_saod(saod_for_beg_year, saod_for_end_year):
     """
     Interpolate between the saod values in saod_for_beg_year
-    and saod_for_end_year and save one year's worth of values
-    in save_file.
+    and saod_for_end_year.
     """
-    ratio = min(
-        (year - CMIP7_HI_VOLCANIC_END_YEAR) / float(NBR_TAPER_YEARS), 1.0
-    )
+    RATIO_ARRAY_LEN = CMIP7_HI_SAOD_ARRAY_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
+    saod_array = np.zeros(RATIO_ARRAY_LEN, MONTHS_IN_YEAR, NBR_OF_BANDS)
+    ratio_array = np.zeros(RATIO_ARRAY_LEN)
+    for index in range(RATIO_ARRAY_LEN):
+        ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
+    ratio_beg_end = np.array([0.0, 1.0])
+    for month in range(1, MONTHS_IN_YEAR + 1):
+        # Divide into latitude bands.
+        for lat_band_nbr in range(NBR_OF_BANDS):
+            saod_beg = saod_for_beg_year[month - 1, lat_band_nbr]
+            saod_end = saod_for_end_year[month - 1, lat_band_nbr]
+            saod_beg_end = np.array([saod_beg, saod_end])
+            saod_array[:, month, lat_band_nbr] = np.interp(
+                ratio_array, ratio_beg_end, saod_beg_end
+            )
+    return saod_array
+
+
+def save_hi_year_tapered_saod(year, tapered_saod_array, save_file):
+    """
+    Save one year's worth of interpolated saod values in save_file.
+    """
+    index = year - (CMIP7_HI_VOLCANIC_END_YEAR + 1)
     for month in range(1, MONTHS_IN_YEAR + 1):
         print(f"{year:4d} {month:4d}", end="", file=save_file)
 
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
-            saod_beg = saod_for_beg_year[month - 1, lat_band_nbr]
-            saod_end = saod_for_end_year[month - 1, lat_band_nbr]
-            saod = saod_beg * ratio + saod_end * (1.0 - ratio)
+            saod = tapered_saod_array[index, month - 1, lat_band_nbr]
             print(
-                f"{int(saod):5d}",
+                f"{round(saod):5d}",
                 end="",
                 file=save_file,
             )
@@ -143,7 +158,7 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     lat_cube = sum_over_height_layers(lat_cube)
                     saod = lat_cube.data * 10000.0
                     print(
-                        f"{int(saod):5d}",
+                        f"{round(saod):5d}",
                         end="",
                         file=save_file,
                     )
@@ -158,12 +173,11 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
         # CMIP7_HI_SAOD_ARRAY_END_YEAR interpolate between the saod values
         # in saod_for_beg_year and saod_for_end_year and save values in
         # save_file.
+        tapered_saod_array = taper_saod(saod_for_beg_year, saod_for_end_year)
         for year in range(
             CMIP7_HI_VOLCANIC_END_YEAR + 1, CMIP7_HI_SAOD_ARRAY_END_YEAR + 1
         ):
-            save_hi_year_interpolated_saod(
-                year, saod_for_beg_year, saod_for_end_year, save_file
-            )
+            save_hi_year_tapered_saod(year, tapered_saod_array, save_file)
 
 
 if __name__ == "__main__":
