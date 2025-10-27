@@ -77,7 +77,7 @@ def taper_saod(saod_for_beg_year, saod_for_end_year):
     and saod_for_end_year.
     """
     RATIO_ARRAY_LEN = CMIP7_HI_SAOD_ARRAY_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
-    saod_array = np.zeros(RATIO_ARRAY_LEN, MONTHS_IN_YEAR, NBR_OF_BANDS)
+    saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_YEAR, NBR_OF_BANDS))
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
