@@ -82,13 +82,13 @@ def taper_saod(saod_for_beg_year, saod_for_end_year):
     for index in range(RATIO_ARRAY_LEN):
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
     ratio_beg_end = np.array([0.0, 1.0])
-    for month in range(1, MONTHS_IN_YEAR + 1):
+    for month_m1 in range(MONTHS_IN_YEAR):
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
-            saod_beg = saod_for_beg_year[month - 1, lat_band_nbr]
-            saod_end = saod_for_end_year[month - 1, lat_band_nbr]
+            saod_beg = saod_for_beg_year[month_m1, lat_band_nbr]
+            saod_end = saod_for_end_year[month_m1, lat_band_nbr]
             saod_beg_end = np.array([saod_beg, saod_end])
-            saod_array[:, month, lat_band_nbr] = np.interp(
+            saod_array[:, month_m1, lat_band_nbr] = np.interp(
                 ratio_array, ratio_beg_end, saod_beg_end
             )
     return saod_array
