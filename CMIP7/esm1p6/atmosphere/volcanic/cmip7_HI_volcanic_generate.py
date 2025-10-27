@@ -74,22 +74,24 @@ def constrain_to_latitude_band(cube, band):
 def taper_saod(saod_for_beg_year, saod_for_end_year):
     """
     Interpolate between the saod values in saod_for_beg_year
-    and saod_for_end_year.
+    and saod_for_end_year. The SAOD values taper from saod_for_end_year
+    towards saod_for_beg_year until CMIP7_HI_SAOD_TAPER_END_YEAR,
+    and remain at saod_for_beg_year afterwards.
     """
     RATIO_ARRAY_LEN = CMIP7_HI_SAOD_ARRAY_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
     saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_YEAR, NBR_OF_BANDS))
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
-    ratio_beg_end = np.array([0.0, 1.0])
+    ratio_endpoints = np.array([0.0, 1.0])
     for month_m1 in range(MONTHS_IN_YEAR):
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
             saod_beg = saod_for_beg_year[month_m1, lat_band_nbr]
             saod_end = saod_for_end_year[month_m1, lat_band_nbr]
-            saod_beg_end = np.array([saod_beg, saod_end])
+            saod_endpoints = np.array([saod_end, saod_beg])
             saod_array[:, month_m1, lat_band_nbr] = np.interp(
-                ratio_array, ratio_beg_end, saod_beg_end
+                ratio_array, ratio_endpoints, saod_endpoints
             )
     return saod_array
 
