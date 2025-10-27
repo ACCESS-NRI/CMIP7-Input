@@ -4,9 +4,8 @@ import cftime
 import iris
 import numpy as np
 from cmip7_ancil_argparse import dataset_parser, path_parser
-from cmip7_HI import (
-    esm_hi_forcing_save_dirpath,
-)
+from cmip7_ancil_constants import MONTHS_IN_A_YEAR
+from cmip7_HI import esm_hi_forcing_save_dirpath
 from volcanic.cmip7_volcanic import (
     SAOD_WAVELENGTH,
     cmip7_volcanic_dirpath,
@@ -20,7 +19,6 @@ CMIP7_HI_VOLCANIC_END_YEAR = 2023
 CMIP7_HI_SAOD_TAPER_END_YEAR = 2033
 CMIP7_HI_SAOD_ARRAY_END_YEAR = 2300
 NBR_TAPER_YEARS = CMIP7_HI_SAOD_TAPER_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
-MONTHS_IN_YEAR = 12
 NBR_OF_BANDS = 4
 
 
@@ -51,8 +49,8 @@ def constrain_to_year_month(cube, year, month):
     """
     calendar = "proleptic_gregorian"
     beg_date = cftime.datetime(year, month, 1, calendar=calendar)
-    end_year = year + 1 if month == MONTHS_IN_YEAR else year
-    end_month = 1 if month == MONTHS_IN_YEAR else month + 1
+    end_year = year + 1 if month == MONTHS_IN_A_YEAR else year
+    end_month = 1 if month == MONTHS_IN_A_YEAR else month + 1
     end_date = cftime.datetime(end_year, end_month, 1, calendar=calendar)
     ym_constraint = iris.Constraint(
         time=lambda cell: beg_date <= cell < end_date
@@ -79,12 +77,12 @@ def taper_saod(saod_for_beg_year, saod_for_end_year):
     and remain at saod_for_beg_year afterwards.
     """
     RATIO_ARRAY_LEN = CMIP7_HI_SAOD_ARRAY_END_YEAR - CMIP7_HI_VOLCANIC_END_YEAR
-    saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_YEAR, NBR_OF_BANDS))
+    saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
     ratio_endpoints = np.array([0.0, 1.0])
-    for month_m1 in range(MONTHS_IN_YEAR):
+    for month_m1 in range(MONTHS_IN_A_YEAR):
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
             saod_beg = saod_for_beg_year[month_m1, lat_band_nbr]
@@ -101,7 +99,7 @@ def save_hi_year_tapered_saod(year, tapered_saod_array, save_file):
     Save one year's worth of interpolated saod values in save_file.
     """
     index = year - (CMIP7_HI_VOLCANIC_END_YEAR + 1)
-    for month in range(1, MONTHS_IN_YEAR + 1):
+    for month in range(1, MONTHS_IN_A_YEAR + 1):
         print(f"{year:4d} {month:4d}", end="", file=save_file)
 
         # Divide into latitude bands.
@@ -135,14 +133,14 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
     # Keep the BEG_YEAR and END_YEAR SAOD values in arrays.
-    saod_for_beg_year = np.zeros((MONTHS_IN_YEAR, NBR_OF_BANDS))
-    saod_for_end_year = np.zeros((MONTHS_IN_YEAR, NBR_OF_BANDS))
+    saod_for_beg_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
+    saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Iterate over years and months.
         for year in range(
             CMIP7_HI_VOLCANIC_BEG_YEAR, CMIP7_HI_VOLCANIC_END_YEAR + 1
         ):
-            for month in range(1, MONTHS_IN_YEAR + 1):
+            for month in range(1, MONTHS_IN_A_YEAR + 1):
                 print(f"{year:4d} {month:4d}", end="", file=save_file)
                 ym_cube = constrain_to_year_month(cube, year, month)
 
