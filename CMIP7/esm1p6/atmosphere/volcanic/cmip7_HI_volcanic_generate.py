@@ -106,7 +106,7 @@ def save_hi_year_tapered_saod(year, tapered_saod_array, save_file):
         for lat_band_nbr in range(NBR_OF_BANDS):
             saod = tapered_saod_array[index, month - 1, lat_band_nbr]
             print(
-                f"{round(saod):5d}",
+                f"{saod:7.1f}",
                 end="",
                 file=save_file,
             )
@@ -158,7 +158,7 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
                     lat_cube = sum_over_height_layers(lat_cube)
                     saod = lat_cube.data * 10000.0
                     print(
-                        f"{round(saod):5d}",
+                        f"{saod:7.1f}",
                         end="",
                         file=save_file,
                     )
