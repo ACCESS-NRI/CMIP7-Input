@@ -64,7 +64,7 @@ def load_cmip7_pi_nitrogen(args):
 
 def regrid_cmip7_pi_nitrogen(args, cube):
     # Make the coordinates comaptible with the ESM1.5 grid mask
-    fix_coords(cube)
+    fix_coords(args, cube)
     # Regrid using the ESM1.5 grid mask
     esm_cube = cube.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)
     esm_cube.data = esm_cube.data.filled(0.0)
