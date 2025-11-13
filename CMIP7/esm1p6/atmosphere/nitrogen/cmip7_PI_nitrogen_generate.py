@@ -88,4 +88,4 @@ if __name__ == "__main__":
     # Regrid to match the ESM1.5 mask
     esm_cube = regrid_cmip7_pi_nitrogen(args, nitrogen_cube)
     # Save the ancillary
-    save_cmip7_pi_nitrogen(esm_cube)
+    save_cmip7_pi_nitrogen(args, esm_cube)
