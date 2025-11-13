@@ -77,7 +77,7 @@ def save_cmip7_pi_nitrogen(args, cube):
         model=1, section=0, item=NITROGEN_STASH_ITEM
     )
     # Save as an ancillary file
-    save_ancil(cube, args.ancil_target_path, args.save_filename)
+    save_ancil(cube, args.ancil_target_dirname, args.save_filename)
 
 
 if __name__ == "__main__":
