@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from pathlib import Path
 
 import iris
 from cmip7_ancil_argparse import common_parser
@@ -8,6 +9,7 @@ from cmip7_ancil_common import (
     fix_coords,
     save_ancil,
 )
+from cmip7_ancil_constants import ANCIL_TODAY
 from iris.util import equalise_attributes
 from nitrogen.cmip7_nitrogen import (
     NITROGEN_SPECIES,
@@ -71,13 +73,27 @@ def regrid_cmip7_pi_nitrogen(args, cube):
     return esm_cube
 
 
+def esm_pi_nitrogen_save_dirpath(args):
+    return (
+        Path(args.ancil_target_dirname)
+        / "modern"
+        / "pre-industrial"
+        / "atmosphere"
+        / "land"
+        / "biogeochemistry"
+        / args.esm_grid_rel_dirname
+        / ANCIL_TODAY
+    )
+
+
 def save_cmip7_pi_nitrogen(args, cube):
     # Add STASH metadata
     cube.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=NITROGEN_STASH_ITEM
     )
     # Save as an ancillary file
-    save_ancil(cube, args.ancil_target_dirname, args.save_filename)
+    save_dirpath = esm_pi_nitrogen_save_dirpath(args)
+    save_ancil(cube, save_dirpath, args.save_filename)
 
 
 if __name__ == "__main__":
