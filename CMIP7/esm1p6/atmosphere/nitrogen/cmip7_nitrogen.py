@@ -1,7 +1,12 @@
 from pathlib import Path
 
 NITROGEN_SPECIES = ("drynhx", "drynoy", "wetnhx", "wetnoy")
-NITROGEN_STASH_ITEM = 447  # m01s00i447 is NITROGEN DEPOSITION (kgN/m2/s)
+"""
+As per https://forum.access-hive.org.au/t/proposed-changes-to-variable-names-in-um-netcdf-conversion/4599
+m01s03i884 is NITROGEN DEPOSITION 
+"""
+NITROGEN_STASH_SECTION = 3
+NITROGEN_STASH_ITEM = 884
 
 
 def cmip7_nitrogen_dirpath(args, period, species):
