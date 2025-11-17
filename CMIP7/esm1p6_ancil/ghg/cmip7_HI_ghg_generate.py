@@ -4,13 +4,13 @@ from pathlib import Path
 import f90nml
 import iris
 import numpy as np
-from cmip7_ancil_argparse import dataset_parser, path_parser
-from cmip7_HI import (
+from esm1p6_ancil.cmip7_ancil_argparse import dataset_parser, path_parser
+from esm1p6_ancil.cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
     CMIP7_HI_NBR_YEARS,
 )
-from ghg.cmip7_ghg import (
+from esm1p6_ancil.ghg.cmip7_ghg import (
     GHG_MOLAR_MASS,
     cmip7_ghg_dirpath,
     cmip7_ghg_filename,

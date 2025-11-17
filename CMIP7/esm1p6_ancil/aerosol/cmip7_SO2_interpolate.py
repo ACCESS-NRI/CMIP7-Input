@@ -7,9 +7,11 @@ from pathlib import Path
 import iris
 import netCDF4
 import numpy as np
-from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
-from aerosol.cmip7_aerosol_common import zero_poles
-from cmip7_ancil_common import (
+from esm1p6_ancil.aerosol.cmip7_aerosol_anthro import (
+    cmip7_aerosol_anthro_filepath,
+)
+from esm1p6_ancil.aerosol.cmip7_aerosol_common import zero_poles
+from esm1p6_ancil.cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
     save_ancil,
