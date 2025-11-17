@@ -7,7 +7,10 @@ from esm1p6_ancil.cmip7_HI import (
     CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
-from esm1p6_ancil.solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
+from esm1p6_ancil.solar.cmip7_solar import (
+    cmip7_solar_dirpath,
+    load_cmip7_solar_cube,
+)
 
 
 def parse_args():
