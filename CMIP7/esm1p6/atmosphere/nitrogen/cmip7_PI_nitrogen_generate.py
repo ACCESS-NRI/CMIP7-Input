@@ -14,7 +14,6 @@ from iris.util import equalise_attributes
 from nitrogen.cmip7_nitrogen import (
     NITROGEN_SPECIES,
     NITROGEN_STASH_ITEM,
-    NITROGEN_STASH_SECTION,
     cmip7_nitrogen_dirpath,
 )
 
@@ -92,7 +91,7 @@ def esm_pi_nitrogen_save_dirpath(args):
 def save_cmip7_pi_nitrogen(args, cube):
     # Add STASH metadata
     cube.attributes["STASH"] = iris.fileformats.pp.STASH(
-        model=1, section=NITROGEN_STASH_SECTION, item=NITROGEN_STASH_ITEM
+        model=1, section=0, item=NITROGEN_STASH_ITEM
     )
     # Save as an ancillary file
     save_dirpath = esm_pi_nitrogen_save_dirpath(args)
