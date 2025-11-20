@@ -56,11 +56,9 @@ def load_cmip7_pi_nitrogen(args):
     # Remove all attributes that differ between cubes
     equalise_attributes(nitrogen_cubes)
     # Add the cubes together
-    cube_tot = nitrogen_cubes[0].copy()
-    for cube_nbr in range(1, 4):
-        iris.analysis.maths.add(
-            cube_tot, nitrogen_cubes[cube_nbr], in_place=True
-        )
+    cube_tot = nitrogen_cubes[0]
+    for cube in nitrogen_cubes[1:]:
+        cube_tot += cube
     # Change the units from kg m-2 s-1 to g m-2 day-1
     cube_tot.convert_units("g m-2 day-1")
     return cube_tot
