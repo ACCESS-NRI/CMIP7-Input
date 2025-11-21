@@ -4,13 +4,13 @@ import cftime
 import iris
 import numpy as np
 
-from .cmip7_ancil_argparse import dataset_parser, path_parser
-from .cmip7_HI import (
+from ..cmip7_ancil_argparse import dataset_parser, path_parser
+from ..cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
-from .volcanic.cmip7_volcanic import (
+from .cmip7_volcanic import (
     SAOD_WAVELENGTH,
     cmip7_volcanic_dirpath,
     constrain_to_wavelength,

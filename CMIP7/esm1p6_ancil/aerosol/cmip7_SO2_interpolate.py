@@ -8,15 +8,15 @@ import iris
 import netCDF4
 import numpy as np
 
-from .aerosol.cmip7_aerosol_anthro import (
-    cmip7_aerosol_anthro_filepath,
-)
-from .aerosol.cmip7_aerosol_common import zero_poles
-from .cmip7_ancil_common import (
+from ..cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
     save_ancil,
 )
+from .cmip7_aerosol_anthro import (
+    cmip7_aerosol_anthro_filepath,
+)
+from .cmip7_aerosol_common import zero_poles
 
 DMS_NAME_CONSTRAINT = iris.Constraint(
     name="tendency_of_atmosphere_mass_content_of_"

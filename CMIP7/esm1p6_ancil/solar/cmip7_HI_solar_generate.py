@@ -2,13 +2,13 @@ from argparse import ArgumentParser
 
 import iris
 
-from .cmip7_ancil_argparse import common_parser
-from .cmip7_HI import (
+from ..cmip7_ancil_argparse import common_parser
+from ..cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
-from .solar.cmip7_solar import (
+from .cmip7_solar import (
     cmip7_solar_dirpath,
     load_cmip7_solar_cube,
 )

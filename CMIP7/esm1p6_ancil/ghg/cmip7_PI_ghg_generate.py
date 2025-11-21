@@ -4,9 +4,9 @@ from pathlib import Path
 import f90nml
 import iris
 
-from .cmip7_ancil_argparse import dataset_parser, path_parser
-from .cmip7_PI import CMIP7_PI_YEAR
-from .ghg.cmip7_ghg import (
+from ..cmip7_ancil_argparse import dataset_parser, path_parser
+from ..cmip7_PI import CMIP7_PI_YEAR
+from .cmip7_ghg import (
     GHG_MOLAR_MASS,
     cmip7_ghg_dirpath,
     cmip7_ghg_filename,

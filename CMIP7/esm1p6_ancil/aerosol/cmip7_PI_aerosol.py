@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .cmip7_ancil_constants import ANCIL_TODAY
+from ..cmip7_ancil_constants import ANCIL_TODAY
 
 
 def esm_pi_aerosol_ancil_dirpath(ancil_root_dirname):

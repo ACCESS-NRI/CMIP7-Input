@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 
-from .cmip7_ancil_argparse import common_parser
+from ..cmip7_ancil_argparse import common_parser
 
 
 def parse_args():
