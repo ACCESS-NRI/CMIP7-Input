@@ -2,8 +2,12 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
-from cmip7_ancil_argparse import common_parser
-from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
+
+from ..cmip7_ancil_argparse import common_parser
+from .cmip7_solar import (
+    cmip7_solar_dirpath,
+    load_cmip7_solar_cube,
+)
 
 
 def parse_args():
