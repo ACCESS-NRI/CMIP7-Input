@@ -2,13 +2,13 @@
 
 from argparse import ArgumentParser
 
-from esm1p6_ancil.aerosol.cmip7_aerosol_biomass import (
+from .aerosol.cmip7_aerosol_biomass import (
     load_cmip7_aerosol_biomass,
     save_cmip7_aerosol_biomass,
 )
-from esm1p6_ancil.aerosol.cmip7_PI_aerosol import esm_pi_aerosol_save_dirpath
-from esm1p6_ancil.cmip7_ancil_argparse import common_parser, percent_parser
-from esm1p6_ancil.cmip7_PI import cmip7_pi_date_constraint
+from .aerosol.cmip7_PI_aerosol import esm_pi_aerosol_save_dirpath
+from .cmip7_ancil_argparse import common_parser, percent_parser
+from .cmip7_PI import cmip7_pi_date_constraint
 
 
 def parse_args():

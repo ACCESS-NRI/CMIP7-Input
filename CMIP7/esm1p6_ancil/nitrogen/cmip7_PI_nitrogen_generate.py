@@ -2,16 +2,17 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import iris
-from cmip7_ancil_argparse import common_parser
-from cmip7_ancil_common import (
+from iris.util import equalise_attributes
+
+from .cmip7_ancil_argparse import common_parser
+from .cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
     fix_coords,
     save_ancil,
 )
-from cmip7_ancil_constants import ANCIL_TODAY
-from iris.util import equalise_attributes
-from nitrogen.cmip7_nitrogen import (
+from .cmip7_ancil_constants import ANCIL_TODAY
+from .nitrogen.cmip7_nitrogen import (
     NITROGEN_SPECIES,
     NITROGEN_STASH_ITEM,
     cmip7_nitrogen_dirpath,

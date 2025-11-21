@@ -1,8 +1,9 @@
 import calendar
 
 import mule
-from esm1p6_ancil.cmip7_ancil_common import cmip7_date_constraint_from_years
-from esm1p6_ancil.cmip7_ancil_constants import UM_VERSION
+
+from .cmip7_ancil_common import cmip7_date_constraint_from_years
+from .cmip7_ancil_constants import UM_VERSION
 
 CMIP7_PI_YEAR = 1850
 DAYS_IN_CMIP7_PI_YEAR = 365.0

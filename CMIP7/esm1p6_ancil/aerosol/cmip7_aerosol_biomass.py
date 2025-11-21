@@ -3,12 +3,13 @@ from datetime import datetime
 from pathlib import Path
 
 import iris
-from esm1p6_ancil.aerosol.cmip7_aerosol_common import (
+
+from .aerosol.cmip7_aerosol_common import (
     load_cmip7_aerosol,
     load_cmip7_aerosol_list,
     zero_poles,
 )
-from esm1p6_ancil.cmip7_ancil_common import (
+from .cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
     save_ancil,

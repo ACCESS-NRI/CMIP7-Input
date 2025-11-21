@@ -2,22 +2,22 @@
 
 from argparse import ArgumentParser
 
-from esm1p6_ancil.aerosol.cmip7_PI_aerosol import (
+from .aerosol.cmip7_PI_aerosol import (
     esm_pi_aerosol_ancil_dirpath,
     esm_pi_aerosol_save_dirpath,
 )
-from esm1p6_ancil.aerosol.cmip7_PI_aerosol_anthro import (
+from .aerosol.cmip7_PI_aerosol_anthro import (
     load_cmip7_pi_aerosol_anthro,
 )
-from esm1p6_ancil.aerosol.cmip7_SO2_interpolate import (
+from .aerosol.cmip7_SO2_interpolate import (
     load_dms,
     save_cmip7_so2_aerosol_anthro,
 )
-from esm1p6_ancil.cmip7_ancil_argparse import (
+from .cmip7_ancil_argparse import (
     common_parser,
     dms_filename_parser,
 )
-from esm1p6_ancil.cmip7_PI import fix_esm15_pi_ancil_date
+from .cmip7_PI import fix_esm15_pi_ancil_date
 
 
 def parse_args():

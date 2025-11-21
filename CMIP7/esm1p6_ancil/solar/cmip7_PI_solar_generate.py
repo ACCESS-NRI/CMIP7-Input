@@ -2,8 +2,9 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
-from esm1p6_ancil.cmip7_ancil_argparse import common_parser
-from esm1p6_ancil.solar.cmip7_solar import (
+
+from .cmip7_ancil_argparse import common_parser
+from .solar.cmip7_solar import (
     cmip7_solar_dirpath,
     load_cmip7_solar_cube,
 )

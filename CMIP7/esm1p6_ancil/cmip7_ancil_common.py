@@ -10,7 +10,8 @@ import cftime
 import iris
 import mule
 import numpy as np
-from esm1p6_ancil.cmip7_ancil_constants import UM_VERSION
+
+from .cmip7_ancil_constants import UM_VERSION
 
 INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 

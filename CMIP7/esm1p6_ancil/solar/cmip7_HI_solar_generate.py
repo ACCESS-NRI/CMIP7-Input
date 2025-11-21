@@ -1,13 +1,14 @@
 from argparse import ArgumentParser
 
 import iris
-from esm1p6_ancil.cmip7_ancil_argparse import common_parser
-from esm1p6_ancil.cmip7_HI import (
+
+from .cmip7_ancil_argparse import common_parser
+from .cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
-from esm1p6_ancil.solar.cmip7_solar import (
+from .solar.cmip7_solar import (
     cmip7_solar_dirpath,
     load_cmip7_solar_cube,
 )

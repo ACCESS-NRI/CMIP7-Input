@@ -2,8 +2,9 @@ import calendar
 from pathlib import Path
 
 import mule
-from esm1p6_ancil.cmip7_ancil_constants import ANCIL_TODAY, UM_VERSION
-from esm1p6_ancil.cmip7_PI import CMIP7_PI_YEAR
+
+from .cmip7_ancil_constants import ANCIL_TODAY, UM_VERSION
+from .cmip7_PI import CMIP7_PI_YEAR
 
 CMIP7_HI_BEG_YEAR = CMIP7_PI_YEAR
 CMIP7_HI_END_YEAR = 2022
