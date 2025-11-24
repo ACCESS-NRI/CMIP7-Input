@@ -9,6 +9,7 @@ from cmip7_HI import (
     CMIP7_HI_END_YEAR,
     esm_hi_forcing_save_dirpath,
 )
+from cmip7_PI import CMIP7_PI_YEAR
 from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 SOLAR_ARRAY_BEG_YEAR = 1700
@@ -36,23 +37,21 @@ def cmip7_hi_solar_year_mean(cube):
     """
     NBR_YEARS = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_BEG_YEAR + 1
     solar_array = np.zeros(NBR_YEARS)
-    tsi_sum = 0.0
-    # Calculate and save the mean annual TSI
-    # for each CMI7 historical year.
+    # Calculate and save the mean annual TSI for each CMIP7 historical year.
+    assert CMIP7_PI_YEAR in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1)
     for year in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1):
         year_cons = iris.Constraint(time=lambda cell: cell.point.year == year)
         year_cube = cube.extract(year_cons)
         year_mean = year_cube.collapsed("time", iris.analysis.MEAN).data
         solar_array[year - SOLAR_ARRAY_BEG_YEAR] = year_mean
-        tsi_sum += year_mean
-    # Calculate the mean TSI over the CMIP7 historical years.
-    NBR_CMIP7_HI_YEARS = CMIP7_HI_END_YEAR - CMIP7_HI_BEG_YEAR + 1
-    tsi_mean = tsi_sum / NBR_CMIP7_HI_YEARS
+        # Save the year mean for the pre-industrial year.
+        if year == CMIP7_PI_YEAR:
+            pi_year_mean = year_mean
 
     # For the years from SOLAR_ARRAY_BEG_YEAR to CMIP7_HI_BEG_YEAR - 1,
-    # set the saved TSI value to the mean TSI.
+    # set the saved TSI value to the pre-industrial year mean TSI.
     for year in range(SOLAR_ARRAY_BEG_YEAR, CMIP7_HI_BEG_YEAR):
-        solar_array[year - SOLAR_ARRAY_BEG_YEAR] = tsi_mean
+        solar_array[year - SOLAR_ARRAY_BEG_YEAR] = pi_year_mean
 
     # For the years from CMIP7_HI_END_YEAR + 1 to SOLAR_ARRAY_END_YEAR,
     # set the saved TSI value to the real missing data indicator
