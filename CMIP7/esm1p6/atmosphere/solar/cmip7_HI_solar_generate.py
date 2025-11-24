@@ -38,8 +38,9 @@ def cmip7_hi_solar_year_mean(cube):
     NBR_YEARS = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_BEG_YEAR + 1
     solar_array = np.zeros(NBR_YEARS)
     # Calculate and save the mean annual TSI for each CMIP7 historical year.
-    assert CMIP7_PI_YEAR in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1)
-    for year in range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1):
+    historical_year_range = range(CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR + 1)
+    assert CMIP7_PI_YEAR in historical_year_range
+    for year in historical_year_range:
         year_cons = iris.Constraint(time=lambda cell: cell.point.year == year)
         year_cube = cube.extract(year_cons)
         year_mean = year_cube.collapsed("time", iris.analysis.MEAN).data
