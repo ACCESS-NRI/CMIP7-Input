@@ -45,7 +45,8 @@ def cmip7_hi_volcanic_filename(args):
 
 def constrain_to_year_month(cube, year, month):
     """
-    Constrain to a given year and month.
+    Constrain to a given year and month. See #iris.coords.Cell.point in
+    scitools-iris.readthedocs.io/en/stable/generated/api/iris.coords.html
     """
     calendar = "proleptic_gregorian"
     beg_date = cftime.datetime(year, month, 1, calendar=calendar)
@@ -53,7 +54,7 @@ def constrain_to_year_month(cube, year, month):
     end_month = 1 if month == MONTHS_IN_A_YEAR else month + 1
     end_date = cftime.datetime(end_year, end_month, 1, calendar=calendar)
     ym_constraint = iris.Constraint(
-        time=lambda cell: beg_date <= cell < end_date
+        time=lambda cell: beg_date <= cell.point < end_date
     )
     return cube.extract(ym_constraint)
 
