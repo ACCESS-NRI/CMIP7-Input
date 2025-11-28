@@ -92,8 +92,9 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
         namelist_levls[:, ghg_index] = ghg_mmr_dict[ghg]
     namelist_rates = np.full(namelist_years.shape, OLD_REAL_MISSING_DATA_VALUE)
 
-    # Create a dictionary to use to patch the namelist.
+    # Create a dictionary to use to patch the namelists file.
     namelist_dict = {
+        "l_clmchfcg": True,
         "clim_fcg_nyears": namelist_nyears,
         "clim_fcg_years": namelist_years,
         "clim_levls": namelist_levls,
@@ -108,20 +109,37 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
     # you print the namelist or convert it to a string.
     patch_str = str(patch_namelist)
     parser = f90nml.Parser()
+    # Set the parser to row major so that the clim_fcg_* arrays
+    # are ordered correctly in the resulting namelists file.
+    parser.row_major = True
     patch_str_namelist = parser.reads(patch_str)
 
-    # Create a new namelist by patching the original namelist.
+    # Check that the original namelists file exists.
     hi_ghg_namelist_filepath = Path("atmosphere") / "namelists"
     if not hi_ghg_namelist_filepath.exists():
         raise FileNotFoundError(
             f"Namelist file {hi_ghg_namelist_filepath} does not exist"
         )
+
+    # Copy the namelists file up to but not including the clmchfcg namelist.
+    hi_ghg_namelist_copypath = hi_ghg_namelist_filepath.with_suffix(".copy")
+    with open(hi_ghg_namelist_filepath) as hi_ghg_namelist_file:
+        with open(hi_ghg_namelist_copypath, "w") as hi_ghg_namelist_copy:
+            namelist_line = hi_ghg_namelist_file.readline()
+            while namelist_line and "&clmchfcg" not in namelist_line.lower():
+                print(namelist_line.rstrip("\n"), file=hi_ghg_namelist_copy)
+                namelist_line = hi_ghg_namelist_file.readline()
+
+    # Create a new namelists file by patching the copy namelists file.
     new_namelist_filepath = hi_ghg_namelist_filepath.with_suffix(".nml.patched")
     parser.read(
-        hi_ghg_namelist_filepath, patch_str_namelist, new_namelist_filepath
+        hi_ghg_namelist_copypath, patch_str_namelist, new_namelist_filepath
     )
 
-    # Replace the original namelist.
+    # Remove the copy namelists file.
+    hi_ghg_namelist_copypath.unlink()
+
+    # Replace the original namelists file.
     new_namelist_filepath.replace(hi_ghg_namelist_filepath)
 
 
