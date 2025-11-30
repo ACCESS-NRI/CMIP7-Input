@@ -185,5 +185,5 @@ if __name__ == "__main__":
     for ghg in GHG_MOLAR_MASS:
         ghg_mmr_dict[ghg] = load_cmip7_hi_ghg_mmr(args, ghg)
 
-    # Patch the greenhouse gas variables in the clmchfcg namelist
-    cmip7_hi_ghg_patch(ghg_mmr_dict)
+    # Patch the greenhouse gas namelist.
+    update_namelists_file(ghg_mmr_dict)
