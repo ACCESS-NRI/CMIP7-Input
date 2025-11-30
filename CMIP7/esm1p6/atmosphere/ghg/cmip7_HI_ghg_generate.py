@@ -70,24 +70,24 @@ def read_namelists_lines_up_to(namelists_filepath, exclude_str):
     # Read the atmosphere/namelists file up to but not including
     # the clmchfcg namelist.
     namelists_str = ""
-    with open(namelists_filepath, "r") as namelists_file:
+    with open(namelists_filepath) as namelists_file:
         namelists_line = namelists_file.readline()
         while namelists_line and (
-           "&" + exclude_str not in namelists_line.lower()
+            "&" + exclude_str not in namelists_line.lower()
         ):
-           namelists_str += namelists_line
-           namelists_line = namelists_file.readline()
+            namelists_str += namelists_line
+            namelists_line = namelists_file.readline()
     return namelists_str
 
 
 def format_namelist(
-        namelist,
-        float_format="13.6e",
-        end_comma=True,
-        false_repr=".FALSE.",
-        true_repr=".TRUE.",
-        uppercase=True
-    ):
+    namelist,
+    float_format="13.6e",
+    end_comma=True,
+    false_repr=".FALSE.",
+    true_repr=".TRUE.",
+    uppercase=True,
+):
     """
     Change the namelist formatting to the preferred format.
     """
@@ -166,13 +166,13 @@ def update_namelists_file(ghg_mmr_dict):
     ghg_namelist_name = "clmchfcg"
     # Read the original namelists file up to ghg_namelist_name.
     namelists_str = read_namelists_lines_up_to(
-        namelists_filepath,
-        ghg_namelist_name)
+        namelists_filepath, ghg_namelist_name
+    )
     # Use ghg_mmr_dict and ghg_namelist_name to create
     # a replacement namelist as a string.
     ghg_namelist_str = cmip7_hi_ghg_namelist_str(
-        ghg_mmr_dict,
-        ghg_namelist_name)
+        ghg_mmr_dict, ghg_namelist_name
+    )
     # Replace the original namelists file.
     with open(namelists_filepath, "w") as namelists_file:
         print(namelists_str + ghg_namelist_str, file=namelists_file)
