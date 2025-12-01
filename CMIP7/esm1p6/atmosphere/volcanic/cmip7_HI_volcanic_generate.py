@@ -63,9 +63,11 @@ def constrain_to_latitude_band(cube, band):
     """
     Constrain to one of four equal latitude bands.
     """
-    lat_bound = [-90, -30, 0, 30, 90]
+    lat_bound = [90, 30, 0, -30, -90]
     lat_constraint = iris.Constraint(
-        latitude=lambda cell: lat_bound[band] <= cell < lat_bound[band + 1]
+        latitude=(
+            lambda cell: lat_bound[band] > cell.point >= lat_bound[band + 1]
+        )
     )
     return cube.extract(lat_constraint)
 
