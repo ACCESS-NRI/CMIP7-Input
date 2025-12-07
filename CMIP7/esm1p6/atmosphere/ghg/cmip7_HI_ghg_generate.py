@@ -70,8 +70,8 @@ def read_namelists_lines_up_to(namelists_filepath, exclude_group):
         raise FileNotFoundError(
             f"Namelist file {namelists_filepath} does not exist"
         )
-    # Read the atmosphere/namelists file up to but not including
-    # the clmchfcg namelist.
+    # Read the namelists_filepath file up to but not including
+    # the namelist group given by exclude_group.
     namelists = []
     exclude_str = "&" + exclude_group.lower()
     with open(namelists_filepath) as namelists_file:
