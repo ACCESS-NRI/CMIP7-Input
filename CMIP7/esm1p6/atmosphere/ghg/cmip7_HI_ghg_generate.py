@@ -58,10 +58,13 @@ def load_cmip7_hi_ghg_mmr(args, ghg):
     return ghg_mmr_list
 
 
-def read_namelists_lines_up_to(namelists_filepath, exclude_str):
+def read_namelists_lines_up_to(namelists_filepath, exclude_group):
     """
-    Read lines from namelists_filepath up to but not including
-    the line containing exclude_str.
+    Read lines from namelists_filepath up to but not including a line that
+    contains the string exclude_group. This function is used to avoid having
+    to use f90nml to reformat an entire namelist file. Versions of f90nml
+    older than v1.5 contain a bug that affects null values in namelists.
+    See https://github.com/marshallward/f90nml/pull/180
     """
     if not namelists_filepath.exists():
         raise FileNotFoundError(
@@ -69,33 +72,25 @@ def read_namelists_lines_up_to(namelists_filepath, exclude_str):
         )
     # Read the atmosphere/namelists file up to but not including
     # the clmchfcg namelist.
-    namelists_str = ""
+    namelists = []
+    exclude_str = "&" + exclude_group.lower()
     with open(namelists_filepath) as namelists_file:
-        namelists_line = namelists_file.readline()
-        while namelists_line and (
-            "&" + exclude_str not in namelists_line.lower()
-        ):
-            namelists_str += namelists_line
-            namelists_line = namelists_file.readline()
-    return namelists_str
+        for line in namelists_file:
+            if exclude_str in line.lower():
+                break
+            namelists.append(line)
+    return "".join(namelists)
 
 
-def format_namelist(
-    namelist,
-    float_format="13.6e",
-    end_comma=True,
-    false_repr=".FALSE.",
-    true_repr=".TRUE.",
-    uppercase=True,
-):
+def format_namelist(namelist, float_format="13.6e"):
     """
     Change the namelist formatting to the preferred format.
     """
     namelist.float_format = float_format
-    namelist.end_comma = end_comma
-    namelist.false_repr = false_repr
-    namelist.true_repr = true_repr
-    namelist.uppercase = uppercase
+    namelist.end_comma = True
+    namelist.false_repr = ".FALSE."
+    namelist.true_repr = ".TRUE."
+    namelist.uppercase = True
 
 
 def cmip7_hi_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name):
