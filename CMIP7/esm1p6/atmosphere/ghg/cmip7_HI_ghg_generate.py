@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import OrderedDict
 from pathlib import Path
 
 import f90nml
@@ -137,7 +138,7 @@ def cmip7_hi_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name):
         "clim_fcg_rates": namelist_rates,
     }
 
-    patch = {ghg_namelist_name: namelist_dict}
+    patch = {ghg_namelist_name: OrderedDict(namelist_dict)}
     patch_namelist = f90nml.namelist.Namelist(patch)
 
     # Change the namelist arrays to row major.
