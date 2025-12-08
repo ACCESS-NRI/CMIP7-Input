@@ -39,7 +39,7 @@ def esm_pi_ozone_save_dirpath(args):
 def save_cmip7_pi_ozone(args, cube):
     # Save as an ancillary file
     save_dirpath = esm_pi_ozone_save_dirpath(args)
-    save_ancil(cube, save_dirpath, args.save_filename)
+    save_ancil(cube, save_dirpath, args.save_filename, gregorian=False)
 
 
 if __name__ == "__main__":
