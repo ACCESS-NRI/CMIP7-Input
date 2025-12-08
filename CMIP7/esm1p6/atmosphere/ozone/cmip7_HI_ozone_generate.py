@@ -1,10 +1,11 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from cmip7_ancil_argparse import common_parser
-from cmip7_ancil_common import (
-    save_ancil,
+from cmip7_ancil_argparse import (
+    grid_parser,
+    path_parser,
 )
+from cmip7_ancil_common import save_ancil
 from cmip7_ancil_constants import ANCIL_TODAY
 from ozone.cmip7_ozone import (
     load_cmip7_ozone,
@@ -15,7 +16,7 @@ from ozone.cmip7_ozone import (
 
 def parse_args():
     parser = ArgumentParser(
-        parents=[common_parser(), ozone_parser()],
+        parents=[path_parser(), grid_parser(), ozone_parser()],
         prog="cmip7_HI_ozone_generate",
         description=(
             "Generate input files from UK CMIP7 historical ozone forcings"

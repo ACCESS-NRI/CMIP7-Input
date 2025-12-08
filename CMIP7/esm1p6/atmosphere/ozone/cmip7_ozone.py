@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from pathlib import Path
 
 import iris
 from cmip7_ancil_common import (
@@ -17,7 +18,7 @@ def ozone_parser():
 
 
 def cmip7_ozone_filepath(args):
-    dirpath = args.ukesm_ancil_dirpath
+    dirpath = Path(args.ukesm_ancil_dirpath)
     filename = args.ukesm_netcdf_filename
     return dirpath / filename
 
