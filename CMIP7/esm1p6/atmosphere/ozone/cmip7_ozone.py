@@ -2,11 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import iris
-from cmip7_ancil_common import (
-    INTERPOLATION_SCHEME,
-    esm_grid_mask_cube,
-    fix_coords,
-)
+from cmip7_ancil_common import fix_coords
 
 
 def ozone_parser():
@@ -29,10 +25,8 @@ def load_cmip7_ozone(args):
     return cube
 
 
-def regrid_cmip7_ozone(args, cube):
+def fix_cmip7_ozone(args, cube):
     # Make the coordinates comaptible with the ESM1.5 grid mask
     fix_coords(args, cube)
-    # Regrid using the ESM1.5 grid mask
-    esm_cube = cube.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)
-    esm_cube.data = esm_cube.data.filled(0.0)
-    return esm_cube
+    cube.data = cube.data.filled(0.0)
+    return cube

@@ -8,9 +8,9 @@ from cmip7_ancil_argparse import (
 from cmip7_ancil_common import save_ancil
 from cmip7_ancil_constants import ANCIL_TODAY
 from ozone.cmip7_ozone import (
+    fix_cmip7_ozone,
     load_cmip7_ozone,
     ozone_parser,
-    regrid_cmip7_ozone,
 )
 
 
@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     # Load the CMIP7 datasets
     ozone_cube = load_cmip7_ozone(args)
-    # Regrid to match the ESM1.5 mask
-    esm_cube = regrid_cmip7_ozone(args, ozone_cube)
+    # Match the ESM1.5 mask
+    esm_cube = fix_cmip7_ozone(args, ozone_cube)
     # Save the ancillary
     save_cmip7_pi_ozone(args, esm_cube)
