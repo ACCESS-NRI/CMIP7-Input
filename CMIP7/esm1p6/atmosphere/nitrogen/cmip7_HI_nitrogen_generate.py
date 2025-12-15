@@ -20,7 +20,7 @@ def parse_args():
             "Generate input files from CMIP7 historical nitrogen forcings"
         ),
     )
-    parser.add_argument("--dataset-date-range-list")
+    parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
