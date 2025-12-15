@@ -63,17 +63,17 @@ def extend_hi_years(cube):
     length_one_year = time_points[MONTHS_IN_A_YEAR] - time_points[0]
     beg_year = cube[:MONTHS_IN_A_YEAR].copy()
     beg_year_tc = beg_year.coord("time")
-    beg_year_tc.points -= length_one_year
+    beg_year_tc.points = beg_year_tc.points - length_one_year
     if time_coord.has_bounds():
-        beg_year_tc.bounds -= length_one_year
+        beg_year_tc.bounds = beg_year_tc.bounds - length_one_year
 
     # Duplicate the last year.
     length_one_year = time_points[-1] - time_points[-1 - MONTHS_IN_A_YEAR]
     end_year = cube[-MONTHS_IN_A_YEAR:].copy()
     end_year_tc = end_year.coord("time")
-    end_year_tc.points += length_one_year
+    end_year_tc.points = end_year_tc.points + length_one_year
     if time_coord.has_bounds():
-        end_year_tc.bounds += length_one_year
+        end_year_tc.bounds = end_year_tc.bounds + length_one_year
 
     # Return a cube with extended years.
     cubelist = iris.cube.CubeList((beg_year, cube, end_year))
