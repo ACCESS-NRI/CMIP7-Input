@@ -52,7 +52,7 @@ def extend_hi_years(cube):
     """
     Extend a cube representing a time series by duplicating and adjusting
     the first and last years.
-    Based on code from ozone_cmip6_ancillary_for_suite.py by Steven Hardimann
+    Based on code from ozone_cmip6_ancillary_for_suite.py by Steven Hardiman
     of the UK Met Office.
     """
     time_coord = cube.coord("time")
