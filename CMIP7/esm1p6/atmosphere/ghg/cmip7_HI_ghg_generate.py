@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import OrderedDict
 from pathlib import Path
 
 import f90nml
@@ -58,9 +59,45 @@ def load_cmip7_hi_ghg_mmr(args, ghg):
     return ghg_mmr_list
 
 
-def cmip7_hi_ghg_patch(ghg_mmr_dict):
+def read_namelists_lines_up_to(namelists_filepath, exclude_group):
     """
-    Patch the greenhouse gas variables in the clmchfcg namelist
+    Read lines from namelists_filepath up to but not including a line that
+    contains the string exclude_group. This function is used to avoid having
+    to use f90nml to reformat an entire namelist file. Versions of f90nml
+    older than v1.5 contain a bug that affects null values in namelists.
+    See https://github.com/marshallward/f90nml/pull/180
+    """
+    if not namelists_filepath.exists():
+        raise FileNotFoundError(
+            f"Namelist file {namelists_filepath} does not exist"
+        )
+    # Read the namelists_filepath file up to but not including
+    # the namelist group given by exclude_group.
+    namelists = []
+    exclude_str = "&" + exclude_group.lower()
+    with open(namelists_filepath) as namelists_file:
+        for line in namelists_file:
+            if exclude_str in line.lower():
+                break
+            namelists.append(line)
+    return "".join(namelists)
+
+
+def format_namelist(namelist, float_format="13.6e"):
+    """
+    Change the namelist formatting to the preferred format.
+    """
+    namelist.float_format = float_format
+    namelist.end_comma = True
+    namelist.false_repr = ".FALSE."
+    namelist.true_repr = ".TRUE."
+    namelist.uppercase = True
+
+
+def cmip7_hi_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name):
+    """
+    Use the greenhouse gas mass mixing ratios to
+    produce a replacement clmchfcg namelist as a string.
     """
     # Map each greenhouse gas to an index in the
     # historical climate forcing arrays.
@@ -78,7 +115,7 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
     GHG_HI_NAMELIST_NBR_SPECIES = 11
     OLD_REAL_MISSING_DATA_VALUE = -32768.0
 
-    # Create arrays to populate the namelist.
+    # Create arrays to populate the namelist group.
     namelist_nyears_shape = (GHG_HI_NAMELIST_NBR_SPECIES,)
     namelist_nyears = np.full(namelist_nyears_shape, CMIP7_HI_NBR_YEARS)
     namelist_years_shape = (GHG_HI_NAMELIST_NBR_SPECIES, CMIP7_HI_NBR_YEARS)
@@ -92,37 +129,49 @@ def cmip7_hi_ghg_patch(ghg_mmr_dict):
         namelist_levls[:, ghg_index] = ghg_mmr_dict[ghg]
     namelist_rates = np.full(namelist_years.shape, OLD_REAL_MISSING_DATA_VALUE)
 
-    # Create a dictionary to use to patch the namelist.
+    # Create a dictionary to use to patch the namelist group.
     namelist_dict = {
+        "l_clmchfcg": True,
         "clim_fcg_nyears": namelist_nyears,
         "clim_fcg_years": namelist_years,
-        "clim_levls": namelist_levls,
-        "clim_rates": namelist_rates,
+        "clim_fcg_levls": namelist_levls,
+        "clim_fcg_rates": namelist_rates,
     }
 
-    patch = {"clmchfcg": namelist_dict}
+    patch = {ghg_namelist_name: OrderedDict(namelist_dict)}
     patch_namelist = f90nml.namelist.Namelist(patch)
-    # Set the floating point format to the right value.
-    patch_namelist.float_format = "13.6e"
-    # The floating point format is ignored unless
-    # you print the namelist or convert it to a string.
+
+    # Change the namelist arrays to row major.
     patch_str = str(patch_namelist)
     parser = f90nml.Parser()
-    patch_str_namelist = parser.reads(patch_str)
+    parser.row_major = True
+    row_major_patch_namelist = parser.reads(patch_str)
+    # Correctly format the namelist.
+    format_namelist(row_major_patch_namelist)
+    # The format is ignored unless you print the namelist or
+    # convert it to a string.
+    return str(row_major_patch_namelist)
 
-    # Create a new namelist by patching the original namelist.
-    hi_ghg_namelist_filepath = Path("atmosphere") / "namelists"
-    if not hi_ghg_namelist_filepath.exists():
-        raise FileNotFoundError(
-            f"Namelist file {hi_ghg_namelist_filepath} does not exist"
-        )
-    new_namelist_filepath = hi_ghg_namelist_filepath.with_suffix(".nml.patched")
-    parser.read(
-        hi_ghg_namelist_filepath, patch_str_namelist, new_namelist_filepath
+
+def update_namelists_file(ghg_mmr_dict):
+    """
+    Use the greenhouse gas mass mixing ratios in ghg_mmr_dict
+    to replace the greenhouse gas namelist in the relevant namelists file.
+    """
+    namelists_filepath = Path("atmosphere") / "namelists"
+    ghg_namelist_name = "clmchfcg"
+    # Read the original namelists file up to ghg_namelist_name.
+    namelists_str = read_namelists_lines_up_to(
+        namelists_filepath, ghg_namelist_name
     )
-
-    # Replace the original namelist.
-    new_namelist_filepath.replace(hi_ghg_namelist_filepath)
+    # Use ghg_mmr_dict and ghg_namelist_name to create
+    # a replacement namelist as a string.
+    ghg_namelist_str = cmip7_hi_ghg_namelist_str(
+        ghg_mmr_dict, ghg_namelist_name
+    )
+    # Replace the original namelists file.
+    with open(namelists_filepath, "w") as namelists_file:
+        print(namelists_str + ghg_namelist_str, file=namelists_file)
 
 
 if __name__ == "__main__":
@@ -132,5 +181,5 @@ if __name__ == "__main__":
     for ghg in GHG_MOLAR_MASS:
         ghg_mmr_dict[ghg] = load_cmip7_hi_ghg_mmr(args, ghg)
 
-    # Patch the greenhouse gas variables in the clmchfcg namelist
-    cmip7_hi_ghg_patch(ghg_mmr_dict)
+    # Patch the greenhouse gas namelist.
+    update_namelists_file(ghg_mmr_dict)
