@@ -50,14 +50,18 @@ def fix_esm15_hi_ancil_date(ifile, ofile):
 
 def extend_hi_years(cube):
     """
-    Extend a cube representing a time series by duplicating and adjusting
-    the first and last years.
-    Based on code from ozone_cmip6_ancillary_for_suite.py by Steven Hardiman
-    of the UK Met Office.
+    Extend a cube representing a monthly time series by duplicating
+    and adjusting the first and last years.
+    Based on Crown copyright code from ozone_cmip6_ancillary_for_suite.py
+    by Steven Hardiman of the UK Met Office.
     """
     time_coord = cube.coord("time")
     time_points = time_coord.points
-    assert len(time_points) > MONTHS_IN_A_YEAR
+    if (months := len(time_points)) <= MONTHS_IN_A_YEAR:
+        raise ValueError(
+            f"Cannot extend a cube containing {months} months of data. "
+            f"More than {MONTHS_IN_A_YEAR} months are required."
+        )
 
     # Duplicate the first year.
     length_one_year = time_points[MONTHS_IN_A_YEAR] - time_points[0]
