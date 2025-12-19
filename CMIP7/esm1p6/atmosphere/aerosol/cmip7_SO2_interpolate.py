@@ -12,6 +12,7 @@ from aerosol.cmip7_aerosol_common import zero_poles
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
+    extend_years,
     save_ancil,
 )
 
@@ -97,6 +98,12 @@ def save_cmip7_so2_aerosol_anthro(
     # Need to remove the sector coordinate before saving
     # because high doesn't have it
     so2_low.remove_coord("sector")
+
+    # Extend the historical time series, if any,
+    # by duplicating the first and last years
+    so2_low = extend_years(so2_low)
+    so2_high = extend_years(so2_low)
+
     # Use the CMIP6 DMS
     cmip6_dms = dms_load_fn(args)
 

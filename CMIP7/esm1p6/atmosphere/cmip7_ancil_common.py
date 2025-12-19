@@ -10,7 +10,10 @@ import cftime
 import iris
 import mule
 import numpy as np
-from cmip7_ancil_constants import UM_VERSION
+from cmip7_ancil_constants import (
+    MONTHS_IN_A_YEAR,
+    UM_VERSION,
+)
 
 INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
@@ -70,6 +73,40 @@ def set_gregorian(var):
     time.points = tvals
     time.bounds = tbnds
     time.units = newunits
+
+
+def extend_years(cube):
+    """
+    Extend a cube representing a monthly time series by duplicating
+    and adjusting the first and last years.
+    Based on Crown copyright code from ozone_cmip6_ancillary_for_suite.py
+    by Steven Hardiman of the UK Met Office.
+    """
+    time_coord = cube.coord("time")
+    time_points = time_coord.points
+    # Do not extend a cube containing less than two years of data.
+    if len(time_points) < MONTHS_IN_A_YEAR * 2:
+        return cube
+
+    # Duplicate the first year.
+    length_one_year = time_points[MONTHS_IN_A_YEAR] - time_points[0]
+    beg_year = cube[:MONTHS_IN_A_YEAR].copy()
+    beg_year_tc = beg_year.coord("time")
+    beg_year_tc.points = beg_year_tc.points - length_one_year
+    if time_coord.has_bounds():
+        beg_year_tc.bounds = beg_year_tc.bounds - length_one_year
+
+    # Duplicate the last year.
+    length_one_year = time_points[-1] - time_points[-1 - MONTHS_IN_A_YEAR]
+    end_year = cube[-MONTHS_IN_A_YEAR:].copy()
+    end_year_tc = end_year.coord("time")
+    end_year_tc.points = end_year_tc.points + length_one_year
+    if time_coord.has_bounds():
+        end_year_tc.bounds = end_year_tc.bounds + length_one_year
+
+    # Return a cube with extended years.
+    cubelist = iris.cube.CubeList((beg_year, cube, end_year))
+    return cubelist.concatenate_cube()
 
 
 def set_coord_system(cube):
