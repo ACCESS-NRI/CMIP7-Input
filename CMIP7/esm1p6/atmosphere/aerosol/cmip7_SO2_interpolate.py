@@ -102,7 +102,7 @@ def save_cmip7_so2_aerosol_anthro(
     # Extend the historical time series, if any,
     # by duplicating the first and last years
     so2_low = extend_years(so2_low)
-    so2_high = extend_years(so2_low)
+    so2_high = extend_years(so2_high)
 
     # Use the CMIP6 DMS
     cmip6_dms = dms_load_fn(args)
