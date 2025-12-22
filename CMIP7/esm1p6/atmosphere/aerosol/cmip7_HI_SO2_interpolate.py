@@ -4,8 +4,6 @@ from argparse import ArgumentParser
 from ast import literal_eval
 
 from aerosol.cmip7_HI_aerosol import (
-    CMIP7_HI_AEROSOL_BEG_YEAR,
-    CMIP7_HI_AEROSOL_END_YEAR,
     esm_hi_aerosol_ancil_dirpath,
     esm_hi_aerosol_save_dirpath,
 )
@@ -18,7 +16,11 @@ from cmip7_ancil_argparse import (
     common_parser,
     dms_filename_parser,
 )
-from cmip7_HI import fix_esm15_hi_ancil_date
+from cmip7_HI import (
+    CMIP7_HI_BEG_YEAR,
+    CMIP7_HI_END_YEAR,
+    fix_esm15_hi_ancil_date,
+)
 
 
 def parse_args():
@@ -41,8 +43,8 @@ def load_cmip7_hi_so2_aerosol_anthro(args, species):
     return load_cmip7_hi_aerosol_anthro(
         args,
         species,
-        beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
-        end_year=CMIP7_HI_AEROSOL_END_YEAR,
+        beg_year=CMIP7_HI_BEG_YEAR,
+        end_year=CMIP7_HI_END_YEAR,
     )
 
 

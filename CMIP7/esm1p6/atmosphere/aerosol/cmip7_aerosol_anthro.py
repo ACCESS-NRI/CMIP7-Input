@@ -9,6 +9,7 @@ from aerosol.cmip7_aerosol_common import (
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
+    extend_years,
     fix_coords,
     save_ancil,
 )
@@ -74,4 +75,7 @@ def cmip7_aerosol_anthro_interpolate(
     esm_cube.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=stash_item
     )
+    # Extend the historical time series, if any,
+    # by duplicating the first and last years
+    esm_cube = extend_years(esm_cube)
     save_ancil(esm_cube, save_dirpath, args.save_filename)

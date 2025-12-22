@@ -2,8 +2,8 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_common import extend_years
 from cmip7_ancil_constants import ANCIL_TODAY
-from cmip7_HI import extend_hi_years
 from nitrogen.cmip7_nitrogen import (
     cmip7_nitrogen_dirpath,
     load_cmip7_nitrogen,
@@ -54,6 +54,6 @@ if __name__ == "__main__":
     # Load the CMIP7 datasets
     nitrogen_cube = load_cmip7_nitrogen(args, cmip7_hi_nitrogen_filepath)
     # Regrid to match the ESM1.5 mask and extend the time series
-    esm_cube = extend_hi_years(regrid_cmip7_nitrogen(args, nitrogen_cube))
+    esm_cube = extend_years(regrid_cmip7_nitrogen(args, nitrogen_cube))
     # Save the ancillary
     save_cmip7_nitrogen(args, esm_cube, esm_hi_nitrogen_save_dirpath)
