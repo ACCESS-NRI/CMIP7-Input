@@ -36,13 +36,6 @@ def cmip7_aerosol_biomass_filepath(args, species, date_range):
     return rootpath / species / "gn" / args.dataset_vdate / filename
 
 
-def cmip7_aerosol_biomass_filepath_list(args, species, date_range_list):
-    return [
-        cmip7_aerosol_biomass_filepath(args, species, date_range)
-        for date_range in date_range_list
-    ]
-
-
 def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
     cube = load_cmip7_aerosol(
         args, cmip7_aerosol_biomass_filepath, species, date_range, constraint
@@ -56,7 +49,7 @@ def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
 def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
     cube = load_cmip7_aerosol_list(
         args,
-        cmip7_aerosol_biomass_filepath_list,
+        cmip7_aerosol_biomass_filepath,
         species,
         date_range_list,
         constraint,
