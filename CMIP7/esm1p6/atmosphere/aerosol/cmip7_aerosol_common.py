@@ -8,10 +8,18 @@ def load_cmip7_aerosol(args, filepath_fn, species, date_range, constraint):
     return cube
 
 
+def cmip7_aerosol_filepath_list(args, filepath_fn, species, date_range_list):
+    return [
+        filepath_fn(args, species, date_range) for date_range in date_range_list
+    ]
+
+
 def load_cmip7_aerosol_list(
-    args, filepath_list_fn, species, date_range_list, constraint
+    args, filepath_fn, species, date_range_list, constraint
 ):
-    filepath_list = filepath_list_fn(args, species, date_range_list)
+    filepath_list = cmip7_aerosol_filepath_list(
+        args, filepath_fn, species, date_range_list
+    )
     cube_list = iris.load_raw(filepath_list, constraint)
     equalise_attributes(cube_list)
     unify_time_units(cube_list)
