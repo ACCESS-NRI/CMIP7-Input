@@ -34,7 +34,7 @@ def cmip7_aerosol_air_anthro_filepath(args, species, date_range):
     )
     return (
         rootpath
-        / f"{species}_em_air_anthro"
+        / f"{species}_em_AIR_anthro"
         / "gn"
         / args.dataset_vdate
         / filename
