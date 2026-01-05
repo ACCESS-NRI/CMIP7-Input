@@ -1,6 +1,5 @@
-from pathlib import Path
-
 import iris
+import os
 from aerosol.cmip7_aerosol_common import (
     load_cmip7_aerosol,
     load_cmip7_aerosol_list,
@@ -13,28 +12,36 @@ from cmip7_ancil_common import (
     fix_coords,
     save_ancil,
 )
+from cmip7_ancil_path_classes import Cmip7Filepath
 
 
-def cmip7_aerosol_anthro_rootpath(args):
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / "PNNL-JGCRI"
-        / args.dataset_version
-        / "atmos"
-        / "mon"
-    )
+cmip7_aerosol_anthro_dirname_template = os.path.join(
+    "PNNL-JGCRI",
+    "{version}",
+    "atmos",
+    "{period}",
+    "{species}_em_anthro",
+    "gn",
+    "{vdate}"
+)
+cmip7_aerosol_anthro_filename_template = (
+    "{species}-em-anthro_input4MIPs_emissions_CMIP_"
+    "{version}_gn_{date_range}.nc"
+)
 
 
 def cmip7_aerosol_anthro_filepath(args, species, date_range):
-    rootpath = cmip7_aerosol_anthro_rootpath(args)
-    filename = (
-        f"{species}-em-anthro_input4MIPs_emissions_CMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{date_range}.nc"
+    filepath = Cmip7Filepath(
+        root_dirname=args.cmip7_source_data_dirname,
+        dirname_template=cmip7_aerosol_anthro_dirname_template,
+        filename_template=cmip7_aerosol_anthro_filename_template,
+        version=args.dataset_version,
+        vdate=args.dataset_vdate,
+        period="mon",
+        date_range=date_range,
+        species=species
     )
-    return (
-        rootpath / f"{species}_em_anthro" / "gn" / args.dataset_vdate / filename
-    )
+    return filepath()
 
 
 def cmip7_aerosol_anthro_filepath_list(args, species, date_range_list):
