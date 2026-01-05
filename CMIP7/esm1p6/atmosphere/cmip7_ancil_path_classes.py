@@ -13,7 +13,7 @@ class Cmip7Filename:
         )
 
 
-    def __call__(self)
+    def __call__(self):
         return self.filename
 
 
@@ -43,7 +43,7 @@ def Cmip7Filepath:
         )
 
 
-        def __call__(self)
+        def __call__(self):
             return self.dirpath / self.filename()
 
 
@@ -73,5 +73,5 @@ def Cmip7FilepathList:
         ]
 
 
-        def __call__(self)
+        def __call__(self):
             return [self.dirpath / filename for filename in self.filename_list]
