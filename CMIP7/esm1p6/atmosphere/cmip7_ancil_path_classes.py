@@ -33,8 +33,8 @@ class Cmip7Filepath:
             species=species,
         )
 
-        def __call__(self):
-            return self.dirpath / self.filename()
+    def __call__(self):
+        return self.dirpath / self.filename()
 
 
 class Cmip7FilepathList:
@@ -50,7 +50,7 @@ class Cmip7FilepathList:
         species=None,
     ):
         self.dirpath = Path(root_dirname) / dirname_template.format(
-            version=version, vdate=vdate, period=period
+            version=version, vdate=vdate, period=period, species=species
         )
         self.filename_list = [
             Cmip7Filename(
@@ -62,5 +62,5 @@ class Cmip7FilepathList:
             for date_range in date_range_list
         ]
 
-        def __call__(self):
-            return [self.dirpath / filename for filename in self.filename_list]
+    def __call__(self):
+        return [self.dirpath / filename for filename in self.filename_list]
