@@ -8,13 +8,16 @@ from aerosol.cmip7_aerosol_biomass import (
     load_cmip7_aerosol_biomass_list,
     save_cmip7_aerosol_biomass,
 )
-from aerosol.cmip7_HI_aerosol import esm_hi_aerosol_save_dirpath
+from aerosol.cmip7_HI_aerosol import (
+    CMIP7_HI_AEROSOL_BEG_YEAR,
+    CMIP7_HI_AEROSOL_END_YEAR,
+    esm_hi_aerosol_save_dirpath,
+)
 from cmip7_ancil_argparse import (
     common_parser,
     percent_parser,
 )
 from cmip7_ancil_common import cmip7_date_constraint_from_years
-from cmip7_HI import CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
 
 
 def parse_args():
@@ -39,8 +42,8 @@ def load_cmip7_hi_aerosol_biomass(args, species):
         species,
         args.dataset_date_range_list,
         cmip7_date_constraint_from_years(
-            CMIP7_HI_BEG_YEAR,
-            CMIP7_HI_END_YEAR,
+            CMIP7_HI_AEROSOL_BEG_YEAR,
+            CMIP7_HI_AEROSOL_END_YEAR,
         ),
     )
 
@@ -51,8 +54,8 @@ def load_cmip7_hi_aerosol_biomass_percentage(args, species):
         species,
         args.percent_date_range,
         cmip7_date_constraint_from_years(
-            CMIP7_HI_BEG_YEAR,
-            CMIP7_HI_END_YEAR,
+            CMIP7_HI_AEROSOL_BEG_YEAR,
+            CMIP7_HI_AEROSOL_END_YEAR,
         ),
     )
 

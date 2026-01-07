@@ -11,7 +11,6 @@ from aerosol.cmip7_aerosol_common import (
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
-    extend_years,
     save_ancil,
     set_coord_system,
 )
@@ -140,11 +139,6 @@ def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
     high_esm.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=131
     )
-
-    # Extend the historical time series, if any,
-    # by duplicating the first and last years
-    low_esm = extend_years(low_esm)
-    high_esm = extend_years(high_esm)
 
     save_ancil([low_esm, high_esm], save_dirpath, args.save_filename)
 
