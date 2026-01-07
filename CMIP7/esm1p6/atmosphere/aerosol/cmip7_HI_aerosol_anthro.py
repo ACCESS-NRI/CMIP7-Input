@@ -31,8 +31,8 @@ def parse_args(species):
 def load_cmip7_hi_aerosol_air_anthro(
     args,
     species,
-    beg_year=CMIP7_HI_BEG_YEAR,
-    end_year=CMIP7_HI_END_YEAR,
+    beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
+    end_year=CMIP7_HI_AEROSOL_END_YEAR,
 ):
     return load_cmip7_aerosol_air_anthro_list(
         args,
