@@ -3,6 +3,7 @@ from ast import literal_eval
 
 from aerosol.cmip7_aerosol_anthro import (
     cmip7_aerosol_anthro_interpolate,
+    load_cmip7_aerosol_air_anthro_list,
     load_cmip7_aerosol_anthro_list,
 )
 from aerosol.cmip7_HI_aerosol import (
@@ -25,6 +26,20 @@ def parse_args(species):
     parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
+
+
+def load_cmip7_hi_aerosol_air_anthro(
+    args,
+    species,
+    beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
+    end_year=CMIP7_HI_AEROSOL_END_YEAR,
+):
+    return load_cmip7_aerosol_air_anthro_list(
+        args,
+        species,
+        args.dataset_date_range_list,
+        cmip7_date_constraint_from_years(beg_year, end_year),
+    )
 
 
 def load_cmip7_hi_aerosol_anthro(

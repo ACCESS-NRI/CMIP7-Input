@@ -24,6 +24,22 @@ def cmip7_aerosol_anthro_rootpath(args):
     )
 
 
+def cmip7_aerosol_air_anthro_filepath(args, species, date_range):
+    rootpath = cmip7_aerosol_anthro_rootpath(args)
+    filename = (
+        f"{species}-em-AIR-anthro_input4MIPs_emissions_CMIP_"
+        f"{args.dataset_version}_gn_"
+        f"{date_range}.nc"
+    )
+    return (
+        rootpath
+        / f"{species}_em_AIR_anthro"
+        / "gn"
+        / args.dataset_vdate
+        / filename
+    )
+
+
 def cmip7_aerosol_anthro_filepath(args, species, date_range):
     rootpath = cmip7_aerosol_anthro_rootpath(args)
     filename = (
@@ -36,13 +52,6 @@ def cmip7_aerosol_anthro_filepath(args, species, date_range):
     )
 
 
-def cmip7_aerosol_anthro_filepath_list(args, species, date_range_list):
-    return [
-        cmip7_aerosol_anthro_filepath(args, species, date_range)
-        for date_range in date_range_list
-    ]
-
-
 def load_cmip7_aerosol_anthro(args, species, date_range, constraint):
     cube = load_cmip7_aerosol(
         args, cmip7_aerosol_anthro_filepath, species, date_range, constraint
@@ -51,10 +60,24 @@ def load_cmip7_aerosol_anthro(args, species, date_range, constraint):
     return cube
 
 
+def load_cmip7_aerosol_air_anthro_list(
+    args, species, date_range_list, constraint
+):
+    cube = load_cmip7_aerosol_list(
+        args,
+        cmip7_aerosol_air_anthro_filepath,
+        species,
+        date_range_list,
+        constraint,
+    )
+    fix_coords(args, cube)
+    return cube
+
+
 def load_cmip7_aerosol_anthro_list(args, species, date_range_list, constraint):
     cube = load_cmip7_aerosol_list(
         args,
-        cmip7_aerosol_anthro_filepath_list,
+        cmip7_aerosol_anthro_filepath,
         species,
         date_range_list,
         constraint,
