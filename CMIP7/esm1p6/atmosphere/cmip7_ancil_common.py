@@ -134,7 +134,7 @@ def zero_poles(cube):
     cube.data[:, -1] = 0.0
 
 
-def save_ancil(cubes, save_dirpath, save_filename):
+def save_ancil(cubes, save_dirpath, save_filename, gregorian=True):
     """
     Handle both a list and a single cube
     """
@@ -146,8 +146,9 @@ def save_ancil(cubes, save_dirpath, save_filename):
     """
     for cube in cubes:
         cube.attributes["grid_staggering"] = 3  # New dynamics
-        cube.attributes["time_type"] = 1  # Gregorian
-        set_gregorian(cube)
+        if gregorian:
+            cube.attributes["time_type"] = 1  # Gregorian
+            set_gregorian(cube)
     """
     ANTS doesn't set the calendar header for monthly fields
     See fileformats/ancil/time_headers.py
