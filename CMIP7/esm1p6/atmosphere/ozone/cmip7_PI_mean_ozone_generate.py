@@ -49,8 +49,8 @@ def save_cmip7_pi_mean_ozone(args, cube):
     time = cube.coord("time")
     time.bounds = None
     time.guess_bounds(bound_position=0.5)
-    # Remove the added "month" coordinate before saving.
-    cube.remove_coord("month")
+    # Remove the added "month_number" coordinate before saving.
+    cube.remove_coord("month_number")
     # Save as an ancillary file
     save_dirpath = esm_pi_ozone_save_dirpath(args)
     save_ancil(cube, save_dirpath, args.save_filename, gregorian=False)
