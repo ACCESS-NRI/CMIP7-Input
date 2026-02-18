@@ -39,8 +39,12 @@ def esm_pi_ozone_save_dirpath(args):
 
 
 def save_cmip7_pi_mean_ozone(args, cube):
+    # Add a categorical "month" variable.
     iris.coord_categorisation.add_month(cube, "time", name="month")
+    # Aggregate by "month" to obtain a mean for each month.
     cube = cube.aggregated_by("month", iris.analysis.MEAN)
+    # Remove the added "month" coordinate before saving.
+    cube.remove_coodinate("month")
     # Save as an ancillary file
     save_dirpath = esm_pi_ozone_save_dirpath(args)
     save_ancil(cube, save_dirpath, args.save_filename, gregorian=False)
