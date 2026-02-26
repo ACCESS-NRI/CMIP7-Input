@@ -45,7 +45,7 @@ def esm_grid_mask_cube(args):
     return cube
 
 
-def set_gregorian(var):
+def set_gregorian(var, replace_bounds=False):
     # Change the calendar to Gregorian for the model
     time = var.coord("time")
     origin = time.units.origin
@@ -59,17 +59,43 @@ def set_gregorian(var):
             date.year, date.month, date.day, date.hour, date.minute, date.second
         )
         tvals[i] = newunits.date2num(newdate)
-        for j in range(2):
-            date = time.units.num2date(tbnds[i][j])
-            newdate = cftime.DatetimeProlepticGregorian(
+        if replace_bounds:
+            beg_date = cftime.DatetimeProlepticGregorian(
                 date.year,
                 date.month,
-                date.day,
+                1,
                 date.hour,
                 date.minute,
                 date.second,
             )
-            tbnds[i][j] = newunits.date2num(newdate)
+            tbnds[i][0] = newunits.date2num(beg_date)
+            if date.month == 12:
+                end_year = date.year + 1
+                end_month = 1
+            else:
+                end_year = date.year
+                end_month = date.month + 1
+            end_date = cftime.DatetimeProlepticGregorian(
+                end_year,
+                end_month,
+                1,
+                date.hour,
+                date.minute,
+                date.second,
+            )
+            tbnds[i][1] = newunits.date2num(end_date)
+        else:
+            for j in range(2):
+                date = time.units.num2date(tbnds[i][j])
+                newdate = cftime.DatetimeProlepticGregorian(
+                    date.year,
+                    date.month,
+                    date.day,
+                    date.hour,
+                    date.minute,
+                    date.second,
+                )
+                tbnds[i][j] = newunits.date2num(newdate)
     time.points = tvals
     time.bounds = tbnds
     time.units = newunits
@@ -134,7 +160,9 @@ def zero_poles(cube):
     cube.data[:, -1] = 0.0
 
 
-def save_ancil(cubes, save_dirpath, save_filename, gregorian=True):
+def save_ancil(
+    cubes, save_dirpath, save_filename, gregorian=True, replace_bounds=False
+):
     """
     Handle both a list and a single cube
     """
@@ -148,7 +176,7 @@ def save_ancil(cubes, save_dirpath, save_filename, gregorian=True):
         cube.attributes["grid_staggering"] = 3  # New dynamics
         if gregorian:
             cube.attributes["time_type"] = 1  # Gregorian
-            set_gregorian(cube)
+            set_gregorian(cube, replace_bounds=replace_bounds)
     """
     ANTS doesn't set the calendar header for monthly fields
     See fileformats/ancil/time_headers.py
