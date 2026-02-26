@@ -75,14 +75,14 @@ def set_gregorian(var, replace_bounds=False):
             else:
                 end_year = date.year
                 end_month = date.month + 1
-                end_date = cftime.DatetimeProlepticGregorian(
-                    end_year,
-                    end_month,
-                    1,
-                    date.hour,
-                    date.minute,
-                    date.second,
-                )
+            end_date = cftime.DatetimeProlepticGregorian(
+                end_year,
+                end_month,
+                1,
+                date.hour,
+                date.minute,
+                date.second,
+            )
             tbnds[i][1] = newunits.date2num(end_date)
         else:
             for j in range(2):
