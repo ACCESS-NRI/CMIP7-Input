@@ -2,10 +2,10 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 
+import cftime
 import f90nml
 import iris
 import numpy as np
-import cftime
 from cmip7_ancil_argparse import dataset_parser, path_parser
 from cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
@@ -46,19 +46,24 @@ def load_cmip7_hi_ghg_mmr(args, ghg):
     assert ghg == variable_id
 
     new_cube = full_cube.copy()
-    # Linearly interpolate to Jan 1 so that UM time interpolation reproduces annual means
-    new_cube.data[:-1] = 0.5*(full_cube.data[:-1] + full_cube.data[1:])
+    # Linearly interpolate to Jan 1 so that UM time interpolation
+    # reproduces annual means
+    new_cube.data[:-1] = 0.5 * (full_cube.data[:-1] + full_cube.data[1:])
     # Extrapolate the last year
-    new_cube.data[-1] = full_cube.data[-1] + 0.5*(full_cube.data[-1]-full_cube.data[-2])
-    cube_time = full_cube.coord('time')
+    new_cube.data[-1] = full_cube.data[-1] + 0.5 * (
+        full_cube.data[-1] - full_cube.data[-2]
+    )
+    cube_time = full_cube.coord("time")
     units = cube_time.units
-    new_cube_time = new_cube.coord('time')
+    new_cube_time = new_cube.coord("time")
     # Can't assign to elements of time.points so create a temporary array
     tvals = np.array(new_cube_time.points)
     for i in range(len(tvals)):
         date = units.num2date(cube_time.points[i])
         # Interpolated data is Jan 1 of the next year
-        newdate = cftime.DatetimeProlepticGregorian(date.year+1, 1, 1, 0, 0, 0)
+        newdate = cftime.DatetimeProlepticGregorian(
+            date.year + 1, 1, 1, 0, 0, 0
+        )
         tvals[i] = units.date2num(newdate)
     new_cube_time.points = tvals
 
