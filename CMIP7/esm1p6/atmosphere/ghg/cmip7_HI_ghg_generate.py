@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from pathlib import Path
 
+import cftime
 import f90nml
 import iris
 import numpy as np
@@ -44,11 +45,33 @@ def load_cmip7_hi_ghg_mmr(args, ghg):
     variable_id = full_cube.metadata.attributes["variable_id"]
     assert ghg == variable_id
 
+    new_cube = full_cube.copy()
+    # Linearly interpolate to Jan 1 so that UM time interpolation
+    # reproduces annual means
+    new_cube.data[:-1] = 0.5 * (full_cube.data[:-1] + full_cube.data[1:])
+    # Extrapolate the last year
+    new_cube.data[-1] = full_cube.data[-1] + 0.5 * (
+        full_cube.data[-1] - full_cube.data[-2]
+    )
+    cube_time = full_cube.coord("time")
+    units = cube_time.units
+    new_cube_time = new_cube.coord("time")
+    # Can't assign to elements of time.points so create a temporary array
+    tvals = np.array(new_cube_time.points)
+    for i in range(len(tvals)):
+        date = units.num2date(cube_time.points[i])
+        # Interpolated data is Jan 1 of the next year
+        newdate = cftime.DatetimeProlepticGregorian(
+            date.year + 1, 1, 1, 0, 0, 0
+        )
+        tvals[i] = units.date2num(newdate)
+    new_cube_time.points = tvals
+
     # Extract the historical years.
     date_constraint = cmip7_pro_greg_date_constraint_from_years(
         CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
     )
-    hi_cube = full_cube.extract(date_constraint)
+    hi_cube = new_cube.extract(date_constraint)
 
     # Determine the mass mixing ratio.
     ghg_mmr_list = []

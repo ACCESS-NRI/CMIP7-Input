@@ -9,7 +9,8 @@ from cmip7_ancil_constants import (
 from cmip7_PI import CMIP7_PI_YEAR
 
 CMIP7_HI_BEG_YEAR = CMIP7_PI_YEAR
-CMIP7_HI_END_YEAR = 2022
+# Model time interpolation requires an extra year
+CMIP7_HI_END_YEAR = 2023
 CMIP7_HI_NBR_YEARS = CMIP7_HI_END_YEAR + 1 - CMIP7_HI_BEG_YEAR
 
 
