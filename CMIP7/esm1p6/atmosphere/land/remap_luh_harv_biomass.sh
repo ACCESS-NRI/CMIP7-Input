@@ -36,10 +36,10 @@ cdo -L remapcon,ACCESS.grid\
 cdo -L -ifthen mask.nc -setmisstoc,0 temp1.nc temp3.nc
 
 # Name + metadata
-cdo -L -setname,bioh temp3.nc harvest_bioh_primfonly.nc
-ncatted -O -a long_name,bioh,m,c,"wood harvest biomass carbon" harvest_bioh_primfonly.nc
-ncatted -O -a comment,bioh,m,c,"wood harvest biomass carbon summed over LUH3 data variable 'primf_bioh'" harvest_bioh_primfonly.nc
-ncatted -O -a history,bioh,d,, harvest_bioh_primfonly.nc
+cdo -L -setname,bioh temp3.nc harvest_bioh.nc
+ncatted -O -a long_name,bioh,m,c,"wood harvest biomass carbon" harvest_bioh.nc
+ncatted -O -a comment,bioh,m,c,"wood harvest biomass carbon summed over LUH3 data variables 'primf_bioh', 'secmf_harv', 'secyf_bioh', 'primn_bioh', 'secnf_bioh' and 'pltns_bioh'" harvest_bioh.nc
+ncatted -O -a history,bioh,d,, harvest_bioh.nc
 
 # Clean up
 rm -f temp1.nc temp3.nc mask.nc
