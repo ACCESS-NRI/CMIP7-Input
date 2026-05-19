@@ -22,7 +22,7 @@ FLAT_MINUS10_NYEARS = 100
 # Taken from the flat10 ancillary:
 # /g/data/vk83/prerelease/configurations/inputs/access-esm1p6/modern/flat10/
 # atmosphere/forcing/global.N96/2025.12.05/CO2_fluxes_flat10.anc
-PG10_C = np.float64(2.2802997268200897451606579124927520751953125e-09)
+PG10_C = np.float64(2.2802997e-09)
 
 
 def parse_args():
