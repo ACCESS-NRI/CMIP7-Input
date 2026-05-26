@@ -197,7 +197,9 @@ def save_stratospheric_aerosol_optical_depth(
         # For years from volcanic_end_year + 1 to SAOD_ARRAY_END_YEAR
         # interpolate between the saod values in saod_for_beg_year and
         # saod_for_end_year and save values in save_file.
-        tapered_saod_array = taper_saod(saod_for_beg_year, saod_for_end_year)
+        tapered_saod_array = taper_saod(
+            volcanic_end_year, saod_for_beg_year, saod_for_end_year
+        )
         for year in range(volcanic_end_year + 1, SAOD_ARRAY_END_YEAR + 1):
             save_year_tapered_saod(
                 year, tapered_saod_array, volcanic_end_year, save_file
