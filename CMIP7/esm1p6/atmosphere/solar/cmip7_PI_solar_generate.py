@@ -48,7 +48,7 @@ def cmip7_pi_solar_patch(solar_irradiance):
 if __name__ == "__main__":
     args = parse_args()
 
-    dirpath = cmip7_solar_dirpath(args, "ScenarioMIP", "fx")
+    dirpath = cmip7_solar_dirpath(args, "CMIP", "fx")
     filename = f"multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc"
     dataset_path = dirpath / filename
 
