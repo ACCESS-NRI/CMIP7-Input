@@ -66,6 +66,7 @@ def cmip7_solar_save(args, cube, beg_year, end_year, save_dirpath):
     """
     solar_array = cmip7_solar_year_mean(cube, beg_year, end_year)
     # Ensure that the save directory exists.
+    save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
     with open(save_filepath, "w") as save_file:
         for year in range(SOLAR_ARRAY_BEG_YEAR, SOLAR_ARRAY_END_YEAR + 1):
