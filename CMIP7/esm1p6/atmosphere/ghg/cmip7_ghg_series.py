@@ -5,7 +5,6 @@ import cftime
 import f90nml
 import iris
 import numpy as np
-
 from ghg.cmip7_ghg import (
     cmip7_ghg_dirpath,
     cmip7_ghg_filename,
@@ -98,9 +97,7 @@ def format_namelist(namelist, float_format="13.6e"):
     namelist.uppercase = True
 
 
-def cmip7_ghg_namelist_str(
-    ghg_mmr_dict, ghg_namelist_name, beg_year, end_year
-):
+def cmip7_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name, beg_year, end_year):
     """
     Use the greenhouse gas mass mixing ratios to
     produce a replacement clmchfcg namelist as a string.
