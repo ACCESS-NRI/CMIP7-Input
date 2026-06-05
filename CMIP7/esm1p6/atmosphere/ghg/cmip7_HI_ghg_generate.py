@@ -7,8 +7,8 @@ from cmip7_HI import (
 )
 from ghg.cmip7_ghg import GHG_MOLAR_MASS
 from ghg.cmip7_ghg_series import (
-    load_cmip7_ghg_series_mmr,
     cmip7_ghg_update_namelists_file,
+    load_cmip7_ghg_series_mmr,
 )
 
 
@@ -30,8 +30,10 @@ if __name__ == "__main__":
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
         ghg_mmr_dict[ghg] = load_cmip7_ghg_series_mmr(
-            args, "CMIP", ghg, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR)
+            args, "CMIP", ghg, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
+        )
 
     # Patch the greenhouse gas namelist.
     cmip7_ghg_update_namelists_file(
-        ghg_mmr_dict, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR)
+        ghg_mmr_dict, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
+    )
