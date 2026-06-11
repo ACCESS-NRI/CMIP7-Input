@@ -14,10 +14,10 @@ from aerosol.cmip7_SO2_interpolate import (
 from cmip7_ancil_argparse import common_parser, dms_filename_parser
 from cmip7_PI import fix_esm15_pi_ancil_date
 
+PI_DMS_ANCIL_FILENAME = "scycl_1850_ESM1_v4.anc"
+
 
 def parse_args():
-    DMS_ANCIL_FILENAME = "scycl_1850_ESM1_v4.anc"
-
     parser = ArgumentParser(
         prog="cmip7_PI_SO2_interpolate",
         description=(
@@ -25,7 +25,7 @@ def parse_args():
         ),
         parents=[
             common_parser(),
-            dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
+            dms_filename_parser(dms_ancil_filename=PI_DMS_ANCIL_FILENAME),
         ],
     )
     parser.add_argument("--dataset-date-range")

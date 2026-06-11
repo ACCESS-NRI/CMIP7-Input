@@ -20,16 +20,16 @@ from cmip7_ancil_argparse import (
 )
 from cmip7_HI import fix_esm15_hi_ancil_date
 
+HI_DMS_ANCIL_FILENAME = "scycl_1849_2015_ESM1_v4.anc"
+
 
 def parse_args():
-    DMS_ANCIL_FILENAME = "scycl_1849_2015_ESM1_v4.anc"
-
     parser = ArgumentParser(
         prog="cmip7_HI_SO2_interpolate",
         description=("Generate input files from CMIP7 historical SO2 forcings"),
         parents=[
             common_parser(),
-            dms_filename_parser(dms_ancil_filename=DMS_ANCIL_FILENAME),
+            dms_filename_parser(dms_ancil_filename=HI_DMS_ANCIL_FILENAME),
         ],
     )
     parser.add_argument("--dataset-date-range-list", type=literal_eval)
