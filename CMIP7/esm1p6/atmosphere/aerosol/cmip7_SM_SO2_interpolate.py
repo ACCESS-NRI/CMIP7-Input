@@ -60,7 +60,7 @@ if __name__ == "__main__":
     save_cmip7_so2_aerosol_anthro(
         args,
         load_cmip7_sm_so2_aerosol_anthro,
-        args.dataset_date_range_list,
+        args.dataset_date_range,
         load_sm_dms,
         esm_sm_aerosol_save_dirpath(args),
     )

@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_interpolate
-from aerosol.cmip7_aerosol_common import load_cmip7_aerosol_list
+from aerosol.cmip7_aerosol_common import load_cmip7_aerosol
 from aerosol.cmip7_SM_aerosol import (
     CMIP7_SM_AEROSOL_BEG_YEAR,
     CMIP7_SM_AEROSOL_END_YEAR,
@@ -69,11 +69,11 @@ def load_cmip7_sm_aerosol_air_anthro(
     beg_year=CMIP7_SM_AEROSOL_BEG_YEAR,
     end_year=CMIP7_SM_AEROSOL_END_YEAR,
 ):
-    cube = load_cmip7_aerosol_list(
+    cube = load_cmip7_aerosol(
         args,
         cmip7_sm_aerosol_air_anthro_filepath,
         species,
-        args.dataset_date_range_list,
+        args.dataset_date_range,
         cmip7_date_constraint_from_years(beg_year, end_year),
     )
     fix_coords(args, cube)
@@ -86,11 +86,11 @@ def load_cmip7_sm_aerosol_anthro(
     beg_year=CMIP7_SM_AEROSOL_BEG_YEAR,
     end_year=CMIP7_SM_AEROSOL_END_YEAR,
 ):
-    cube = load_cmip7_aerosol_list(
+    cube = load_cmip7_aerosol(
         args,
         cmip7_sm_aerosol_anthro_filepath,
         species,
-        args.dataset_date_range_list,
+        args.dataset_date_range,
         cmip7_date_constraint_from_years(beg_year, end_year),
     )
     fix_coords(args, cube)
