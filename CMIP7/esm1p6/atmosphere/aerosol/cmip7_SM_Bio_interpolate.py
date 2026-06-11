@@ -29,6 +29,7 @@ def parse_args():
             percent_parser(),
         ],
     )
+    parser.add_argument("--scenario")
     parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()

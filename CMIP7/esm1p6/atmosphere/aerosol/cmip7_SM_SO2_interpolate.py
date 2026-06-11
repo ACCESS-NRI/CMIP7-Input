@@ -30,6 +30,7 @@ def parse_args():
             dms_filename_parser(dms_ancil_filename=PI_DMS_ANCIL_FILENAME),
         ],
     )
+    parser.add_argument("--scenario")
     parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
