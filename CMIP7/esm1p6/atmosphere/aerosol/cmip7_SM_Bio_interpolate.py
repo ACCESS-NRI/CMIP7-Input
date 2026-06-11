@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 
 from aerosol.cmip7_aerosol_biomass import (
     load_cmip7_aerosol_biomass,
-    load_cmip7_aerosol_biomass_list,
     save_cmip7_aerosol_biomass,
 )
 from aerosol.cmip7_SM_aerosol import (
@@ -36,10 +35,10 @@ def parse_args():
 
 
 def load_cmip7_sm_aerosol_biomass(args, species):
-    return load_cmip7_aerosol_biomass_list(
+    return load_cmip7_aerosol_biomass(
         args,
         species,
-        args.dataset_date_range_list,
+        args.dataset_date_range,
         cmip7_date_constraint_from_years(
             CMIP7_SM_AEROSOL_BEG_YEAR,
             CMIP7_SM_AEROSOL_END_YEAR,
