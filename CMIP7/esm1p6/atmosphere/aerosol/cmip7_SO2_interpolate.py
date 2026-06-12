@@ -7,7 +7,6 @@ from pathlib import Path
 import iris
 import netCDF4
 import numpy as np
-from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
 from aerosol.cmip7_aerosol_common import zero_poles
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
@@ -21,14 +20,14 @@ DMS_NAME_CONSTRAINT = iris.Constraint(
 )
 
 
-def load_sector_dict(args, date_range_maybe_list):
+def load_sector_dict(args, filepath_fn, date_range_maybe_list):
     date_range = (
         date_range_maybe_list[0]
         if isinstance(date_range_maybe_list, list)
         else date_range_maybe_list
     )
     # Iris doesn't read the sector coordinate so use netCDF4
-    d = netCDF4.Dataset(cmip7_aerosol_anthro_filepath(args, "SO2", date_range))
+    d = netCDF4.Dataset(filepath_fn(args, "SO2", date_range))
     sectord = dict()
     for s in d["sector"].ids.split(";"):
         i, name = s.split(":")
@@ -59,12 +58,12 @@ def tile_yearly_data(from_cube, to_cube):
 
 
 def save_cmip7_so2_aerosol_anthro(
-    args, cmip7_load_fn, date_range, dms_load_fn, save_dirpath
+    args, cmip7_load_fn, filepath_fn, date_range, dms_load_fn, save_dirpath
 ):
     cmip7_so2 = cmip7_load_fn(args, "SO2")
 
     # Iris doesn't read the sector coordinate
-    sectord = load_sector_dict(args, date_range)
+    sectord = load_sector_dict(args, filepath_fn, date_range)
 
     cmip7_so2_high = (
         cmip7_so2[:, sectord["Energy"]]
