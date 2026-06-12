@@ -9,7 +9,10 @@ from aerosol.cmip7_SM_aerosol import (
     CMIP7_SM_AEROSOL_END_YEAR,
     esm_sm_aerosol_save_dirpath,
 )
-from aerosol.cmip7_SM_aerosol_anthro import load_cmip7_sm_aerosol_anthro
+from aerosol.cmip7_SM_aerosol_anthro import (
+    cmip7_sm_aerosol_anthro_filepath,
+    load_cmip7_sm_aerosol_anthro,
+)
 from aerosol.cmip7_SO2_interpolate import (
     load_dms,
     save_cmip7_so2_aerosol_anthro,
@@ -24,7 +27,9 @@ from cmip7_PI import fix_esm15_pi_ancil_date
 def parse_args():
     parser = ArgumentParser(
         prog="cmip7_SM_SO2_interpolate",
-        description=("Generate input files from CMIP7 historical SO2 forcings"),
+        description=(
+            "Generate input files from CMIP7 ScenarioMIP SO2 forcings"
+        ),
         parents=[
             common_parser(),
             dms_filename_parser(dms_ancil_filename=PI_DMS_ANCIL_FILENAME),
@@ -61,6 +66,7 @@ if __name__ == "__main__":
     save_cmip7_so2_aerosol_anthro(
         args,
         load_cmip7_sm_so2_aerosol_anthro,
+        cmip7_sm_aerosol_anthro_filepath,
         args.dataset_date_range,
         load_sm_dms,
         esm_sm_aerosol_save_dirpath(args),
