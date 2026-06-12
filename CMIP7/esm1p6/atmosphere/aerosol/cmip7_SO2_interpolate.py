@@ -119,10 +119,9 @@ def save_cmip7_so2_aerosol_anthro(
             (dms_lon, 2),
         ],
     )
-    print("so2_low")
-    print(so2_low)
-    print("so2_high")
-    print(so2_high)
-    print("dms")
-    print(dms)
-    save_ancil([so2_low, so2_high, dms], save_dirpath, args.save_filename)
+    save_ancil(
+        [so2_low, so2_high, dms],
+        save_dirpath,
+        args.save_filename,
+        replace_bounds=True,
+    )
