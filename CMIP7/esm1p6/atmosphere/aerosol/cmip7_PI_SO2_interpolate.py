@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 
+from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
 from aerosol.cmip7_PI_aerosol import (
     esm_pi_aerosol_ancil_dirpath,
     esm_pi_aerosol_save_dirpath,
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     save_cmip7_so2_aerosol_anthro(
         args,
         load_cmip7_pi_aerosol_anthro,
+        cmip7_aerosol_anthro_filepath,
         args.dataset_date_range,
         load_pi_dms,
         esm_pi_aerosol_save_dirpath(args),

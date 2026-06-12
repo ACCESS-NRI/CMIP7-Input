@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from ast import literal_eval
 
+from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
 from aerosol.cmip7_HI_aerosol import (
     CMIP7_HI_AEROSOL_BEG_YEAR,
     CMIP7_HI_AEROSOL_END_YEAR,
@@ -62,6 +63,7 @@ if __name__ == "__main__":
     save_cmip7_so2_aerosol_anthro(
         args,
         load_cmip7_hi_so2_aerosol_anthro,
+        cmip7_aerosol_anthro_filepath,
         args.dataset_date_range_list,
         load_hi_dms,
         esm_hi_aerosol_save_dirpath(args),
