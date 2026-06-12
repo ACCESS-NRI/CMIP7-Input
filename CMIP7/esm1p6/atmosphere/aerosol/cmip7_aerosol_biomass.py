@@ -137,7 +137,12 @@ def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
         model=1, section=0, item=131
     )
 
-    save_ancil([low_esm, high_esm], save_dirpath, args.save_filename)
+    save_ancil(
+        [low_esm, high_esm],
+        save_dirpath,
+        args.save_filename,
+        replace_bounds=True,
+    )
 
     now = datetime.now()
     print(f"{now}: save_ancil done")
