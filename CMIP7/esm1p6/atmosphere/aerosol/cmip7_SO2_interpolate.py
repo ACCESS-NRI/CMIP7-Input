@@ -123,5 +123,4 @@ def save_cmip7_so2_aerosol_anthro(
         [so2_low, so2_high, dms],
         save_dirpath,
         args.save_filename,
-        replace_bounds=True,
     )
