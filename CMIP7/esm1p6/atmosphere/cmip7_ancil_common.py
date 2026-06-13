@@ -220,7 +220,7 @@ def interpolate_monthly(cube, beg_year, end_year):
             for index, b in enumerate(tbounds)
         }
         # Ensure data is a writable array (not read-only memmap).
-        new_cube.data = np.array(new_cube.data)
+        new_cube.data = np.ma.asarray(new_cube.data)
         for i in range(len(time_coord.points)):
             # Convert original bounds of slice i to date objects.
             beg_date = units.num2date(bounds[i][0])
@@ -233,6 +233,7 @@ def interpolate_monthly(cube, beg_year, end_year):
                 target_idx = tbounds_dict[key]
                 new_cube.data[target_idx] = cube.data[i]
 
+    new_cube.data = np.ma.asarray(new_cube.data)
     return new_cube
 
 
