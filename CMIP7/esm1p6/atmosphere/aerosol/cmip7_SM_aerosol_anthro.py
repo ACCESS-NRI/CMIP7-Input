@@ -8,10 +8,13 @@ from aerosol.cmip7_SM_aerosol import (
     CMIP7_SM_AEROSOL_END_YEAR,
     esm_sm_aerosol_save_dirpath,
 )
+from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 from cmip7_ancil_argparse import common_parser
 from cmip7_ancil_common import (
     cmip7_date_constraint_from_years,
+    extend_years,
     fix_coords,
+    interpolate_monthly,
 )
 
 
@@ -74,10 +77,13 @@ def load_cmip7_sm_aerosol_air_anthro(
         cmip7_sm_aerosol_air_anthro_filepath,
         species,
         args.dataset_date_range,
-        cmip7_date_constraint_from_years(beg_year, end_year),
+        cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
     )
     fix_coords(args, cube)
-    return cube
+    interpolated = interpolate_monthly(
+        cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
+    )
+    return extend_years(interpolated)
 
 
 def load_cmip7_sm_aerosol_anthro(
@@ -91,10 +97,13 @@ def load_cmip7_sm_aerosol_anthro(
         cmip7_sm_aerosol_anthro_filepath,
         species,
         args.dataset_date_range,
-        cmip7_date_constraint_from_years(beg_year, end_year),
+        cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
     )
     fix_coords(args, cube)
-    return cube
+    interpolated = interpolate_monthly(
+        cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
+    )
+    return extend_years(interpolated)
 
 
 def cmip7_sm_aerosol_anthro_interpolate(args, species, stash_item):
