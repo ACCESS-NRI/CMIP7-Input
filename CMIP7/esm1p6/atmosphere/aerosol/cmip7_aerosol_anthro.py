@@ -93,4 +93,4 @@ def cmip7_aerosol_anthro_interpolate(
     esm_cube.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=stash_item
     )
-    save_ancil(esm_cube, save_dirpath, args.save_filename, replace_bounds=True)
+    save_ancil(esm_cube, save_dirpath, args.save_filename)
