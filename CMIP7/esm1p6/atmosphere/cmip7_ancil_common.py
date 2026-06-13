@@ -170,9 +170,12 @@ def interpolate_monthly(cube, beg_year, end_year):
     # Create new DimCoord with contiguous bounds
     new_time_coord = iris.coords.DimCoord(
         tpoints,
-        standard_name="time",
-        bounds=tbounds_num,
+        standard_name=time_coord.standard_name,
+        long_name=time_coord.long_name,
+        var_name=time_coord.var_name,
         units=units,
+        bounds=tbounds_num,
+        attributes=time_coord.attributes,
     )
     time_dim = cube.coord_dims("time")
     new_cube.remove_coord("time")
