@@ -135,6 +135,16 @@ def extend_years(cube):
     print(beg_year_tc)
     print(time_coord)
     print(end_year_tc)
+    # Compare metadata.
+    print("beg_year_tc.metadata == time_coord.metadata:",
+          beg_year_tc.metadata == time_coord.metadata
+    )
+    if beg_year_tc.metadata != time_coord.metadata:
+        for field in beg_year_tc.metadata._fields:
+            v1 = getattr(beg_year_tc.metadata, field)
+            v2 = getattr(time_coord.metadata, field)
+            if v1 != v2:
+                print(f"Diff in {field}: beg={v1!r}, mid={v2!r}")
     # Return a cube with extended years.
     cubelist = iris.cube.CubeList((beg_year, cube, end_year))
     return cubelist.concatenate_cube()
