@@ -183,10 +183,11 @@ def interpolate_monthly(cube, beg_year, end_year):
             tdates.append(mid_date)
             tbounds.append([beg_date, end_date])
 
-    tpoints = [units.date2num(d) for d in tdates]
-    tbounds_num = [
-        [units.date2num(b[0]), units.date2num(b[1])] for b in tbounds
-    ]
+    tpoints = np.array([units.date2num(d) for d in tdates], dtype=np.float64)
+    tbounds_num = np.array(
+        [[units.date2num(b[0]), units.date2num(b[1])] for b in tbounds],
+        dtype=np.float64,
+    )
 
     # Perform linear time-interpolation
     new_cube = cube.interpolate(
