@@ -131,32 +131,6 @@ def extend_years(cube):
     if time_coord.has_bounds():
         end_year_tc.bounds = end_year_tc.bounds + length_one_year
 
-    # Print time coordinates.
-    print(beg_year_tc)
-    print(time_coord)
-    print(end_year_tc)
-    print("--- Dtype Diagnostics ---")
-    print("beg_year_tc points dtype:", beg_year_tc.core_points().dtype)
-    print("time_coord points dtype:", time_coord.core_points().dtype)
-    print("end_year_tc points dtype:", end_year_tc.core_points().dtype)
-    if time_coord.has_bounds():
-        print("beg_year_tc bounds dtype:", beg_year_tc.core_bounds().dtype)
-        print("time_coord bounds dtype:", time_coord.core_bounds().dtype)
-        print("end_year_tc bounds dtype:", end_year_tc.core_bounds().dtype)
-    print("-------------------------")
-    # Compare metadata.
-    for tc in [beg_year_tc, end_year_tc]:
-        print("tc.metadata == time_coord.metadata:",
-              tc.metadata == time_coord.metadata
-              )
-        if tc.metadata != time_coord.metadata:
-            for field in tc.metadata._fields:
-                v1 = getattr(tc.metadata, field)
-                v2 = getattr(time_coord.metadata, field)
-                if v1 != v2:
-                    print(f"Diff in {field}: beg={v1!r}, mid={v2!r}")
-    iris.util.describe_diff(beg_year, cube)
-    iris.util.describe_diff(end_year, cube)
     # Return a cube with extended years.
     cubelist = iris.cube.CubeList((beg_year, cube, end_year))
     return cubelist.concatenate_cube()
