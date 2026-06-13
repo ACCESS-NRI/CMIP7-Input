@@ -135,6 +135,15 @@ def extend_years(cube):
     print(beg_year_tc)
     print(time_coord)
     print(end_year_tc)
+    print("--- Dtype Diagnostics ---")
+    print("beg_year_tc points dtype:", beg_year_tc.core_points().dtype)
+    print("time_coord points dtype:", time_coord.core_points().dtype)
+    print("end_year_tc points dtype:", end_year_tc.core_points().dtype)
+    if time_coord.has_bounds():
+        print("beg_year_tc bounds dtype:", beg_year_tc.core_bounds().dtype)
+        print("time_coord bounds dtype:", time_coord.core_bounds().dtype)
+        print("end_year_tc bounds dtype:", end_year_tc.core_bounds().dtype)
+    print("-------------------------")
     # Compare metadata.
     for tc in [beg_year_tc, end_year_tc]:
         print("tc.metadata == time_coord.metadata:",
