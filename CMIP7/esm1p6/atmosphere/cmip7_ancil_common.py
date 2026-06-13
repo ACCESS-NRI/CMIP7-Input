@@ -131,6 +131,10 @@ def extend_years(cube):
     if time_coord.has_bounds():
         end_year_tc.bounds = end_year_tc.bounds + length_one_year
 
+    # Print time coordinates.
+    print(beg_year_tc)
+    print(time_coord)
+    print(end_year_tc)
     # Return a cube with extended years.
     cubelist = iris.cube.CubeList((beg_year, cube, end_year))
     return cubelist.concatenate_cube()
@@ -201,11 +205,6 @@ def interpolate_monthly(cube, beg_year, end_year):
             # Match bounds based on start and end year/month components
             key = (
                 beg_date.year, beg_date.month, end_date.year, end_date.month
-            )
-            print(
-                "In interpolate_monthly(): "
-                f"matched {beg_date.year}/{beg_date.month}, "
-                f"{end_date.year}/{end_date.month}"
             )
             if key in tbounds_dict:
                 target_idx = tbounds_dict[key]
