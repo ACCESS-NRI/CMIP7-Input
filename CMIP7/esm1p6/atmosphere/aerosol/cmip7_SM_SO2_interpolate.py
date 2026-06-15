@@ -4,11 +4,7 @@ from argparse import ArgumentParser
 
 from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_ancil_dirpath
 from aerosol.cmip7_PI_SO2_interpolate import PI_DMS_ANCIL_FILENAME
-from aerosol.cmip7_SM_aerosol import (
-    CMIP7_SM_AEROSOL_BEG_YEAR,
-    CMIP7_SM_AEROSOL_END_YEAR,
-    esm_sm_aerosol_save_dirpath,
-)
+from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
 from aerosol.cmip7_SM_aerosol_anthro import (
     cmip7_sm_aerosol_anthro_filepath,
     load_cmip7_sm_aerosol_anthro,
@@ -42,12 +38,7 @@ def parse_args():
 
 
 def load_cmip7_sm_so2_aerosol_anthro(args, species):
-    return load_cmip7_sm_aerosol_anthro(
-        args,
-        species,
-        beg_year=CMIP7_SM_AEROSOL_BEG_YEAR,
-        end_year=CMIP7_SM_AEROSOL_END_YEAR,
-    )
+    return load_cmip7_sm_aerosol_anthro(args, species)
 
 
 def load_sm_dms(args):
