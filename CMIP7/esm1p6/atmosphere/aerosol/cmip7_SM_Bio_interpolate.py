@@ -17,6 +17,7 @@ from cmip7_ancil_common import (
     cmip7_date_constraint_from_years,
     esm_grid_mask_cube,
     extend_years,
+    interpolate_monthly,
     save_ancil,
     set_coord_system,
 )
@@ -188,7 +189,10 @@ def load_cmip7_sm_aerosol_biomass(args, species):
             CMIP7_SM_END_YEAR,
         ),
     )
-    return extend_years(cube)
+    interpolated = interpolate_monthly(
+        cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
+    )
+    return extend_years(interpolated)
 
 
 if __name__ == "__main__":
