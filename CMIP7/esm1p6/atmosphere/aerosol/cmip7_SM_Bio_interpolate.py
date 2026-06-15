@@ -37,6 +37,10 @@ def parse_args():
     return parser.parse_args()
 
 
+def _biomass_variable(species):
+    return f"{species}-em-openburning"
+
+
 def _biomass_dirpath(args, species):
     return (
         Path(args.cmip7_source_data_dirname)
@@ -45,7 +49,7 @@ def _biomass_dirpath(args, species):
         / args.dataset_version
         / "atmos"
         / "mon"
-        / species
+        / _biomass_variable(species)
         / "gn"
         / args.dataset_vdate
     )
@@ -54,7 +58,7 @@ def _biomass_dirpath(args, species):
 def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
     dirpath = _biomass_dirpath(args, species)
     filename = (
-        f"{species}_input4MIPs_emissions_ScenarioMIP_"
+        f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
         f"{args.dataset_version}_gn_"
         f"{date_range}.nc"
     )
