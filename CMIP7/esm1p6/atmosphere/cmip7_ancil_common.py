@@ -151,7 +151,9 @@ def interpolate_monthly(cube, beg_year, end_year):
             if month == MONTHS_IN_A_YEAR:
                 end_date = cftime.datetime(year + 1, 1, 1, calendar=calendar)
             else:
-                end_date = cftime.datetime(year, month + 1, 1, calendar=calendar)
+                end_date = cftime.datetime(
+                    year, month + 1, 1, calendar=calendar
+                )
 
             mid_date = beg_date + (end_date - beg_date) / 2
             tdates.append(mid_date)
@@ -164,9 +166,7 @@ def interpolate_monthly(cube, beg_year, end_year):
     )
 
     # Perform linear time-interpolation
-    new_cube = cube.interpolate(
-        [("time", tpoints)], iris.analysis.Linear()
-    )
+    new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
 
     # Create new DimCoord with contiguous bounds
     new_time_coord = iris.coords.DimCoord(
@@ -200,9 +200,7 @@ def interpolate_monthly(cube, beg_year, end_year):
             beg_date = units.num2date(bounds[i][0])
             end_date = units.num2date(bounds[i][1])
             # Match bounds based on start and end year/month components
-            key = (
-                beg_date.year, beg_date.month, end_date.year, end_date.month
-            )
+            key = (beg_date.year, beg_date.month, end_date.year, end_date.month)
             if key in tbounds_dict:
                 target_idx = tbounds_dict[key]
                 new_cube.data[target_idx] = cube.data[i]
@@ -225,18 +223,6 @@ def fix_coords(args, cube):
     cube.coord("longitude").coord_system = esm_grid_mask.coord(
         "longitude"
     ).coord_system
-
-
-def zero_poles(cube):
-    # Polar values should have no longitude dependence
-    # For aerosol emissions they should be zero
-    latdim = cube.coord_dims("latitude")
-    assert latdim == (1,)
-    # Make data writeable
-    if not cube.data.flags.writeable:
-        cube.data = cube.data.copy()
-    cube.data[:, 0] = 0.0
-    cube.data[:, -1] = 0.0
 
 
 def save_ancil(

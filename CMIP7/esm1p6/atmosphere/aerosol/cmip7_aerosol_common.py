@@ -32,5 +32,8 @@ def zero_poles(cube):
     # For aerosol emissions they should be zero
     latdim = cube.coord_dims("latitude")
     assert latdim == (1,)
+    # Make data writeable
+    if not cube.data.flags.writeable:
+        cube.data = cube.data.copy()
     cube.data[:, 0] = 0.0
     cube.data[:, -1] = 0.0
