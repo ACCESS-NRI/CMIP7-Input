@@ -49,7 +49,7 @@ def _biomass_dirpath(args, species):
         / args.dataset_version
         / "atmos"
         / "mon"
-        / _biomass_variable(species)
+        / _biomass_variable(species).replace("-", "_")
         / "gn"
         / args.dataset_vdate
     )
