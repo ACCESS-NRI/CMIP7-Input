@@ -3,11 +3,7 @@ from pathlib import Path
 
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_interpolate
 from aerosol.cmip7_aerosol_common import load_cmip7_aerosol
-from aerosol.cmip7_SM_aerosol import (
-    CMIP7_SM_AEROSOL_BEG_YEAR,
-    CMIP7_SM_AEROSOL_END_YEAR,
-    esm_sm_aerosol_save_dirpath,
-)
+from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
 from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 from cmip7_ancil_argparse import common_parser
 from cmip7_ancil_common import (
@@ -46,16 +42,6 @@ def _anthro_dirpath(args, variable):
     )
 
 
-def cmip7_sm_aerosol_air_anthro_filepath(args, species, date_range):
-    dirpath = _anthro_dirpath(args, f"{species}_em_AIR_anthro")
-    filename = (
-        f"{species}-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{date_range}.nc"
-    )
-    return dirpath / filename
-
-
 def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
     dirpath = _anthro_dirpath(args, f"{species}_em_anthro")
     filename = (
@@ -66,32 +52,7 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
     return dirpath / filename
 
 
-def load_cmip7_sm_aerosol_air_anthro(
-    args,
-    species,
-    beg_year=CMIP7_SM_AEROSOL_BEG_YEAR,
-    end_year=CMIP7_SM_AEROSOL_END_YEAR,
-):
-    cube = load_cmip7_aerosol(
-        args,
-        cmip7_sm_aerosol_air_anthro_filepath,
-        species,
-        args.dataset_date_range,
-        cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
-    )
-    fix_coords(args, cube)
-    interpolated = interpolate_monthly(
-        cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
-    )
-    return extend_years(interpolated)
-
-
-def load_cmip7_sm_aerosol_anthro(
-    args,
-    species,
-    beg_year=CMIP7_SM_AEROSOL_BEG_YEAR,
-    end_year=CMIP7_SM_AEROSOL_END_YEAR,
-):
+def load_cmip7_sm_aerosol_anthro(args, species):
     cube = load_cmip7_aerosol(
         args,
         cmip7_sm_aerosol_anthro_filepath,
