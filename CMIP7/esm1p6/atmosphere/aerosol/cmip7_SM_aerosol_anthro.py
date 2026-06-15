@@ -4,7 +4,6 @@ from pathlib import Path
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_interpolate
 from aerosol.cmip7_aerosol_common import load_cmip7_aerosol
 from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
-from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 from cmip7_ancil_argparse import common_parser
 from cmip7_ancil_common import (
     cmip7_date_constraint_from_years,
@@ -12,6 +11,7 @@ from cmip7_ancil_common import (
     fix_coords,
     interpolate_monthly,
 )
+from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 
 
 def parse_args(species):
