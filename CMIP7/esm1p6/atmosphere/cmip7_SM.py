@@ -2,7 +2,7 @@ from pathlib import Path
 
 from cmip7_ancil_constants import ANCIL_TODAY
 
-CMIP7_SM_BEG_YEAR = 2023
+CMIP7_SM_BEG_YEAR = 2022
 CMIP7_SM_END_YEAR = 2100
 
 
