@@ -137,6 +137,39 @@ def extend_years(cube):
     return cubelist.concatenate_cube()
 
 
+def _interpolate_months_separately(cube, tpoints):
+    # Perform linear time-interpolation
+    new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
+    new_cube.data = np.ma.asarray(new_cube.data)
+
+    # Add month categorisation to extract each month's series
+    if not cube.coords("month_number"):
+        iris.coord_categorisation.add_month_number(
+            cube, "time", name="month_number"
+        )
+
+    # Interpolate each month separately and interleave the data
+    for m in range(1, MONTHS_IN_A_YEAR + 1):
+        month_constraint = iris.Constraint(month_number=m)
+        m_cube = cube.extract(month_constraint)
+        if m_cube is not None:
+            # Select target time points for this month across all years
+            m_tpoints = tpoints[m - 1 :: MONTHS_IN_A_YEAR]
+            # Interpolate across the years for this month
+            m_interpolated = m_cube.interpolate(
+                [("time", m_tpoints)], iris.analysis.Linear()
+            )
+            # Place the interpolated data back
+            # into the interleaved target indices
+            new_cube.data[m - 1 :: MONTHS_IN_A_YEAR] = m_interpolated.data
+
+    # Clean up month_number coordinate if added
+    if cube.coords("month_number"):
+        cube.remove_coord("month_number")
+
+    return new_cube
+
+
 def interpolate_monthly(cube, beg_year, end_year):
     # Get original time units and calendar
     time_coord = cube.coord("time")
@@ -166,34 +199,8 @@ def interpolate_monthly(cube, beg_year, end_year):
         dtype=np.float64,
     )
 
-    # Perform linear time-interpolation
-    new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
-    new_cube.data = np.ma.asarray(new_cube.data)
-
-    # Add month categorisation to extract each month's series
-    if not cube.coords("month_number"):
-        iris.coord_categorisation.add_month_number(
-            cube, "time", name="month_number"
-        )
-
     # Interpolate each month separately and interleave the data
-    for m in range(1, MONTHS_IN_A_YEAR + 1):
-        month_constraint = iris.Constraint(month_number=m)
-        m_cube = cube.extract(month_constraint)
-        if m_cube is not None:
-            # Select target time points for this month across all years
-            m_tpoints = tpoints[m - 1 :: MONTHS_IN_A_YEAR]
-            # Interpolate across the years for this month
-            m_interpolated = m_cube.interpolate(
-                [("time", m_tpoints)], iris.analysis.Linear()
-            )
-            # Place the interpolated data back
-            # into the interleaved target indices
-            new_cube.data[m - 1 :: MONTHS_IN_A_YEAR] = m_interpolated.data
-
-    # Clean up month_number coordinate if added
-    if cube.coords("month_number"):
-        cube.remove_coord("month_number")
+    new_cube = _interpolate_months_separately(cube, tpoints)
 
     # Create new DimCoord with contiguous bounds
     new_time_coord = iris.coords.DimCoord(
@@ -232,7 +239,6 @@ def interpolate_monthly(cube, beg_year, end_year):
                 target_idx = tbounds_dict[key]
                 new_cube.data[target_idx] = cube.data[i]
 
-    new_cube.data = np.ma.asarray(new_cube.data)
     return new_cube
 
 
