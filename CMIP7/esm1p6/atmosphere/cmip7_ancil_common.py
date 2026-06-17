@@ -172,7 +172,9 @@ def interpolate_monthly(cube, beg_year, end_year):
 
     # Add month categorisation to extract each month's series
     if not cube.coords("month_number"):
-        iris.coord_categorisation.add_month_number(cube, "time", name="month_number")
+        iris.coord_categorisation.add_month_number(
+            cube, "time", name="month_number"
+        )
 
     # Interpolate each month separately and interleave the data
     for m in range(1, MONTHS_IN_A_YEAR + 1):
@@ -182,8 +184,11 @@ def interpolate_monthly(cube, beg_year, end_year):
             # Select target time points for this month across all years
             m_tpoints = tpoints[m - 1 :: MONTHS_IN_A_YEAR]
             # Interpolate across the years for this month
-            m_interpolated = m_cube.interpolate([("time", m_tpoints)], iris.analysis.Linear())
-            # Place the interpolated data back into the interleaved target indices
+            m_interpolated = m_cube.interpolate(
+                [("time", m_tpoints)], iris.analysis.Linear()
+            )
+            # Place the interpolated data back
+            # into the interleaved target indices
             new_cube.data[m - 1 :: MONTHS_IN_A_YEAR] = m_interpolated.data
 
     # Clean up month_number coordinate if added
