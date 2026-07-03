@@ -18,9 +18,7 @@ def parse_args():
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ukesm_parser()],
         prog="cmip7_AM_amip_generate",
-        description=(
-            "Generate input files from UK CMIP7 AMIP forcings"
-        ),
+        description="Generate input files from UK CMIP7 AMIP forcings",
     )
     return parser.parse_args()
 
@@ -45,7 +43,7 @@ def save_cmip7_am_amip(args, cube):
         save_dirpath,
         args.save_filename,
         gregorian=False,
-        replace_bounds=True
+        replace_bounds=True,
     )
 
 
