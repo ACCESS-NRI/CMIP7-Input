@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     # Load the CMIP7 datasets
     ukesm_cube = load_cmip7_ukesm(args)
-    # Match the ESM1.5 mask
-    esm_cube = fix_cmip7_ukesm(args, ukesm_cube)
+    # Match the ESM1.5 mask but do not zero-fill
+    esm_cube = fix_cmip7_ukesm(args, ukesm_cube, fill=False)
     # Save the ancillary
     save_cmip7_am_amip(args, esm_cube)
