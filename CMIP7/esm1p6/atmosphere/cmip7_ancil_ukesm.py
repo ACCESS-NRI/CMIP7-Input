@@ -2,7 +2,10 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import iris
-from cmip7_ancil_common import fix_coords
+from cmip7_ancil_common import (
+    fix_coords,
+    fix_poles,
+)
 
 
 def ukesm_parser():
@@ -24,8 +27,10 @@ def load_cmip7_ukesm(args):
     return iris.load_cube(filepath)
 
 
-def fix_cmip7_ukesm(args, cube):
+def fix_cmip7_ukesm(args, cube, fill=True):
     # Make the coordinates compatible with the ESM1.5 grid mask
     fix_coords(args, cube)
-    cube.data = cube.data.filled(0.0)
+    if fill:
+        cube.data = cube.data.filled(0.0)
+    fix_poles(cube)
     return cube
