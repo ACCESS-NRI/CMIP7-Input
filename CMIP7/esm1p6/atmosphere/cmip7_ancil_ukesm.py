@@ -32,7 +32,5 @@ def fix_cmip7_ukesm(args, cube, fill=True):
     fix_coords(args, cube)
     if fill:
         cube.data = cube.data.filled(0.0)
-    print(cube)
-    print(cube.data.shape)
     fix_poles(cube)
     return cube

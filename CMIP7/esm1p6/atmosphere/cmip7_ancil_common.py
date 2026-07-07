@@ -262,9 +262,11 @@ def fix_poles(cube):
     # Polar values should have no longitude dependence
     latdim = cube.coord_dims("latitude")
     assert latdim == (1,)
-    zonal_mean = np.mean(cube.data, axis=0)
-    cube.data[:, 0] = zonal_mean[0]
-    cube.data[:, -1] = zonal_mean[-1]
+    longdim = cube.coord_dims("longitude")
+    assert longdim == (2,)
+    zonal_mean = np.ma.mean(cube.data, axis=2)
+    cube.data[:, 0, :] = zonal_mean[:, [0]]
+    cube.data[:, -1, :] = zonal_mean[:, [-1]]
 
 
 def save_ancil(
