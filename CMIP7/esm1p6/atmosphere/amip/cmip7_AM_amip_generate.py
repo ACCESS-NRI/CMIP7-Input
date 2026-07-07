@@ -43,7 +43,6 @@ def save_cmip7_am_amip(args, cube):
         save_dirpath,
         args.save_filename,
         gregorian=False,
-        replace_bounds=True,
     )
 
 
@@ -52,7 +51,7 @@ if __name__ == "__main__":
 
     # Load the CMIP7 datasets
     ukesm_cube = load_cmip7_ukesm(args)
-    # Match the ESM1.5 mask but do not zero-fill
+    # Match the ESM1.5 mask coordinates but do not zero-fill
     esm_cube = fix_cmip7_ukesm(args, ukesm_cube, fill=False)
     # Save the ancillary
     save_cmip7_am_amip(args, esm_cube)
