@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eu
+module load python3/3.11.7
+
+# exec
+eval "$@"

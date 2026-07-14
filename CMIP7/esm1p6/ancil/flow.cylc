@@ -1,0 +1,906 @@
+#!jinja2
+
+#------------------------------------------------------------------------------
+# Suite for creation of ACCESS-ESM1.6 ancillary files from CMIP7 forcings
+#------------------------------------------------------------------------------
+
+{# Define known sites #}
+{% set KNOWN_SITE_CFGS = ['nci-gadi'] %}
+{{ assert(SITE in KNOWN_SITE_CFGS, "Site not recognised") }}
+
+{# Define a unique name for this run #}
+{% from "uuid" import uuid4 %}
+{% set UNIQUE_NAME = (uuid4() | string()).split('-')[0] %}
+
+{# Define variables used for tests #}
+{% set UPDATE_CONFIG = ANCIL_CREATE_GHG or ((ANCIL_CREATE_SOLAR or ANCIL_CREATE_VOLCANIC) and USE_EXP["PI"]) %}
+
+{# Define a quote macro to use for comand line arguments #}
+{% macro quote(string) %}"{{string}}"{% endmacro %}
+{% macro qlist(listobj) %}"[\'{{"\\\',\\\'".join(listobj)}}\']"{% endmacro %}
+
+[scheduler]
+    [[events]]
+        mail events = shutdown
+
+[scheduling]
+    [[graph]]
+{% for EXP in MAIN_EXPS %}
+  {% if USE_EXP[EXP] %}
+        R1 = """
+        # Aerosols
+    {% if ANCIL_CREATE_AEROSOL %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_ancil_aerosol_BC
+
+        SM_{{SCEN}}_ancil_aerosol_Bio
+
+        SM_{{SCEN}}_ancil_aerosol_OC
+
+        SM_{{SCEN}}_ancil_aerosol_SO2
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{EXP}}_ancil_aerosol_BC
+
+        {{EXP}}_ancil_aerosol_Bio
+
+        {{EXP}}_ancil_aerosol_OC
+
+        {{EXP}}_ancil_aerosol_SO2
+      {% endif %}
+    {% endif %}
+
+        # Greenhouse Gases
+    {% if ANCIL_CREATE_GHG %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_ancil_ghg
+        SM_{{SCEN}}_git_clone_checkout => SM_{{SCEN}}_ancil_ghg => SM_{{SCEN}}_git_commit_push
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{EXP}}_ancil_ghg
+        {{EXP}}_git_clone_checkout => {{EXP}}_ancil_ghg => {{EXP}}_git_commit_push
+      {% endif %}
+    {% endif %}
+
+        # Nitrogen
+    {% if ANCIL_CREATE_NITROGEN %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_ancil_nitrogen
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{EXP}}_ancil_nitrogen
+      {% endif %}
+    {% endif %}
+
+        # Ozone
+    {% if ANCIL_CREATE_OZONE %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        install_ozone_scripts => SM_{{SCEN}}_ukesm_ancil_ozone => SM_{{SCEN}}_ancil_ozone
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        install_ozone_scripts => {{EXP}}_ukesm_ancil_ozone => {{EXP}}_ancil_ozone
+      {% endif %}
+    {% endif %}
+
+        # Solar
+    {% if ANCIL_CREATE_SOLAR %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_ancil_solar
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{EXP}}_ancil_solar
+        {% if EXP != "HI" %}
+        {{EXP}}_git_clone_checkout => {{EXP}}_ancil_solar => {{EXP}}_git_commit_push
+        {% endif %}
+      {% endif %}
+    {% endif %}
+
+        # Volcanic
+    {% if ANCIL_CREATE_VOLCANIC %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_ancil_volcanic
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        {{EXP}}_ancil_volcanic
+        {% if EXP != "HI" %}
+        {{EXP}}_git_clone_checkout => {{EXP}}_ancil_volcanic => {{EXP}}_git_commit_push
+        {% endif %}
+      {% endif %}
+    {% endif %}
+
+        # Git repository processing
+    {% if UPDATE_CONFIG %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        SM_{{SCEN}}_git_clone_checkout => SM_{{SCEN}}_git_commit_push
+        {% endif %}
+    {% endfor %}
+      {% else %}
+        {{EXP}}_git_clone_checkout => {{EXP}}_git_commit_push
+      {% endif %}
+    {% endif %}
+        """
+  {% endif %}
+{% endfor %}
+
+        R1 = """
+            # AMIP
+        {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
+            git_clone_amip_scripts => install_amip => AM_ukesm_regrid => AM_ukesm_taylor => AM_ukesm_ancil
+          {% for VAR in AMIP_VARS %}
+            AM_{{VAR}}_ancil_amip
+            AM_ukesm_ancil => AM_{{VAR}}_ancil_amip
+          {% endfor %}
+        {% endif %}
+
+            # Carbon dioxide emissions
+            {% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
+                EH_ancil_co2
+            {% endif %}
+
+            # Ozone
+            {% if ANCIL_CREATE_OZONE %}
+              git_clone_ozone_scripts => install_ozone_scripts
+            {% endif %}
+
+            {% if ANCIL_CREATE_OZONE and USE_EXP["PM"] %}
+                install_ozone_scripts => PI_mean_ukesm_ancil_ozone => PI_mean_ancil_ozone
+            {% endif %}
+
+            # Preindustrial Solar and Volcanic forcings update the same namelist file.
+            # Prevent race conditions.
+            {% if ANCIL_CREATE_SOLAR and ANCIL_CREATE_VOLCANIC and USE_EXP["PI"] %}
+                PI_ancil_solar => PI_ancil_volcanic
+            {% endif %}
+
+            # Historical and preindustrial Greenhouse Gas forcings can
+            # update the same namelist file. Prevent race conditions.
+        {% if (ANCIL_CREATE_GHG and USE_EXP["HI"] and USE_EXP["PI"]
+                and (GIT_CONFIG_BRANCH_SUF["HI"] == GIT_CONFIG_BRANCH_SUF["PI"])) %}
+                PI_ancil_ghg => HI_ancil_ghg
+            {% endif %}
+        """
+
+{% import 'site/'~SITE~'/variables.cylc' as VAR with context %}
+
+#------------------------------------------------------------------------------
+# Define run-time environment for cylc
+#------------------------------------------------------------------------------
+
+[runtime]
+    [[root]]
+        # This is the default scripting command.
+        env-script = eval $(rose task-env)
+        script = rose task-run --verbose
+        [[[events]]]
+            submission timeout = P1D
+
+
+#------------------------------------------------------------------------------
+# Define families and tasks to create ancillary files with ANTS
+#------------------------------------------------------------------------------
+
+{% include 'site/'~SITE~'/family.cylc' %}
+    [[CMIP7]]
+        [[[environment]]]
+            CMIP7_SOURCE_PATH = {{ VAR.CMIP7_SOURCE_PATH }}
+            CMIP7_SOURCE_CMIP = {{ VAR.CMIP7_SOURCE_PATH }}/CMIP
+            CMIP7_SOURCE_SCEN = {{ VAR.CMIP7_SOURCE_PATH }}/ScenarioMIP
+
+    [[ANTS]]
+        [[[environment]]]
+            MODULE_USE_DIR = {{ VAR.MODULE_USE_DIR }}
+            ANTS_MODULE = {{ VAR.ANTS_MODULE }}
+
+    [[ESM1P6_ANCIL]]
+        inherit = CMIP7, ANTS
+
+        [[[environment]]]
+            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/esm1p6_ancil:${PYTHONPATH}
+
+    [[UKESM_ANCIL]]
+        inherit = CMIP7, ANTS
+
+        [[[environment]]]
+            CONTRIB_PATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python
+            GRID = {{HORIZ}}
+            UMDIR = {{ VAR.UMDIR }}
+            VERT_FILEPATH = {{VAR.ESM15_INPUTS_PATH}}/share/atmosphere/grids/resolution_independent/{{ESM15_VERT_VERSION}}/vertlevs_G3
+
+{% set PATH_ARGS %}
+                  --ancil-target-dirname {{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
+                  --esm15-inputs-dirname {{ quote(VAR.ESM15_INPUTS_PATH) }} \
+{% endset %}
+{% set GRID_ARGS %}
+                  --esm-grid-rel-dirname {{ quote(ESM_GRID_DIRNAME) }} \
+                  --esm15-grid-version {{ quote(ESM15_GRID_VERSION) }} \
+{% endset %}
+
+    [[GIT]]
+{% macro GIT_REPO_URL(repo) %}{{GIT_ORG_URL}}/{{repo}}.git{% endmacro %}
+
+    [[GIT_SCRIPTS]]
+        inherit = GIT
+
+        [[[environment]]]
+    {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
+            GIT_AMIP_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_AMIP_SCRIPTS_REPO}}-amip
+    {% endif %}
+    {% if ANCIL_CREATE_OZONE %}
+            GIT_OZONE_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_OZONE_SCRIPTS_REPO}}-ozone
+    {% endif %}
+
+    {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
+
+      [[git_clone_amip_scripts]]
+          inherit = GIT_SCRIPTS, LOCAL_JOB
+
+          script = """
+              set -e
+              git clone {{GIT_REPO_URL(GIT_AMIP_SCRIPTS_REPO)}} --branch {{GIT_AMIP_SCRIPTS_BRANCH}} ${GIT_AMIP_SCRIPTS_CLONE_DIR}
+              """
+
+      [[install_amip]]
+          inherit = CMIP7, GIT_SCRIPTS, LOCAL_JOB
+
+        [[[environment]]]
+          SEAICE_DIRPATH = ${CMIP7_SOURCE_CMIP}/PCMDI/{{CMIP7_AMIP_VERSION}}/seaIce/mon/siconc/gn/{{CMIP7_AMIP_VDATE}}
+          SEAICE_FILENAME = siconc_input4MIPs_SSTsAndSeaIce_CMIP_{{CMIP7_AMIP_VERSION}}_gn_{{CMIP7_AMIP_DATE_RANGE}}.nc
+          SST_DIRPATH = ${CMIP7_SOURCE_CMIP}/PCMDI/{{CMIP7_AMIP_VERSION}}/ocean/mon/tos/gn/{{CMIP7_AMIP_VDATE}}
+          SST_FILENAME = tos_input4MIPs_SSTsAndSeaIce_CMIP_{{CMIP7_AMIP_VERSION}}_gn_{{CMIP7_AMIP_DATE_RANGE}}.nc
+
+    [[UKESM_ANCIL_AMIP]]
+        inherit = ANTS
+
+        [[[environment]]]
+            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/amip_ancil:${PYTHONPATH}
+            ANCIL_LANDFRAC_PATH = {{VAR.ESM15_INPUTS_PATH}}/modern/share/atmosphere/land_fraction/global.N96/{{ESM15_LANDFRAC_VERSION}}
+
+{% set AMIP_ARGS %}
+                  --share-dirname "${CYLC_WORKFLOW_SHARE_DIR}/" \
+                  --mask-dirname "${ANCIL_LANDFRAC_PATH}/"
+{% endset %}
+
+      [[AM_ukesm_regrid]]
+          inherit = UKESM_ANCIL_AMIP, MEDIUM_JOB
+      script = """
+            python_env python \
+                -m regrid_nci_input_ants \
+                {{ AMIP_ARGS }}
+      """
+
+      [[AM_ukesm_taylor]]
+          inherit = UKESM_ANCIL_AMIP, MEDIUM_JOB, COMPILER
+      script = """
+            python_env_no_ants python3 \
+                -m run_nci_taylor_amip_lbcs \
+                {{ AMIP_ARGS }}
+      """
+
+      [[AM_ukesm_ancil]]
+          inherit = UKESM_ANCIL_AMIP, SMALL_JOB
+      script = """
+            python_env python \
+                -m output_nci_ancil_ants \
+                {{ AMIP_ARGS }}
+      """
+
+    [[ESM1P6_ANCIL_AMIP]]
+        inherit = ESM1P6_ANCIL
+
+      {% for VAR in AMIP_VARS %}
+      [[AM_{{VAR}}_ancil_amip]]
+      inherit = ESM1P6_ANCIL_AMIP, SMALL_JOB
+
+      script = """
+          python_env python \
+              -m amip.cmip7_AM_amip_generate \
+              {{ PATH_ARGS }}
+              {{ GRID_ARGS }}
+              --ukesm-ancil-dirpath "${CYLC_WORKFLOW_SHARE_DIR}/" \
+              --ukesm-netcdf-filename {{ quote(UKESM_AMIP_NETCDF_FILENAME[VAR]) }} \
+              --save-filename {{ quote(ESM_AMIP_SAVE_FILENAME[VAR]) }}
+      """
+      {% endfor %}
+    {% endif %}
+
+{% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
+    [[ANCIL_CO2]]
+        inherit = ESM1P6_ANCIL, SMALL_JOB
+
+    [[EH_ancil_co2]]
+        inherit = ANCIL_CO2
+        script = """
+            mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+            python_env python \
+                -m co2.cmip7_EH_CO2_interpolate \
+                {{ PATH_ARGS }}
+                {{ GRID_ARGS }}
+                --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
+                --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
+                --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
+                --save-filename {{ quote(ESM_EH_CO2_SAVE_FILENAME) }}
+            """
+{% endif %}
+
+{% if ANCIL_CREATE_OZONE %}
+
+      [[ANCIL_OZONE]]
+
+          [[[environment]]]
+                UKESM_OZONE_ANCIL_DIRPATH = ${ROSE_DATA}/ozone
+                ESM15_OROG_FILEPATH = {{VAR.ESM15_INPUTS_PATH}}/modern/share/atmosphere/orography/global.N96/{{ESM15_OROG_VERSION}}/qrparm.orog
+
+      [[UKESM_ANCIL_OZONE]]
+          inherit = UKESM_ANCIL, ANCIL_OZONE
+
+      [[ESM1P6_ANCIL_OZONE]]
+          inherit = ESM1P6_ANCIL, ANCIL_OZONE
+
+      [[git_clone_ozone_scripts]]
+          inherit = GIT_SCRIPTS, LOCAL_JOB
+
+          script = """
+              set -e
+              git clone {{GIT_REPO_URL(GIT_OZONE_SCRIPTS_REPO)}} --branch {{GIT_OZONE_SCRIPTS_BRANCH}} ${GIT_OZONE_SCRIPTS_CLONE_DIR}
+              """
+
+      [[install_ozone_scripts]]
+          inherit = GIT_SCRIPTS, LOCAL_JOB
+
+  {% if USE_EXP["PM"] %}
+    [[PI_mean_ukesm_ancil_ozone]]
+      inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+      script = "rose task-run --app-key=ukesm_ancil_ozone"
+
+        [[[environment]]]
+            calendar = 360_day
+            cmip7_ozone_prefix = ${CMIP7_SOURCE_CMIP}/FZJ/{{CMIP7_PI_MEAN_OZONE_VERSION}}/atmos
+            cmip7_temp_prefix = ${CMIP7_SOURCE_CMIP}/FZJ/{{CMIP7_OZONE_ZMTA_VERSION}}/atmos
+            level_file = ${VERT_FILEPATH}
+            output_root_timeseries = ${UKESM_OZONE_ANCIL_DIRPATH}
+            target_grid_orog = ${ESM15_OROG_FILEPATH}
+            timeaxis = Timeseries
+            start_year = {{CMIP7_PI_MEAN_OZONE_BEG_YEAR}}
+            end_year = {{CMIP7_PI_MEAN_OZONE_END_YEAR}}
+            extend_data = False
+            sources_ozone = ${cmip7_ozone_prefix}/mon/vmro3/gn/{{CMIP7_PI_MEAN_OZONE_VDATE}}/vmro3_input4MIPs_ozone_CMIP_{{CMIP7_PI_MEAN_OZONE_VERSION}}_gn_*
+            sources_temp = ${cmip7_temp_prefix}/mon/zmta/gn/{{CMIP7_OZONE_ZMTA_VDATE}}/zmta_input4MIPs_ozone_CMIP_{{CMIP7_OZONE_ZMTA_VERSION}}_gn_{{CMIP7_PI_MEAN_OZONE_ZMTA_DATE_RANGE}}.nc
+
+  [[PI_mean_ancil_ozone]]
+      inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+
+      script = """
+          python_env python \
+              -m ozone.cmip7_PI_mean_ozone_generate \
+              {{ PATH_ARGS }}
+              {{ GRID_ARGS }}
+              --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH} \
+              --ukesm-netcdf-filename {{ quote(UKESM_PI_MEAN_OZONE_NETCDF_FILENAME) }} \
+              --save-filename {{ quote(ESM_PI_MEAN_OZONE_SAVE_FILENAME) }}
+          """
+  {% endif %}
+{% endif %}
+
+    # -------------------------------------------------------------------------
+    # Tasks
+    # -------------------------------------------------------------------------
+
+{% for EXP in MAIN_EXPS %}
+  {% if USE_EXP[EXP] %}
+    {% if UPDATE_CONFIG %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+    [[SM_{{SCEN}}_GIT]]
+        inherit = GIT
+
+        [[[environment]]]
+            GIT_SM_{{SCEN}}_CONFIG_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/SM_{{SCEN}}_{{GIT_CONFIG_REPO}}
+            GIT_CONFIG_REPO_URL = {{GIT_REPO_URL(GIT_CONFIG_REPO)}}
+            GIT_SM_{{SCEN}}_OLD_BRANCH = {{GIT_CONFIG_BRANCH_PRE[EXP]}}-{{GIT_SM_CONFIG_BRANCH_SUF[SCEN]}}
+            GIT_SM_{{SCEN}}_NEW_BRANCH = gen-{{GIT_SM_CONFIG_BRANCH_SUF[SCEN]}}-{{UNIQUE_NAME}}
+
+      [[SM_{{SCEN}}_git_clone_checkout]]
+          inherit = SM_{{SCEN}}_GIT, LOCAL_JOB
+
+          script = """
+              set -e
+              git clone $GIT_CONFIG_REPO_URL --branch $GIT_SM_{{SCEN}}_OLD_BRANCH $GIT_SM_{{SCEN}}_CONFIG_DIR
+              cd $GIT_SM_{{SCEN}}_CONFIG_DIR
+              git checkout -b $GIT_SM_{{SCEN}}_NEW_BRANCH
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+    [[{{EXP}}_GIT]]
+        inherit = GIT
+
+        [[[environment]]]
+            GIT_{{EXP}}_CONFIG_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{EXP}}_{{GIT_CONFIG_REPO}}
+            GIT_CONFIG_REPO_URL = {{GIT_REPO_URL(GIT_CONFIG_REPO)}}
+            GIT_{{EXP}}_OLD_BRANCH = {{GIT_CONFIG_BRANCH_PRE[EXP]}}-{{GIT_CONFIG_BRANCH_SUF[EXP]}}
+            GIT_{{EXP}}_NEW_BRANCH = gen-{{GIT_CONFIG_BRANCH_SUF[EXP]}}-{{UNIQUE_NAME}}
+
+      [[{{EXP}}_git_clone_checkout]]
+          inherit = {{EXP}}_GIT, LOCAL_JOB
+
+          script = """
+              set -e
+              git clone $GIT_CONFIG_REPO_URL --branch $GIT_{{EXP}}_OLD_BRANCH $GIT_{{EXP}}_CONFIG_DIR
+              cd $GIT_{{EXP}}_CONFIG_DIR
+              git checkout -b $GIT_{{EXP}}_NEW_BRANCH
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_AEROSOL %}
+      [[ANCIL_AEROSOL]]
+          inherit = ESM1P6_ANCIL
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_ancil_aerosol]]
+          inherit = ANCIL_AEROSOL, MEDIUM_JOB
+        {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
+      [[SM_{{SCEN}}_ancil_aerosol_{{SPECIES}}]]
+          inherit = SM_{{SCEN}}_ancil_aerosol
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_SM_{{SPECIES}}_interpolate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
+              """
+        {% endfor %}
+
+      [[SM_{{SCEN}}_ancil_aerosol_Bio]]
+          inherit = SM_{{SCEN}}_ancil_aerosol
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_SM_Bio_interpolate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['Bio']) }}
+              """
+
+      [[SM_{{SCEN}}_ancil_aerosol_SO2]]
+          inherit = SM_{{SCEN}}_ancil_aerosol
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_SM_SO2_interpolate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                  --esm15-aerosol-version {{ quote(ESM15_AEROSOL_VERSION['PI']) }} \
+                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['SO2']) }}
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_ancil_aerosol]]
+        {% if EXP == "HI" %}
+          inherit = ANCIL_AEROSOL, MEDIUM_JOB
+        {% else %}
+          inherit = ANCIL_AEROSOL, SMALL_JOB
+        {% endif %}
+        {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
+      [[{{EXP}}_ancil_aerosol_{{SPECIES}}]]
+          inherit = {{EXP}}_ancil_aerosol
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_{{EXP}}_{{SPECIES}}_interpolate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
+                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME[SPECIES]) }}
+                  {% else %}
+                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME[SPECIES]) }}
+                  {% endif %}
+              """
+        {% endfor %}
+      [[{{EXP}}_ancil_aerosol_Bio]]
+        {% if EXP == "HI" %}
+          inherit = ANCIL_AEROSOL, LARGE_JOB
+        {% else %}
+          inherit = ANCIL_AEROSOL, SMALL_JOB
+        {% endif %}
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_{{EXP}}_Bio_interpolate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_AEROSOL_BIOMASS_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_AEROSOL_BIOMASS_VDATE) }} \
+                  --percent-date-range {{ quote(CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_BIOMASS_DATE_RANGE_LIST) }} \
+                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['Bio']) }}
+                  {% else %}
+                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_BIOMASS_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME['Bio']) }}
+                  {% endif %}
+              """
+
+      [[{{EXP}}_ancil_aerosol_SO2]]
+          inherit = {{EXP}}_ancil_aerosol
+          script = """
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m aerosol.cmip7_{{EXP}}_SO2_interpolate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
+                  --esm15-aerosol-version {{ quote(ESM15_AEROSOL_VERSION[EXP]) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
+                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['SO2']) }}
+                  {% else %}
+                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME['SO2']) }}
+                  {% endif %}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_GHG %}
+      [[ANCIL_GHG]]
+          inherit = ESM1P6_ANCIL
+
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_ancil_ghg]]
+          inherit = ANCIL_GHG, SM_{{SCEN}}_GIT, SMALL_JOB
+
+          script = """
+              cd $GIT_SM_{{SCEN}}_CONFIG_DIR
+              python_env python \
+                  -m ghg.cmip7_SM_ghg_generate \
+                  {{ PATH_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_GHG_VERSION[SCEN]) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_GHG_VDATE[SCEN]) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_GHG_DATE_RANGE) }}
+          """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_ancil_ghg]]
+          inherit = ANCIL_GHG, {{EXP}}_GIT, SMALL_JOB
+
+          script = """
+              cd $GIT_{{EXP}}_CONFIG_DIR
+              python_env python \
+                  -m ghg.cmip7_{{EXP}}_ghg_generate \
+                  {{ PATH_ARGS }}
+                  --dataset-version {{ quote(CMIP7_GHG_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_GHG_VDATE) }} \
+                  --dataset-date-range {{ quote(CMIP7_GHG_DATE_RANGE) }}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_NITROGEN %}
+      [[ANCIL_NITROGEN]]
+          inherit = ESM1P6_ANCIL
+
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_ancil_nitrogen]]
+          inherit = ANCIL_NITROGEN, SMALL_JOB
+
+          script = """
+              python_env python \
+                  -m nitrogen.cmip7_SM_nitrogen_generate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_NITROGEN_VERSION[SCEN]) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_NITROGEN_VDATE[SCEN]) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_NITROGEN_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_NITROGEN_SAVE_FILENAME[SCEN]) }}
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_ancil_nitrogen]]
+          inherit = ANCIL_NITROGEN, SMALL_JOB
+
+          script = """
+              python_env python \
+                  -m nitrogen.cmip7_{{EXP}}_nitrogen_generate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_NITROGEN_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_NITROGEN_VDATE) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range {{ quote(CMIP7_HI_NITROGEN_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }}
+                  {% else %}
+                  --dataset-date-range {{ quote(CMIP7_PI_NITROGEN_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }}
+                  {% endif %}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_OZONE %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+        [[SM_{{SCEN}}_ukesm_ancil_ozone]]
+          inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+          script = "rose task-run --app-key=ukesm_ancil_ozone"
+
+            [[[environment]]]
+                calendar = 360_day
+                cmip7_temp_prefix = ${CMIP7_SOURCE_SCEN}/FZJ/{{CMIP7_SM_OZONE_ZMTA_VERSION[SCEN]}}/atmos
+                level_file = ${VERT_FILEPATH}
+                output_root_timeseries = ${UKESM_OZONE_ANCIL_DIRPATH}/{{SCEN}}
+                target_grid_orog = ${ESM15_OROG_FILEPATH}
+                timeaxis = Timeseries
+                cmip7_ozone_prefix = ${CMIP7_SOURCE_SCEN}/FZJ/{{CMIP7_SM_OZONE_VERSION[SCEN]}}/atmos
+                start_year = {{CMIP7_SM_OZONE_BEG_YEAR}}
+                end_year = {{CMIP7_SM_OZONE_END_YEAR}}
+                extend_data = True
+                sources_ozone = ${cmip7_ozone_prefix}/mon/vmro3/gn/{{CMIP7_SM_OZONE_VDATE[SCEN]}}/vmro3_input4MIPs_ozone_ScenarioMIP_{{CMIP7_SM_OZONE_VERSION[SCEN]}}_gn_*
+                sources_temp = ${cmip7_temp_prefix}/mon/zmta/gn/{{CMIP7_SM_OZONE_ZMTA_VDATE[SCEN]}}/zmta_input4MIPs_ozone_ScenarioMIP_{{CMIP7_SM_OZONE_ZMTA_VERSION[SCEN]}}_gn_{{CMIP7_SM_OZONE_ZMTA_DATE_RANGE}}.nc
+
+      [[SM_{{SCEN}}_ancil_ozone]]
+          inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+
+          script = """
+              python_env python \
+                  -m ozone.cmip7_SM_ozone_generate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH}/{{ SCEN }} \
+                  --ukesm-netcdf-filename {{ quote(UKESM_SM_OZONE_NETCDF_FILENAME) }} \
+                  --save-filename {{ quote(ESM_SM_OZONE_SAVE_FILENAME[SCEN]) }}
+              """
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        [[{{EXP}}_ukesm_ancil_ozone]]
+        {% if EXP == "HI" %}
+          inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+        {% else %}
+          inherit = UKESM_ANCIL_OZONE, SMALL_JOB
+        {% endif %}
+          script = "rose task-run --app-key=ukesm_ancil_ozone"
+
+            [[[environment]]]
+                calendar = 360_day
+                cmip7_temp_prefix = ${CMIP7_SOURCE_CMIP}/FZJ/{{CMIP7_OZONE_ZMTA_VERSION}}/atmos
+                level_file = ${VERT_FILEPATH}
+                output_root_timeseries = ${UKESM_OZONE_ANCIL_DIRPATH}
+                target_grid_orog = ${ESM15_OROG_FILEPATH}
+                timeaxis = Timeseries
+        {% if EXP == "HI" %}
+                cmip7_ozone_prefix = ${CMIP7_SOURCE_CMIP}/FZJ/{{CMIP7_HI_OZONE_VERSION}}/atmos
+                start_year = {{CMIP7_HI_OZONE_BEG_YEAR}}
+                end_year = {{CMIP7_HI_OZONE_END_YEAR}}
+                extend_data = True
+                sources_ozone = ${cmip7_ozone_prefix}/mon/vmro3/gn/{{CMIP7_HI_OZONE_VDATE}}/vmro3_input4MIPs_ozone_CMIP_{{CMIP7_HI_OZONE_VERSION}}_gn_*
+                sources_temp = ${cmip7_temp_prefix}/mon/zmta/gn/{{CMIP7_OZONE_ZMTA_VDATE}}/zmta_input4MIPs_ozone_CMIP_{{CMIP7_OZONE_ZMTA_VERSION}}_gn_{{CMIP7_HI_OZONE_ZMTA_DATE_RANGE}}.nc
+        {% else %}
+                cmip7_ozone_prefix = ${CMIP7_SOURCE_CMIP}/FZJ/{{CMIP7_PI_OZONE_VERSION}}/atmos
+                start_year = {{CMIP7_PI_OZONE_YEAR}}
+                end_year = {{CMIP7_PI_OZONE_YEAR}}
+                extend_data = False
+                sources_ozone = ${cmip7_ozone_prefix}/monC/vmro3/gn/{{CMIP7_PI_OZONE_VDATE}}/vmro3_input4MIPs_ozone_CMIP_{{CMIP7_PI_OZONE_VERSION}}_gn_{{CMIP7_PI_OZONE_DATE_RANGE}}-clim.nc
+                sources_temp = ${cmip7_temp_prefix}/monC/zmta/gn/{{CMIP7_OZONE_ZMTA_VDATE}}/zmta_input4MIPs_ozone_CMIP_{{CMIP7_OZONE_ZMTA_VERSION}}_gn_{{CMIP7_PI_OZONE_ZMTA_DATE_RANGE}}-clim.nc
+        {% endif %}
+
+      [[{{EXP}}_ancil_ozone]]
+          inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+
+          script = """
+              python_env python \
+                  -m ozone.cmip7_{{EXP}}_ozone_generate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  {% if EXP == "HI" %}
+                  --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH} \
+                  --ukesm-netcdf-filename {{ quote(UKESM_HI_OZONE_NETCDF_FILENAME) }} \
+                  --save-filename {{ quote(ESM_HI_OZONE_SAVE_FILENAME) }}
+                  {% else %}
+                  --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH} \
+                  --ukesm-netcdf-filename {{ quote(UKESM_PI_OZONE_NETCDF_FILENAME) }} \
+                  --save-filename {{ quote(ESM_PI_OZONE_SAVE_FILENAME) }}
+                  {% endif %}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_SOLAR %}
+      [[ANCIL_SOLAR]]
+          inherit = ESM1P6_ANCIL
+
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_ancil_solar]]
+          inherit = ANCIL_SOLAR, LARGE_JOB
+
+          script = """
+              python_env python \
+                  -m solar.cmip7_SM_solar_generate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_SOLAR_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_SOLAR_VDATE) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_SOLAR_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_SOLAR_SAVE_FILENAME) }}
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_ancil_solar]]
+        {% if EXP == "HI" %}
+          inherit = ANCIL_SOLAR, LARGE_JOB
+        {% else %}
+          inherit = ANCIL_SOLAR, {{EXP}}_GIT, SMALL_JOB
+        {% endif %}
+          script = """
+            {% if EXP == "HI" %}
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+            {% else %}
+              cd $GIT_{{EXP}}_CONFIG_DIR
+            {% endif %}
+              python_env python \
+                  -m solar.cmip7_{{EXP}}_solar_generate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range {{ quote(CMIP7_HI_SOLAR_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }}
+                  {% endif %}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if ANCIL_CREATE_VOLCANIC %}
+      [[ANCIL_VOLCANIC]]
+          inherit = ESM1P6_ANCIL
+
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_ancil_volcanic]]
+          inherit = ANCIL_VOLCANIC, LARGE_JOB
+
+          script = """
+              python_env python \
+                  -m volcanic.cmip7_SM_volcanic_generate \
+          --scenario {{ SCEN }} \
+                  {{ PATH_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SM_VOLCANIC_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_SM_VOLCANIC_VDATE) }} \
+                  --dataset-date-range {{ quote(CMIP7_SM_VOLCANIC_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_VOLCANIC_SAVE_FILENAME) }}
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_ancil_volcanic]]
+        {% if EXP == "HI" %}
+          inherit = ANCIL_VOLCANIC, LARGE_JOB
+        {% else %}
+          inherit = ANCIL_VOLCANIC, {{EXP}}_GIT, SMALL_JOB
+        {% endif %}
+
+          script = """
+            {% if EXP == "HI" %}
+              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+            {% else %}
+              cd $GIT_{{EXP}}_CONFIG_DIR
+            {% endif %}
+              python_env python \
+                  -m volcanic.cmip7_{{EXP}}_volcanic_generate \
+                  {{ PATH_ARGS }}
+                  --dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
+                  {% if EXP == "HI" %}
+                  --dataset-date-range {{ quote(CMIP7_HI_VOLCANIC_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }}
+                  {% else %}
+                  --dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }}
+                  {% endif %}
+              """
+      {% endif %}
+    {% endif %}
+
+    {% if UPDATE_CONFIG %}
+      {% if EXP == "SM" %}
+        {% for SCEN in SCENARIOS %}
+          {% if USE_SCEN[SCEN] %}
+      [[SM_{{SCEN}}_git_commit_push]]
+          inherit = SM_{{SCEN}}_GIT, LOCAL_JOB
+
+          script = """
+              set -e
+              cd $GIT_SM_{{SCEN}}_CONFIG_DIR
+              STATUS="$(git status --porcelain -uno)"
+              echo "git status is:"
+              echo "$STATUS"
+              if [ ! -z "$STATUS" ]; then
+                ADD="$(git status --porcelain -uno | grep ' M ' | cut -d'M' -f2)"
+                git add $ADD
+                git commit -m "CMIP7 forcing update to $GIT_SM_{{SCEN}}_OLD_BRANCH"
+                git push origin $GIT_SM_{{SCEN}}_NEW_BRANCH
+              else
+                echo "Finished with no config files changes to commit."
+              fi
+              """
+          {% endif %}
+    {% endfor %}
+      {% else %}
+      [[{{EXP}}_git_commit_push]]
+          inherit = {{EXP}}_GIT, LOCAL_JOB
+
+          script = """
+              set -e
+              cd $GIT_{{EXP}}_CONFIG_DIR
+              STATUS="$(git status --porcelain -uno)"
+              echo "git status is:"
+              echo "$STATUS"
+              if [ ! -z "$STATUS" ]; then
+                ADD="$(git status --porcelain -uno | grep ' M ' | cut -d'M' -f2)"
+                git add $ADD
+                git commit -m "CMIP7 forcing update to $GIT_{{EXP}}_OLD_BRANCH"
+                git push origin $GIT_{{EXP}}_NEW_BRANCH
+              else
+                echo "Finished with no config files changes to commit."
+              fi
+              """
+      {% endif %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
