@@ -1,6 +1,6 @@
 {%- set MODULE_USE_DIR = '/g/data/access/ngm/modules' %}
 {%- set ANTS_MODULE = 'ants/ug-2.1.0' %}
-{%- set ANCIL_TARGET_PATH = '/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/'~ISO_DATE_TODAY %}
+{%- set ANCIL_TARGET_PATH = '/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil_test/'~ISO_DATE_TODAY %}
 {%- set CMIP7_SOURCE_PATH = '/g/data/qv56/replicas/input4MIPs/CMIP7' %}
 {%- set ESM15_INPUTS_PATH = '/g/data/vk83/configurations/inputs/access-esm1p5' %}
 {%- set UMDIR = '/g/data/access/umdir' %}
