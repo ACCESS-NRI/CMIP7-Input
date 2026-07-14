@@ -326,10 +326,10 @@
 
 {% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
     [[ANCIL_CO2]]
-        inherit = ESM1P6_ANCIL, SMALL_JOB
+        inherit = ESM1P6_ANCIL
 
     [[EH_ancil_co2]]
-        inherit = ANCIL_CO2
+        inherit = ANCIL_CO2, MEDIUM_JOB
         script = """
             mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
             python_env python \
