@@ -113,9 +113,9 @@ def cmip7_pi_volcanic_patch(average_saod):
 if __name__ == "__main__":
     args = parse_args()
 
-    dataset_path = cmip7_volcanic_dirpath(
-        args, period="monC"
-    ) / cmip7_pi_volcanic_filename(args)
+    dirpath = cmip7_volcanic_dirpath(args, "CMIP", "monC")
+    filename = cmip7_pi_volcanic_filename(args)
+    dataset_path = dirpath / filename
 
     # Calculate the average stratospheric optical depth.
     average_saod = average_stratospheric_aerosol_optical_depth(dataset_path)
