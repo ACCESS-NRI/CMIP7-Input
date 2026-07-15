@@ -820,6 +820,9 @@
                   -m volcanic.cmip7_SM_volcanic_generate \
           --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
+                  --pi-dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
+                  --pi-dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
+                  --pi-dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }} \
                   --dataset-version {{ quote(CMIP7_SM_VOLCANIC_VERSION) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_VOLCANIC_VDATE) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_VOLCANIC_DATE_RANGE) }} \
