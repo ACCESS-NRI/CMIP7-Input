@@ -7,22 +7,26 @@ from cmip7_ancil_constants import MONTHS_IN_A_YEAR
 
 NBR_OF_BANDS = 4
 NBR_TAPER_YEARS = 10
-SAOD_ARRAY_END_YEAR = 2300
+SAOD_BEG_YEAR = 1850
+SAOD_END_YEAR = 2300
 # The prescribed wavelength for stratospheric aerosol optical depth
 SAOD_WAVELENGTH = 550.0 * 1e-9
+# Scaling ratio to use with calculated SAOD
+SAOD_SCALING = 10000.0
 
-
-def cmip7_volcanic_dirpath(args, activity, period):
+def cmip7_volcanic_dirpath(
+    args, activity, period, dataset_version, dataset_vdate,
+):
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
         / "uoexeter"
-        / args.dataset_version
+        / dataset_version
         / "atmos"
         / period
         / "ext"
         / "gnz"
-        / args.dataset_vdate
+        / dataset_vdate
     )
 
 
@@ -100,7 +104,7 @@ def taper_saod(
     towards saod_for_beg_year for NBR_TAPER_YEARS, and remain at
     saod_for_beg_year afterwards.
     """
-    RATIO_ARRAY_LEN = SAOD_ARRAY_END_YEAR - volcanic_end_year
+    RATIO_ARRAY_LEN = SAOD_END_YEAR - volcanic_end_year
     saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
@@ -140,13 +144,19 @@ def save_year_tapered_saod(
 
 
 def save_stratospheric_aerosol_optical_depth(
-    args, volcanic_beg_year, volcanic_end_year, dataset_path, save_dirpath
+    args,
+    volcanic_beg_year,
+    volcanic_end_year,
+    dataset_path,
+    save_dirpath,
+    pi_mean_saod=None
 ):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
     for each historical month by averaging extinction over latitude,
     and summing over stratospheric layers. Save to the save file.
     """
+
     # Load the dataset into an Iris cube.
     cube = iris.load_cube(dataset_path)
 
@@ -163,6 +173,19 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_beg_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
+        # Print the PI average SOAD for all years before volcanic_beg_year.
+        if volcanic_beg_year > SAOD_BEG_YEAR:
+            for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
+                for month in range(1, MONTHS_IN_A_YEAR + 1):
+                    print(f"{year:4d} {month:4d}", end="", file=save_file)
+                    # Divide into latitude bands.
+                    for lat_band_nbr in range(NBR_OF_BANDS):
+                        print(
+                            f"{pi_mean_saod:7.1f}",
+                            end="",
+                            file=save_file,
+                        )
+                    print(file=save_file)
         # Iterate over years and months.
         for year in range(volcanic_beg_year, volcanic_end_year + 1):
             for month in range(1, MONTHS_IN_A_YEAR + 1):
@@ -194,13 +217,13 @@ def save_stratospheric_aerosol_optical_depth(
                     if year == volcanic_end_year:
                         saod_for_end_year[month - 1, lat_band_nbr] = saod
                 print(file=save_file)
-        # For years from volcanic_end_year + 1 to SAOD_ARRAY_END_YEAR
+        # For years from volcanic_end_year + 1 to SAOD_END_YEAR
         # interpolate between the saod values in saod_for_beg_year and
         # saod_for_end_year and save values in save_file.
         tapered_saod_array = taper_saod(
             volcanic_end_year, saod_for_beg_year, saod_for_end_year
         )
-        for year in range(volcanic_end_year + 1, SAOD_ARRAY_END_YEAR + 1):
+        for year in range(volcanic_end_year + 1, SAOD_END_YEAR + 1):
             save_year_tapered_saod(
                 year, tapered_saod_array, volcanic_end_year, save_file
             )

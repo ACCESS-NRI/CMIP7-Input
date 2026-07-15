@@ -24,11 +24,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def cmip7_hi_volcanic_filename(args):
+def cmip7_hi_volcanic_filename(dataset_version, dataset_date_range):
     return (
         f"ext_input4MIPs_aerosolProperties_CMIP_"
-        f"{args.dataset_version}_gnz_"
-        f"{args.dataset_date_range}.nc"
+        f"{dataset_version}_gnz_"
+        f"{dataset_date_range}.nc"
     )
 
 
@@ -50,8 +50,12 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
 if __name__ == "__main__":
     args = parse_args()
 
-    dirpath = cmip7_volcanic_dirpath(args, "CMIP", "mon")
-    filename = cmip7_hi_volcanic_filename(args)
+    dirpath = cmip7_volcanic_dirpath(
+        args, "CMIP", "mon", args.dataset_version, args.dataset_vdate,
+    )
+    filename = cmip7_hi_volcanic_filename(
+        args.dataset_version, args.dataset_date_range,
+    )
     dataset_path = dirpath / filename
 
     # Calculate and save the average stratospheric aerosol optical depth.
