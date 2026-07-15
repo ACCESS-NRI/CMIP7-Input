@@ -31,6 +31,7 @@ def esm_sm_ozone_save_dirpath(args):
         Path(args.ancil_target_dirname)
         / "scenarios"
         / args.scenario
+        / "atmosphere"
         / "forcing"
         / args.esm_grid_rel_dirname
         / ANCIL_TODAY

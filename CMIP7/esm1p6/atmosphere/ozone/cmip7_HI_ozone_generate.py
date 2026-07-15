@@ -30,6 +30,7 @@ def esm_hi_ozone_save_dirpath(args):
         Path(args.ancil_target_dirname)
         / "modern"
         / "historical"
+        / "atmosphere"
         / "forcing"
         / args.esm_grid_rel_dirname
         / ANCIL_TODAY
