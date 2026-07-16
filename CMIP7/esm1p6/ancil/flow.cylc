@@ -876,7 +876,9 @@
                 ADD="$(git status --porcelain -uno | grep ' M ' | cut -d'M' -f2)"
                 git add $ADD
                 git commit -m "CMIP7 forcing update to $GIT_SM_{{SCEN}}_OLD_BRANCH"
+            {% if GIT_CONFIG_BRANCH_PUSH %}
                 git push origin $GIT_SM_{{SCEN}}_NEW_BRANCH
+            {% endif %}
               else
                 echo "Finished with no config files changes to commit."
               fi
@@ -897,7 +899,9 @@
                 ADD="$(git status --porcelain -uno | grep ' M ' | cut -d'M' -f2)"
                 git add $ADD
                 git commit -m "CMIP7 forcing update to $GIT_{{EXP}}_OLD_BRANCH"
+            {% if GIT_CONFIG_BRANCH_PUSH %}
                 git push origin $GIT_{{EXP}}_NEW_BRANCH
+            {% endif %}
               else
                 echo "Finished with no config files changes to commit."
               fi
