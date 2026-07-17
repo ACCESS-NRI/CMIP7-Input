@@ -28,7 +28,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    CMIP7_SM_GHG_BEG_YEAR = CMIP7_SM_BEG_YEAR + 1
+    CMIP7_SM_GHG_BEG_YEAR = CMIP7_SM_BEG_YEAR
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
         ghg_mmr_dict[ghg] = load_cmip7_ghg_series_mmr(
