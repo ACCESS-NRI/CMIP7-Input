@@ -3,7 +3,7 @@
 # Check if exactly 2 arguments are provided
 if [ "$#" -ne 2 ]; then
     echo "Error: Please provide exactly two arguments."
-    echo "Usage: ./myscript.sh [First_FilePath] [Second_FilePath]"
+    echo "Usage: ./compare_files.sh [First_FilePath] [Second_FilePath]"
     exit 1
 fi
 
