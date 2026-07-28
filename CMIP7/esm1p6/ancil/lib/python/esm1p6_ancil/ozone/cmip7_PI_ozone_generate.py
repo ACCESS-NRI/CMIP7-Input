@@ -1,3 +1,11 @@
+'''
+This script generates the CMIP7 pre-industrial ozone ancillary file. It loads the CMIP7 pre-industrial ozone data, fixes the coordinates to match the ESM1.5 grid, and saves the result as an ancillary file.
+The script uses the argparse module to parse command line arguments, including the paths to the input and output files, and the grid information. It also uses the iris library to manipulate the data cubes.  
+The script defines several functions to handle the different steps of the process, including parsing arguments, loading the data, fixing the coordinates, and saving the output. The main block of the script calls these functions in sequence to perform the complete process.
+The script is designed to be run from the command line, and it expects the user to provide the necessary arguments for the input and output file paths, as well as the grid information. 
+The output is saved in a specified directory with a filename provided by the user.
+'''
+
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -14,7 +22,12 @@ from ozone.cmip7_ozone import (
 )
 
 
+
+# This function is declared in every ozone script.
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 pre-industrial ozone ancil file generation.
+    '''
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ozone_parser()],
         prog="cmip7_PI_ozone_generate",
@@ -26,6 +39,9 @@ def parse_args():
 
 
 def esm_pi_ozone_save_dirpath(args):
+    '''
+    Return the directory path to save the ESM1.5 pre-industrial ozone ancil file.
+    '''
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -44,6 +60,7 @@ def save_cmip7_pi_ozone(args, cube):
 
 
 if __name__ == "__main__":
+    ''' Generate the CMIP7 pre-industrial ozone ancillary file. '''
     args = parse_args()
 
     # Load the CMIP7 datasets

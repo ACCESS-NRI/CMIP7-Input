@@ -16,6 +16,9 @@ def dms_filename_parser(dms_ancil_filename=None):
 
 
 def grid_parser():
+    """
+    Return an ArgumentParser for ESM1.5 grid ancil file processing.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--esm-grid-rel-dirname")
     parser.add_argument("--esm15-grid-version")
@@ -23,6 +26,9 @@ def grid_parser():
 
 
 def path_parser():
+    """
+    Return an ArgumentParser for CMIP7 ancil file processing.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--ancil-target-dirname")
     parser.add_argument("--cmip7-source-data-dirname")

@@ -41,7 +41,9 @@ def esm_grid_mask_filepath(args):
 
 
 def esm_grid_mask_cube(args):
+    '''Load the ESM1.5 (ESM1.6?) grid mask cube from the specified file path.'''
     cube = iris.load_cube(esm_grid_mask_filepath(args))
+    # Estimate bounds from the coordinate values. It is a convenience method for filling in missing bounds.
     cube.coord("latitude").guess_bounds()
     cube.coord("longitude").guess_bounds()
     return cube
@@ -249,7 +251,12 @@ def set_coord_system(cube):
 
 
 def fix_coords(args, cube):
+    '''
+    Fix the coordinates of the cube to be compatible with the ESM1.5 (ESM1.6?) grid.
+    '''
+    # Load grid mask cube to get the coordinate system
     esm_grid_mask = esm_grid_mask_cube(args)
+    # Make the target cube use the same coordinate system as the reference cube
     cube.coord("latitude").coord_system = esm_grid_mask.coord(
         "latitude"
     ).coord_system

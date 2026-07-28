@@ -17,7 +17,7 @@ from cmip7_ancil_constants import ANCIL_TODAY
 from cmip7_HI import CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
 
 SPECIES = "CO2"
-STASH_ITEM = 251
+STASH_ITEM = 351
 # The CO2 time series includes 1849 and 2023,
 # so use these years directly from the datasets.
 CMIP7_HI_CO2_BEG_YEAR = CMIP7_HI_BEG_YEAR - 1
@@ -25,6 +25,9 @@ CMIP7_HI_CO2_END_YEAR = CMIP7_HI_END_YEAR + 1
 
 
 def esm_eh_co2_save_dirpath(args):
+    '''
+    Return the directory path to save the ESM1.6 EH CO2 emissions ancil file.
+    '''
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -37,6 +40,9 @@ def esm_eh_co2_save_dirpath(args):
 
 
 def cmip7_eh_co2_anthro_interpolate(args):
+    """
+    Interpolate CMIP7 historical emissions CO2 data to the ESM1.6 grid.
+    """
     cube = load_cmip7_hi_aerosol_anthro(
         args,
         SPECIES,
