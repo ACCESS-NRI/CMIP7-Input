@@ -49,8 +49,10 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
         tvals[i] = units.date2num(newdate)
     new_cube_time.points = tvals
     if full_cube_beg_year == beg_year:
-        print(f"The first year in the forcing file is {beg_year}. "
-              f"Extrapolate backwards.")
+        print(
+            f"The first year in the forcing file is {beg_year}. "
+            f"Extrapolate backwards."
+        )
         beg_year_cube = full_cube[0:1].copy()
         # Extrapolate the first year
         beg_year_cube.data[0] = full_cube.data[0] + 0.5 * (
