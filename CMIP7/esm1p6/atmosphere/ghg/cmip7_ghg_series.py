@@ -4,6 +4,8 @@ from pathlib import Path
 import cftime
 import f90nml
 import iris
+import iris.cube
+import iris.util
 import numpy as np
 from ghg.cmip7_ghg import (
     cmip7_ghg_dirpath,
@@ -24,7 +26,6 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
     # Check that we have the right greenhouse gas.
     variable_id = full_cube.metadata.attributes["variable_id"]
     assert ghg == variable_id
-
     new_cube = full_cube.copy()
     # Linearly interpolate to Jan 1 so that UM time interpolation
     # reproduces annual means
@@ -33,31 +34,58 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
     new_cube.data[-1] = full_cube.data[-1] + 0.5 * (
         full_cube.data[-1] - full_cube.data[-2]
     )
-    cube_time = full_cube.coord("time")
-    units = cube_time.units
+    full_cube_time = full_cube.coord("time")
+    units = full_cube_time.units
     new_cube_time = new_cube.coord("time")
+    full_cube_beg_year = units.num2date(full_cube_time.points[0]).year
     # Can't assign to elements of time.points so create a temporary array
     tvals = np.array(new_cube_time.points)
     for i in range(len(tvals)):
-        date = units.num2date(cube_time.points[i])
+        date = units.num2date(full_cube_time.points[i])
         # Interpolated data is Jan 1 of the next year
         newdate = cftime.DatetimeProlepticGregorian(
             date.year + 1, 1, 1, 0, 0, 0
         )
         tvals[i] = units.date2num(newdate)
     new_cube_time.points = tvals
+    if full_cube_beg_year == beg_year:
+        print(
+            f"The first year in the forcing file is {beg_year}. "
+            f"Extrapolate backwards."
+        )
+        beg_year_cube = full_cube[0:1].copy()
+        # Extrapolate the first year
+        beg_year_cube.data[0] = full_cube.data[0] + 0.5 * (
+            full_cube.data[0] - full_cube.data[1]
+        )
+        # Exrapolated data is Jan 1 of the first year
+        beg_year_cube_time = beg_year_cube.coord("time")
+        beg_tvals = np.array(beg_year_cube_time.points)
+        new_beg_date = cftime.DatetimeProlepticGregorian(
+            beg_year, 1, 1, 0, 0, 0
+        )
+        beg_tvals[0] = units.date2num(new_beg_date)
+        beg_year_cube_time.points = beg_tvals
+        # Try dropping time bounds
+        beg_year_cube_time.bounds = None
+        new_cube_time.bounds = None
+        new_cube_list = iris.cube.CubeList([beg_year_cube, new_cube])
+        iris.util.unify_time_units(new_cube_list)
+        iris.util.equalise_attributes(new_cube_list)
+        new_cube = new_cube_list.concatenate_cube()
 
-    # Extract the historical years.
+    # Extract the series years.
     date_constraint = cmip7_pro_greg_date_constraint_from_years(
         beg_year, end_year
     )
-    hi_cube = new_cube.extract(date_constraint)
+    series_cube = new_cube.extract(date_constraint)
 
     # Determine the mass mixing ratio.
     ghg_mmr_list = []
     for year in range(beg_year, end_year + 1):
         year_constraint = cmip7_pro_greg_date_constraint_from_years(year, year)
-        year_cube = hi_cube.extract(year_constraint)
+        year_cube = series_cube.extract(year_constraint)
+        print(year, year_cube.data)
         ghg_mmr_list.append(cmip7_ghg_mmr(year_cube, ghg))
     return ghg_mmr_list
 
