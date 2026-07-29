@@ -115,10 +115,15 @@ if __name__ == "__main__":
     args = parse_args()
 
     dirpath = cmip7_volcanic_dirpath(
-        args, "CMIP", "monC", args.dataset_version, args.dataset_vdate,
+        args,
+        "CMIP",
+        "monC",
+        args.dataset_version,
+        args.dataset_vdate,
     )
     filename = cmip7_pi_volcanic_filename(
-        args.dataset_version, args.dataset_date_range,
+        args.dataset_version,
+        args.dataset_date_range,
     )
     dataset_path = dirpath / filename
 

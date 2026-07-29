@@ -14,8 +14,13 @@ SAOD_WAVELENGTH = 550.0 * 1e-9
 # Scaling ratio to use with calculated SAOD
 SAOD_SCALING = 10000.0
 
+
 def cmip7_volcanic_dirpath(
-    args, activity, period, dataset_version, dataset_vdate,
+    args,
+    activity,
+    period,
+    dataset_version,
+    dataset_vdate,
 ):
     return (
         Path(args.cmip7_source_data_dirname)
@@ -143,13 +148,30 @@ def save_year_tapered_saod(
         print(file=save_file)
 
 
+def print_early_saod(volcanic_beg_year, save_file, pi_mean_saod):
+    """
+    Print the PI average SOAD for all years before volcanic_beg_year
+    """
+    for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
+        for month in range(1, MONTHS_IN_A_YEAR + 1):
+            print(f"{year:4d} {month:4d}", end="", file=save_file)
+            # Divide into latitude bands.
+            for lat_band_nbr in range(NBR_OF_BANDS):
+                print(
+                    f"{pi_mean_saod:7.1f}",
+                    end="",
+                    file=save_file,
+                )
+            print(file=save_file)
+
+
 def save_stratospheric_aerosol_optical_depth(
     args,
     volcanic_beg_year,
     volcanic_end_year,
     dataset_path,
     save_dirpath,
-    pi_mean_saod=None
+    pi_mean_saod=None,
 ):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
@@ -174,18 +196,9 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Print the PI average SOAD for all years before volcanic_beg_year.
-        if volcanic_beg_year > SAOD_BEG_YEAR:
-            for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
-                for month in range(1, MONTHS_IN_A_YEAR + 1):
-                    print(f"{year:4d} {month:4d}", end="", file=save_file)
-                    # Divide into latitude bands.
-                    for lat_band_nbr in range(NBR_OF_BANDS):
-                        print(
-                            f"{pi_mean_saod:7.1f}",
-                            end="",
-                            file=save_file,
-                        )
-                    print(file=save_file)
+        if volcanic_beg_year > SAOD_BEG_YEAR and pi_mean_saod is not None:
+            print_early_saod(volcanic_beg_year, save_file, pi_mean_saod)
+
         # Iterate over years and months.
         for year in range(volcanic_beg_year, volcanic_end_year + 1):
             for month in range(1, MONTHS_IN_A_YEAR + 1):
@@ -204,7 +217,7 @@ def save_stratospheric_aerosol_optical_depth(
                     # by summing over stratospheric layers,
                     # weighted by layer height.
                     lat_cube = sum_over_height_layers(lat_cube)
-                    saod = lat_cube.data * 10000.0
+                    saod = lat_cube.data * SAOD_SCALING
                     print(
                         f"{saod:7.1f}",
                         end="",
