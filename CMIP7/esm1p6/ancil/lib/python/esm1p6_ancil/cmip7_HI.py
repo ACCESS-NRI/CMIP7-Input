@@ -15,6 +15,9 @@ CMIP7_HI_NBR_YEARS = CMIP7_HI_END_YEAR + 1 - CMIP7_HI_BEG_YEAR
 
 
 def esm_hi_forcing_save_dirpath(args):
+    '''
+    Return the directory path to save the ESM1.5 historical forcing ancil files.
+    '''
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -34,7 +37,10 @@ def fix_esm15_hi_ancil_date(ifile, ofile):
     rather than Gregorian.
     """
 
+    # STASH: Spatial and Temporal Averaging and Storage Handling. 
+    # The STASHmaster file describes the characteristics of all of the model prognostic and diagnostic fields including its grid, when the field is available etc
     sm = mule.STASHmaster.from_version(UM_VERSION)
+    # Load ancillary file to be fixed. The STASHmaster file is used to interpret the contents of the ancillary file.
     ff = mule.AncilFile.from_file(ifile, stashmaster=sm)
 
     # Should not be included in an ancillary file. Flagged by mule validation
@@ -44,4 +50,5 @@ def fix_esm15_hi_ancil_date(ifile, ofile):
         # Correct end of month
         field.lbdatd = calendar.monthrange(field.lbyr, field.lbmon)[1]
 
+    # Save file into ofile path.
     ff.to_file(ofile)

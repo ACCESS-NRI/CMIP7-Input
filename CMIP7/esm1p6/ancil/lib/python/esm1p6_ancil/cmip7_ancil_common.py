@@ -21,6 +21,7 @@ INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
 
 def cmip7_date_constraint_from_years(beg_year, end_year):
+    ''' Return an iris.Constraint for a date range from beg_year to end_year inclusive.'''
     # For CMIP6 and CMIP7 data
     beg_date = cftime.DatetimeNoLeap(beg_year, 1, 1)
     end_date = cftime.DatetimeNoLeap(end_year, 12, 31)
@@ -28,6 +29,7 @@ def cmip7_date_constraint_from_years(beg_year, end_year):
 
 
 def esm_grid_mask_filepath(args):
+    '''Return the file path to the ESM1.5 grid mask file.'''
     return (
         Path(args.esm15_inputs_dirname)
         / "modern"
@@ -41,7 +43,7 @@ def esm_grid_mask_filepath(args):
 
 
 def esm_grid_mask_cube(args):
-    '''Load the ESM1.5 (ESM1.6?) grid mask cube from the specified file path.'''
+    '''Load the ESM1.5 grid mask cube from the specified file path.'''
     cube = iris.load_cube(esm_grid_mask_filepath(args))
     # Estimate bounds from the coordinate values. It is a convenience method for filling in missing bounds.
     cube.coord("latitude").guess_bounds()
@@ -50,6 +52,11 @@ def esm_grid_mask_cube(args):
 
 
 def set_gregorian(var, replace_bounds=False):
+    '''
+    Change the calendar of the time coordinate of the given iris cube to Gregorian.
+    If replace_bounds is True, the time bounds will be replaced with the first day of the month and the first day of the next month. 
+    If False, the bounds will be converted to Gregorian.
+    '''
     # Change the calendar to Gregorian for the model
     time = var.coord("time")
     origin = time.units.origin
@@ -57,12 +64,14 @@ def set_gregorian(var, replace_bounds=False):
 
     tvals = np.array(time.points)
     tbnds = np.array(time.bounds)
+    # Convert each time point to Gregorian and update the time points and bounds
     for i in range(len(time.points)):
         date = time.units.num2date(tvals[i])
         newdate = cftime.DatetimeProlepticGregorian(
             date.year, date.month, date.day, date.hour, date.minute, date.second
         )
         tvals[i] = newunits.date2num(newdate)
+        # If replacing bounds, set the bounds to the first day of the month and the first day of the next month
         if replace_bounds:
             beg_date = cftime.DatetimeProlepticGregorian(
                 date.year,
@@ -88,6 +97,7 @@ def set_gregorian(var, replace_bounds=False):
                 date.second,
             )
             tbnds[i][1] = newunits.date2num(end_date)
+        # If not replacing bounds, convert the existing bounds to Gregorian
         else:
             for j in range(2):
                 date = time.units.num2date(tbnds[i][j])
@@ -140,6 +150,28 @@ def extend_years(cube):
 
 
 def _interpolate_months_separately(cube, tpoints):
+    '''
+    Interpolate monthly data by treating each calendar month as a separate series.
+
+    This helper performs linear interpolation across years for each month
+    independently. The function first interpolates the full time series to the
+    target points, then replaces each month’s values with an interpolation of
+    that month only, ensuring January values are derived from January input
+    data, February values from February input data, and so on.
+
+    Parameters
+    ----------
+    cube : iris.cube.Cube
+        The input cube containing monthly data.
+    tpoints : numpy.ndarray
+        Numeric target time points for the interpolated monthly data.
+
+    Returns
+    -------
+    iris.cube.Cube
+        A cube containing the interpolated data with values inserted back
+        into the interleaved target month indices.
+    '''
     # Perform linear time-interpolation
     new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
     new_cube.data = np.ma.asarray(new_cube.data)
@@ -173,6 +205,30 @@ def _interpolate_months_separately(cube, tpoints):
 
 
 def interpolate_monthly(cube, beg_year, end_year):
+    '''
+    Interpolate and regrid a monthly time series onto a complete monthly axis.
+
+    This function generates a set of target monthly midpoint times and bounds
+    between beg_year and end_year inclusive. It then interpolates the input
+    cube to those target points, using a separate interpolation for each
+    calendar month, and builds a new time coordinate with contiguous monthly
+    bounds.
+
+    Parameters
+    ----------
+    cube : iris.cube.Cube
+        The input cube containing monthly data to be interpolated.
+    beg_year : int
+        The first year of the target monthly range.
+    end_year : int
+        The last year of the target monthly range.
+
+    Returns
+    -------
+    iris.cube.Cube
+        A cube containing the interpolated monthly data with a new time
+        coordinate and bounds.
+    '''
     # Get original time units and calendar
     time_coord = cube.coord("time")
     units = time_coord.units
@@ -245,6 +301,10 @@ def interpolate_monthly(cube, beg_year, end_year):
 
 
 def set_coord_system(cube):
+    '''
+    Set the coordinate system of the latitude and longitude coordinates of the cube to a geographic coordinate system with a radius of 6371229.0 meters. 
+    This is necessary for compatibility with the ESM1.5 grid.
+    '''
     coord_system = iris.coord_systems.GeogCS(6371229.0)
     cube.coord("latitude").coord_system = coord_system
     cube.coord("longitude").coord_system = coord_system
@@ -252,7 +312,7 @@ def set_coord_system(cube):
 
 def fix_coords(args, cube):
     '''
-    Fix the coordinates of the cube to be compatible with the ESM1.5 (ESM1.6?) grid.
+    Fix the coordinates of the cube to be compatible with the ESM1.5 grid.
     '''
     # Load grid mask cube to get the coordinate system
     esm_grid_mask = esm_grid_mask_cube(args)
@@ -266,6 +326,11 @@ def fix_coords(args, cube):
 
 
 def fix_poles(cube):
+    '''
+    Fix the poles in the cube.
+    This function replaces the values at the north and south poles with the zonal mean of the data at those latitudes 
+    ensuring that polar values have no longitude dependence.
+    '''
     # Polar values should have no longitude dependence
     latdim = cube.coord_dims("latitude")
     assert latdim == (1,)

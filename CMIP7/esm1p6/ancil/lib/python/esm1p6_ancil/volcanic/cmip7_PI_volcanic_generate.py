@@ -17,6 +17,9 @@ from volcanic.cmip7_volcanic import (
 
 
 def parse_args():
+    ''' 
+    Parse the command line arguments for CMIP7 pre-industrial volcanic ancil file generation.
+    '''
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
         prog="cmip7_PI_volcanic_generate",
@@ -29,6 +32,9 @@ def parse_args():
 
 
 def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
+    '''
+    Return the filename for the CMIP7 pre-industrial volcanic ancil file.
+    '''
     return (
         f"ext_input4MIPs_aerosolProperties_CMIP_"
         f"{dataset_version}_gnz_"
@@ -38,7 +44,7 @@ def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
 
 def mean_over_pi_months(cube):
     """
-    Find the time average SAOD by averaging over months
+    Find the time average average stratospheric optical depth (SAOD) by averaging over months
     in the pre-industrial year, weighted by month length.
     """
     time_coord = next(c for c in cube.coords() if c.standard_name == "time")

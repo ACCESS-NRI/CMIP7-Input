@@ -20,7 +20,10 @@ def fix_esm15_pi_ancil_date(ifile, ofile):
     rather than Gregorian. Also reset the year number to CMIP7_PI_YEAR.
     """
 
+    # STASH: Spatial and Temporal Averaging and Storage Handling. 
+    # The STASHmaster file describes the characteristics of all of the model prognostic and diagnostic fields including its grid, when the field is available etc
     sm = mule.STASHmaster.from_version(UM_VERSION)
+    # Load ancillary file to be fixed. The STASHmaster file is used to interpret the contents of the ancillary file.
     ff = mule.AncilFile.from_file(ifile, stashmaster=sm)
 
     # Should not be included in an ancillary file. Flagged by mule validation
@@ -34,4 +37,5 @@ def fix_esm15_pi_ancil_date(ifile, ofile):
         # Correct end of month
         field.lbdatd = calendar.monthrange(CMIP7_PI_YEAR, field.lbmon)[1]
 
+    # Save file into ofile path.
     ff.to_file(ofile)
