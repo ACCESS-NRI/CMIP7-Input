@@ -1,0 +1,48 @@
+[build-system]
+requires = [
+    "setuptools>=80",
+    "setuptools-scm>=8"
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmip-inputs"
+dynamic = ["version"]
+description = "Generate input files for different climate models, to be used for modelling experiments for the CMIP7 submission."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  {name = "Paul Leopardi", email="paul.leopardi@anu.edu.au"},
+  {name = "Davide Marchegiani", email="davide.marchegiani@anu.edu.au"},
+  {name = "Martin Dix", email="martin.dix@anu.edu.au"},
+  {name = "Valentina Garcia", email="maria.garciaalvarado@anu.edu.au"},
+]
+maintainers = [
+    { name = "ACCESS-NRI", email = "access.nri@anu.edu.au" }
+]
+dependencies = [
+    "iris",
+]
+
+[project.scripts]
+cmip7-inputs = "cmip7_inputs.cli:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["tests"]
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+local_scheme = "node-and-date"
