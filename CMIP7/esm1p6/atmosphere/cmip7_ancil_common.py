@@ -8,6 +8,8 @@ import ants.io.save as save
 import cf_units
 import cftime
 import iris
+import iris.analysis
+import iris.coord_categorisation
 import mule
 import numpy as np
 from cmip7_ancil_constants import (
@@ -135,6 +137,111 @@ def extend_years(cube):
     return cubelist.concatenate_cube()
 
 
+def _interpolate_months_separately(cube, tpoints):
+    # Perform linear time-interpolation
+    new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
+    new_cube.data = np.ma.asarray(new_cube.data)
+
+    # Add month categorisation to extract each month's series
+    if not cube.coords("month_number"):
+        iris.coord_categorisation.add_month_number(
+            cube, "time", name="month_number"
+        )
+
+    # Interpolate each month separately and interleave the data
+    for m in range(1, MONTHS_IN_A_YEAR + 1):
+        month_constraint = iris.Constraint(month_number=m)
+        m_cube = cube.extract(month_constraint)
+        if m_cube is not None:
+            # Select target time points for this month across all years
+            m_tpoints = tpoints[m - 1 :: MONTHS_IN_A_YEAR]
+            # Interpolate across the years for this month
+            m_interpolated = m_cube.interpolate(
+                [("time", m_tpoints)], iris.analysis.Linear()
+            )
+            # Place the interpolated data back
+            # into the interleaved target indices
+            new_cube.data[m - 1 :: MONTHS_IN_A_YEAR] = m_interpolated.data
+
+    # Clean up month_number coordinate if added
+    if cube.coords("month_number"):
+        cube.remove_coord("month_number")
+
+    return new_cube
+
+
+def interpolate_monthly(cube, beg_year, end_year):
+    # Get original time units and calendar
+    time_coord = cube.coord("time")
+    units = time_coord.units
+    calendar = units.calendar if units.calendar else "standard"
+
+    # Generate target monthly midpoints and bounds
+    tdates = []
+    tbounds = []
+    for year in range(beg_year, end_year + 1):
+        for month in range(1, MONTHS_IN_A_YEAR + 1):
+            beg_date = cftime.datetime(year, month, 1, calendar=calendar)
+            if month == MONTHS_IN_A_YEAR:
+                end_date = cftime.datetime(year + 1, 1, 1, calendar=calendar)
+            else:
+                end_date = cftime.datetime(
+                    year, month + 1, 1, calendar=calendar
+                )
+
+            mid_date = beg_date + (end_date - beg_date) / 2
+            tdates.append(mid_date)
+            tbounds.append([beg_date, end_date])
+
+    tpoints = np.array([units.date2num(d) for d in tdates], dtype=np.float64)
+    tbounds_num = np.array(
+        [[units.date2num(b[0]), units.date2num(b[1])] for b in tbounds],
+        dtype=np.float64,
+    )
+
+    # Interpolate each month separately and interleave the data
+    new_cube = _interpolate_months_separately(cube, tpoints)
+
+    # Create new DimCoord with contiguous bounds
+    new_time_coord = iris.coords.DimCoord(
+        tpoints,
+        standard_name=time_coord.standard_name,
+        long_name=time_coord.long_name,
+        var_name=time_coord.var_name,
+        units=units,
+        bounds=tbounds_num,
+        attributes=time_coord.attributes,
+    )
+    time_dim = cube.coord_dims("time")
+    new_cube.remove_coord("time")
+    new_cube.add_dim_coord(new_time_coord, time_dim)
+
+    # Overwrite interpolated data with original data for months that exist,
+    # matching by the bounds interval (start month and end month).
+    # This works only for cubes that already have time bounds.
+    if time_coord.has_bounds():
+        bounds = time_coord.bounds
+        # Map target bounds intervals:
+        # (start_year, start_month, end_year, end_month) -> index.
+        tbounds_dict = {
+            (b[0].year, b[0].month, b[1].year, b[1].month): index
+            for index, b in enumerate(tbounds)
+        }
+        # Ensure data is a writable array (not read-only memmap).
+        new_cube.data = np.ma.asarray(new_cube.data)
+        for i in range(len(time_coord.points)):
+            # Convert original bounds of slice i to date objects.
+            beg_date = units.num2date(bounds[i][0])
+            end_date = units.num2date(bounds[i][1])
+            # Match bounds based on start and end year/month components
+            key = (beg_date.year, beg_date.month, end_date.year, end_date.month)
+            if key in tbounds_dict:
+                target_idx = tbounds_dict[key]
+                new_cube.data[target_idx] = cube.data[i]
+
+    return new_cube
+
+
 def set_coord_system(cube):
     coord_system = iris.coord_systems.GeogCS(6371229.0)
     cube.coord("latitude").coord_system = coord_system
@@ -149,15 +256,6 @@ def fix_coords(args, cube):
     cube.coord("longitude").coord_system = esm_grid_mask.coord(
         "longitude"
     ).coord_system
-
-
-def zero_poles(cube):
-    # Polar values should have no longitude dependence
-    # For aerosol emissions they should be zero
-    latdim = cube.coord_dims("latitude")
-    assert latdim == (1,)
-    cube.data[:, 0] = 0.0
-    cube.data[:, -1] = 0.0
 
 
 def save_ancil(

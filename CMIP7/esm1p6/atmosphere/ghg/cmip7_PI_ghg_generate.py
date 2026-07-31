@@ -28,9 +28,9 @@ def parse_args():
 
 
 def load_cmip7_pi_ghg_mmr(args, ghg):
-    cmip7_filepath = cmip7_ghg_dirpath(args, ghg) / cmip7_ghg_filename(
-        args, ghg
-    )
+    dirpath = cmip7_ghg_dirpath(args, "CMIP", ghg)
+    filename = cmip7_ghg_filename(args, "CMIP", ghg)
+    cmip7_filepath = dirpath / filename
 
     # Read in the CMIP7 cube
     full_cube = iris.load_cube(cmip7_filepath)
