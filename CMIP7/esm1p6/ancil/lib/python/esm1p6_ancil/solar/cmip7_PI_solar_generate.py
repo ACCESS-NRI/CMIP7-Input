@@ -1,3 +1,9 @@
+'''
+    Patches the SC variable in the coupling namelist.
+    The script takes command line arguments for the dataset version and dataset date range.
+    The output is saved in the specified directory path.
+'''
+
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -7,6 +13,9 @@ from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 pre-industrial solar ancil file generation.
+    '''
     parser = ArgumentParser(
         parents=[common_parser()],
         prog="cmip7_PI_solar_generate",
@@ -46,6 +55,9 @@ def cmip7_pi_solar_patch(solar_irradiance):
 
 
 if __name__ == "__main__":
+    '''
+    Patch the SC variable in the coupling namelist.
+    '''
     args = parse_args()
 
     dirpath = cmip7_solar_dirpath(args, "CMIP", "fx")

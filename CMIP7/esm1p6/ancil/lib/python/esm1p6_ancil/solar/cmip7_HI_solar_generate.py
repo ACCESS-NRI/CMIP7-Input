@@ -1,3 +1,9 @@
+'''
+CMIP7 historical solar ancil file generation script.
+The script takes command line arguments for the dataset version, dataset date range, and save filename.
+The generated file is saved in the specified directory path.
+'''
+
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import common_parser
@@ -14,6 +20,9 @@ from solar.cmip7_solar import (
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 historical solar ancil file generation.
+    '''
     parser = ArgumentParser(
         prog="cmip7_HI_solar_generate",
         description=(
@@ -39,6 +48,9 @@ def cmip7_hi_solar_save(args, cube):
 
 
 if __name__ == "__main__":
+    '''
+    Generate the CMIP7 historical solar ancillary file.
+    '''
     args = parse_args()
 
     dirpath = cmip7_solar_dirpath(args, "CMIP", "mon")

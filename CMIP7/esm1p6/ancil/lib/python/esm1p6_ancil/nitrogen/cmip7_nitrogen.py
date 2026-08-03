@@ -1,3 +1,7 @@
+'''
+CMIP7 nitrogen ancil file generation functions.
+The functions load the CMIP7 nitrogen datasets, regrid them to the ESM1.5 grid, and save the resulting data as ancillary files.
+'''
 from pathlib import Path
 
 import iris
@@ -18,6 +22,8 @@ NITROGEN_STASH_ITEM = 884
 
 
 def cmip7_nitrogen_dirpath(args, activity, period, species):
+    '''
+    Return the directory path to the CMIP7 nitrogen dataset for the given period and species.'''
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -32,6 +38,9 @@ def cmip7_nitrogen_dirpath(args, activity, period, species):
 
 
 def load_cmip7_nitrogen(args, load_filepath_fn):
+    '''
+    Load all of the CMIP7 nitrogen datasets into a single cube.
+    '''
     # Load all of the PI nitrogen datasets into a CubeList
     nitrogen_cubes = iris.cube.CubeList()
     for species in NITROGEN_SPECIES:
@@ -50,10 +59,14 @@ def load_cmip7_nitrogen(args, load_filepath_fn):
 
 
 def regrid_cmip7_nitrogen(args, cube):
+    '''
+    Regrid the CMIP7 nitrogen data to the ESM1.5 grid.
+    '''
     # Make the coordinates comaptible with the ESM1.5 grid mask
     fix_coords(args, cube)
     # Regrid using the ESM1.5 grid mask
     esm_cube = cube.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)
+    # Replace invalid values with 0.0 to avoid issues with the ESM1.5 model
     esm_cube.data = esm_cube.data.filled(0.0)
     return esm_cube
 

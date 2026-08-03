@@ -1,3 +1,18 @@
+'''
+CMIP7 Volcanic Ancil File Utilities.
+This module contains functions for processing CMIP7 volcanic ancil files.
+The functions are used by the CMIP7 volcanic ancil file processing scripts.
+The functions include:
+- cmip7_volcanic_dirpath: Return the directory path for the CMIP7 volcanic ancil file.
+- constrain_to_wavelength: Constrain to just the prescribed wavelength.
+- mean_over_latitudes: Find the mean over all latitude bands, weighted by area.
+- sum_over_height_layers: Calculate the stratospheric aerosol optical depth by summing over stratospheric layers, weighted by layer height.
+- constrain_to_year_month: Constrain to a given year and month.
+- constrain_to_latitude_band: Constrain to one of four equal latitude bands
+- taper_saod: Interpolate between the saod values in saod_for_beg_year and saod_for_end_year.
+- save_year_tapered_saod: Save one year's worth of interpolated saod values in save_file.
+- save_stratospheric_aerosol_optical_depth: Calculate the average stratospheric aerosol optical depth (SAOD) for each historical month by averaging extinction over latitude, and summing over stratospheric layers.
+'''
 from pathlib import Path
 
 import cftime
@@ -17,6 +32,9 @@ SAOD_SCALING = 10000.0
 def cmip7_volcanic_dirpath(
     args, activity, period, dataset_version, dataset_vdate,
 ):
+    '''
+    Return the directory path for the CMIP7 volcanic ancil file.
+    '''
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -51,12 +69,18 @@ def sum_over_height_layers(cube):
     Calculate the stratospheric aerosol optical depth by
     summing over stratospheric layers, weighted by layer height.
     """
+
+    # Find the height coordinate
     height_coord = next(
         c
         for c in cube.coords()
         if c.standard_name == "height_above_mean_sea_level"
     )
+    # Calculate the heights of the layers.
     height_weights = np.diff(height_coord.bounds).flatten()
+
+    # Sum over the height layers, weighted by layer height.
+    # Each layer contributes according to how much vertical extent it spans.
     return cube.collapsed(
         ["height_above_mean_sea_level"],
         iris.analysis.SUM,
@@ -85,6 +109,7 @@ def constrain_to_latitude_band(cube, band):
     Constrain to one of four equal latitude bands.
     """
     lat_bound = [90, 30, 0, -30, -90]
+    # Pick one latitude interval from the list of latitude bounds.
     lat_constraint = iris.Constraint(
         latitude=(
             lambda cell: lat_bound[band] > cell.point >= lat_bound[band + 1]
@@ -104,18 +129,24 @@ def taper_saod(
     towards saod_for_beg_year for NBR_TAPER_YEARS, and remain at
     saod_for_beg_year afterwards.
     """
+    # The number of years that need to be filled after the volcanic event.
     RATIO_ARRAY_LEN = SAOD_END_YEAR - volcanic_end_year
     saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_A_YEAR, NBR_OF_BANDS))
+    # Create the interpolation ratios for the taper window.
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
+        # Step the ratio from 0 to 1 over the NBR_TAPER_YEARS years after the volcanic event.
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
     ratio_endpoints = np.array([0.0, 1.0])
     for month_m1 in range(MONTHS_IN_A_YEAR):
         # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
+            # Read the SAOD value at the beginning and end of the taper.
             saod_beg = saod_for_beg_year[month_m1, lat_band_nbr]
             saod_end = saod_for_end_year[month_m1, lat_band_nbr]
+            # Pair the endpoint values for the interpolation.
             saod_endpoints = np.array([saod_end, saod_beg])
+            # Linearly interpolate each year in the taper period.
             saod_array[:, month_m1, lat_band_nbr] = np.interp(
                 ratio_array, ratio_endpoints, saod_endpoints
             )

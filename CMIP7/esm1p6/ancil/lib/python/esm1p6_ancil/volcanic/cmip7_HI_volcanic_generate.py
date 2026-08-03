@@ -1,3 +1,12 @@
+'''
+Generate the CMIP7 historical volcanic ancillary file.
+This script generates the CMIP7 historical volcanic ancillary file by calculating the average stratospheric aerosol optical depth (SAOD) for each historical month. 
+The SAOD is calculated by averaging extinction over latitude and summing over stratospheric layers. 
+The resulting SAOD is saved to the specified save file.
+The script takes command line arguments for the dataset version, dataset date range, and save filename.
+The generated file is saved in the specified directory path.
+'''
+
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import dataset_parser, path_parser

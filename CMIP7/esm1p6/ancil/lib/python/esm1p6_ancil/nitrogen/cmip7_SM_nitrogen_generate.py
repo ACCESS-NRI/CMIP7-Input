@@ -1,3 +1,8 @@
+'''
+This script generates the CMIP7 ScenarioMIP nitrogen ancillary file.
+It loads the CMIP7 ScenarioMIP nitrogen data, regrids it to match the ESM1.5 mask, and saves the result as an ancillary file.
+The script uses the argparse module to parse command line arguments, including the paths to the input and output files, and the grid information. 
+'''
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -13,6 +18,9 @@ from nitrogen.cmip7_nitrogen import (
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 ScenarioMIP nitrogen ancil file generation.
+    '''
     parser = ArgumentParser(
         parents=[common_parser()],
         prog="cmip7_SM_nitrogen_generate",
@@ -25,8 +33,12 @@ def parse_args():
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
-
+# TODO: Is this function really needed? There are other functions that do the same thing, but with different names. Maybe we can unify them.
+# Like cmip7_pi_nitrogen_filepath
 def cmip7_sm_nitrogen_filepath(args, species):
+    '''
+    Return the file path to the CMIP7 ScenarioMIP nitrogen dataset for the given species.
+    '''
     dirpath = cmip7_nitrogen_dirpath(args, "ScenarioMIP", "mon", species)
     filename = (
         f"{species}_input4MIPs_surfaceFluxes_ScenarioMIP_"
@@ -37,6 +49,9 @@ def cmip7_sm_nitrogen_filepath(args, species):
 
 
 def esm_sm_nitrogen_save_dirpath(args):
+    '''
+    Return the directory path to save the ESM1.5 ScenarioMIP nitrogen ancil file.
+    '''
     return (
         Path(args.ancil_target_dirname)
         / "scenarios"
@@ -50,6 +65,9 @@ def esm_sm_nitrogen_save_dirpath(args):
 
 
 if __name__ == "__main__":
+    '''
+    Generate the CMIP7 ScenarioMIP nitrogen ancillary file.
+    '''
     args = parse_args()
 
     # Load the CMIP7 datasets

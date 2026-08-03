@@ -1,3 +1,8 @@
+'''
+This module provides functions to handle CMIP7 greenhouse gas (GHG) data, including calculating mass mixing ratios and constructing file paths for GHG datasets. 
+It also includes a function to create an Iris constraint for selecting data within a specified year range using Proleptic Gregorian calendar dates.
+'''
+
 from pathlib import Path
 
 import cftime
@@ -5,6 +10,8 @@ import iris
 
 # Specify the molar mass of each gas in grams per mole
 DRY_AIR_MOLAR_MASS = 28.97
+
+# GHG molar masses in grams per mole for the gases in the CMIP7 GHG forcing files.
 GHG_MOLAR_MASS = {
     "cfc11": 137.37,
     "cfc12": 120.91,
@@ -36,6 +43,8 @@ def cmip7_ghg_mmr(cube, ghg):
 
 
 def cmip7_ghg_dirpath(args, activity, ghg):
+    '''
+    Return the directory path to the CMIP7 greenhouse gas dataset for the given activity and ghg.'''
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -50,6 +59,8 @@ def cmip7_ghg_dirpath(args, activity, ghg):
 
 
 def cmip7_ghg_filename(args, activity, ghg):
+    '''
+    Return the filename for the CMIP7 greenhouse gas dataset for the given activity and ghg.'''
     return (
         f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
         f"{args.dataset_version}_gm_"
@@ -59,8 +70,9 @@ def cmip7_ghg_filename(args, activity, ghg):
 
 def cmip7_pro_greg_date_constraint_from_years(beg_year, end_year):
     """
-    For CMIP6 and CMIP7 data.
-    The CMIP7 greenhouse gas forcing files use Proleptic Gregorian
+    Return an Iris constraint for the given years using Proleptic Gregorian calendar dates.
+    This is used to extract data from CMIP6 and CMIP7 datasets. 
+    The CMIP7 greenhouse gas forcing files use Proleptic Gregorian.
     """
     beg_date = cftime.DatetimeProlepticGregorian(beg_year, 1, 1)
     end_date = cftime.DatetimeProlepticGregorian(end_year, 12, 31)

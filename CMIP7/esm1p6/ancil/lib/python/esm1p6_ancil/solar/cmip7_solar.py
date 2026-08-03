@@ -1,3 +1,14 @@
+'''
+CMIP7 SOLARIS-HEPPA solar ancil file utilities.
+This module provides functions to load and process solar irradiance data from CMIP7 SOLARIS-HEPPA solar ancil files.
+The main functions are:
+- cmip7_solar_dirpath: Returns the directory path for the CMIP7 SOLARIS-HEPPA solar ancil file.
+- load_cmip7_solar_cube: Loads the solar irradiance cube from the CMIP7 SOLARIS-HEPPA solar ancil file.
+- cmip7_solar_year_mean: Calculates mean TSI values for each year and saves them into an array.
+- cmip7_solar_save: Saves the TSI values for each year into a text file.
+The TSI stands for Total Solar Irradiance, which is the solar power per unit area received at the top of the Earth's atmosphere.
+The generated file is saved in the specified directory path.
+'''
 from pathlib import Path
 
 import iris
@@ -11,6 +22,9 @@ SOLAR_PI_DEFAULT_YEAR_MEAN = 1361.603
 
 
 def cmip7_solar_dirpath(args, activity, period):
+    '''
+    Return the directory path for the CMIP7 SOLARIS-HEPPA solar ancil file.
+    '''
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -25,6 +39,9 @@ def cmip7_solar_dirpath(args, activity, period):
 
 
 def load_cmip7_solar_cube(path):
+    '''
+    Loads the solar irradiance cube from the CMIP7 SOLARIS-HEPPA solar ancil file.
+    '''
     cubelist = iris.load(path)
     name_constraint = iris.Constraint(name="solar_irradiance")
     return cubelist.extract_cube(name_constraint)
@@ -33,6 +50,7 @@ def load_cmip7_solar_cube(path):
 def cmip7_solar_year_mean(cube, beg_year, end_year):
     """
     Calculate mean TSI values for each year and save them into an array.
+    TSI stands for Total Solar Irradiance, which is the solar power per unit area received at the top of the Earth's atmosphere.
     """
     NBR_YEARS = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_BEG_YEAR + 1
     solar_array = np.zeros(NBR_YEARS)
@@ -41,19 +59,21 @@ def cmip7_solar_year_mean(cube, beg_year, end_year):
     pi_year_mean = SOLAR_PI_DEFAULT_YEAR_MEAN
     for year in year_range:
         year_cons = iris.Constraint(time=lambda cell: cell.point.year == year)
+        # Extract the cube for the year
         year_cube = cube.extract(year_cons)
+        # Calculate year mean 
         year_mean = year_cube.collapsed("time", iris.analysis.MEAN).data
         solar_array[year - SOLAR_ARRAY_BEG_YEAR] = year_mean
         # Save the year mean for the pre-industrial year.
         if year == CMIP7_PI_YEAR:
             pi_year_mean = year_mean
 
-    # For the years from SOLAR_ARRAY_BEG_YEAR to beg_year - 1,
+    # For the years from SOLAR_ARRAY_BEG_YEAR to beg_year - 1, i.e. before beg_year,
     # set the saved TSI value to the pre-industrial year mean TSI.
     for year in range(SOLAR_ARRAY_BEG_YEAR, beg_year):
         solar_array[year - SOLAR_ARRAY_BEG_YEAR] = pi_year_mean
 
-    # For the years from CMIP7_HI_END_YEAR + 1 to SOLAR_ARRAY_END_YEAR,
+    # For the years from CMIP7_HI_END_YEAR + 1 to SOLAR_ARRAY_END_YEAR, i.e. after end_year,
     # set the saved TSI value to the real missing data indicator
     for year in range(end_year + 1, SOLAR_ARRAY_END_YEAR + 1):
         solar_array[year - SOLAR_ARRAY_BEG_YEAR] = REAL_MISSING_DATA_INDICATOR

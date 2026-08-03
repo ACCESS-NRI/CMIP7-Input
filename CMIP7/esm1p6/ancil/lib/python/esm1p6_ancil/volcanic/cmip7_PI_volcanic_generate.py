@@ -1,3 +1,11 @@
+'''
+Patches the VOLCTS_val variable in the coupling namelist.
+This script generates the CMIP7 pre-industrial volcanic ancillary file by calculating the average stratospheric aerosol optical depth (SAOD) for the pre-industrial year. 
+The SAOD is calculated by averaging extinction over latitude and summing over stratospheric layers. 
+The resulting SAOD is used to patch the VOLCTS_val variable in the coupling namelist.
+The script takes command line arguments for the dataset version and dataset date range.
+The output is saved in the specified directory path.
+'''
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -118,6 +126,9 @@ def cmip7_pi_volcanic_patch(average_saod):
 
 
 if __name__ == "__main__":
+    '''
+    Patch the VOLCTS_val variable in the coupling namelist
+    '''
     args = parse_args()
 
     dirpath = cmip7_volcanic_dirpath(

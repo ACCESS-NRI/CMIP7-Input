@@ -1,3 +1,10 @@
+'''
+CMIP7 ScenarioMIP solar ancil file generation script.
+The script takes command line arguments for the dataset version, dataset date range, and save filename.
+The generated file is saved in the specified directory path.
+The script uses the cmip7_solar module to load the solar irradiance data and calculate the average TSI values for each year.
+'''
+
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import common_parser
@@ -13,6 +20,9 @@ CMIP7_SM_SOLAR_END_YEAR = 2299
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 ScenarioMIP solar ancil file generation.
+    '''
     parser = ArgumentParser(
         prog="cmip7_SM_solar_generate",
         description=(
@@ -22,6 +32,7 @@ def parse_args():
             common_parser(),
         ],
     )
+    # TODO: These are common arguments to other ancil generation scripts.
     parser.add_argument("--scenario")
     parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
@@ -43,6 +54,9 @@ def cmip7_sm_solar_save(args, cube):
 
 
 if __name__ == "__main__":
+    '''
+    Generate the CMIP7 ScenarioMIP solar ancillary file.
+    '''
     args = parse_args()
 
     dirpath = cmip7_solar_dirpath(args, "ScenarioMIP", "mon")
