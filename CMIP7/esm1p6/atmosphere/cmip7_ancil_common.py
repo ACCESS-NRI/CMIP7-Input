@@ -151,13 +151,15 @@ def fix_coords(args, cube):
     ).coord_system
 
 
-def zero_poles(cube):
+def fix_poles(cube):
     # Polar values should have no longitude dependence
-    # For aerosol emissions they should be zero
     latdim = cube.coord_dims("latitude")
     assert latdim == (1,)
-    cube.data[:, 0] = 0.0
-    cube.data[:, -1] = 0.0
+    longdim = cube.coord_dims("longitude")
+    assert longdim == (2,)
+    zonal_mean = np.ma.mean(cube.data, axis=2)
+    cube.data[:, 0, :] = zonal_mean[:, [0]]
+    cube.data[:, -1, :] = zonal_mean[:, [-1]]
 
 
 def save_ancil(
