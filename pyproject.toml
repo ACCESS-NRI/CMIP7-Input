@@ -10,7 +10,7 @@ name = "cmip-inputs"
 dynamic = ["version"]
 description = "Generate input files for different climate models, to be used for modelling experiments for the CMIP7 submission."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = "==3.11"
 license = { file = "LICENSE" }
 authors = [
   {name = "Paul Leopardi", email="paul.leopardi@anu.edu.au"},
@@ -29,7 +29,7 @@ dependencies = [
 cmip7-inputs = "cmip7_inputs.cli:main"
 
 [project.optional-dependencies]
-test = [
+dev = [
     "pytest>=7.0",
     "pytest-cov",
     "ruff",

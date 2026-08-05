@@ -18,7 +18,7 @@ class GenerationRequest:
         output_dir: Directory the generator should write its output
             to.
         options: Generator-specific options (source data paths, target
-            grid, date ranges, ...). Deliberately untyped for now.
+            grid, date ranges, ...).
     """
 
     model: str
