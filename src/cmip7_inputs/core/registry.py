@@ -35,7 +35,7 @@ class GeneratorRegistry:
         the default for any experiment that doesn't have a more
         specific registration. Otherwise it is registered for each
         experiment id in ``experiments`` (several experiments can
-        legitimately share the exact same generator).
+        share the exact same generator).
         """
 
         def decorator(func: Generator) -> Generator:

@@ -34,8 +34,12 @@ micromamba run -n cmip7_inputs pytest
 - The CLI (`cmip7-inputs -m ... -e ... -n ... -o ...  [-O KEY=VALUE [...]]`) wraps `generate_inputs`, plus a repeatable `-O KEY=VALUE` flag for generator-specific options.
 
 ### Adding a new model/experiment/input_name
-New model -> new subpackage under `models/`, imported from `models/__init__.py`.
+**New model**
+Add a new subpackage under `models/` and import it from `models/__init__.py`.
 
-New input name for existing model -> new module under `models/<model>/generators/`, imported from that model's `generators/__init__.py`.
+**New input_name**
+For a specific model, add a new module under `models/<model>/generators/`, and import it in that model's `generators/__init__.py`.
 
-New experiment sharing an existing generator -> add its id to that generator's `experiments=[...]` list.
+**New experiment**
+Add its `<EXPERIMENT_KEY> = <experiment_name>` (e.g., `PI_CONTROL = "piControl"`) line in `experiments.py`. The `<EXPERIMENT_KEY>` is used when registering a generator functions with a specific experiment. The `<experiment_name>` is the value accepted by the `--experiment`/`-e` CLI option.
+Then, for a specific model, add the `<EXPERIMENT_KEY>` to any input_name generator function who should be associated with that experiment (or create a new one) in `models/<model>/generators/<input_name>.py`.
