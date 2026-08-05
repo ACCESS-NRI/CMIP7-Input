@@ -35,11 +35,15 @@ micromamba run -n cmip7_inputs pytest
 
 ### Adding a new model/experiment/input_name
 **New model**
-Add a new subpackage under `models/` and import it from `models/__init__.py`.
+1. Add a new subpackage under `models/` (e.g., `models/my_new_model/__init__.py`);
+2. In the new model subpackage `__init__.py` add the `MODEL_ID` and import its generators;
+3. Import the model from the `models/__init__.py`.
 
 **New input_name**
-For a specific model, add a new module under `models/<model>/generators/`, and import it in that model's `generators/__init__.py`.
+1. For a specific model, add a new module under its generators (e.g., `models/access_esm1p6/generators/my_new_input/__init__.py`) where you define all its generator functions;
+2. Add a new `<INPUT_NAME_KEY> = "<input_name>"` line in `input_names.py`. The `<INPUT_NAME_KEY>` is used when registering a generator function with that input_name. The `<input_name>` is the value accepted by the `--input_name`/`-n` CLI option;
+3. Import the input_name from the `models/<model>/generators/__init__.py`.
 
 **New experiment**
-Add its `<EXPERIMENT_KEY> = <experiment_name>` (e.g., `PI_CONTROL = "piControl"`) line in `experiments.py`. The `<EXPERIMENT_KEY>` is used when registering a generator functions with a specific experiment. The `<experiment_name>` is the value accepted by the `--experiment`/`-e` CLI option.
-Then, for a specific model, add the `<EXPERIMENT_KEY>` to any input_name generator function who should be associated with that experiment (or create a new one) in `models/<model>/generators/<input_name>.py`.
+1. Add a new `<EXPERIMENT_KEY> = "<experiment_name>"` line in `experiments.py`. The `<EXPERIMENT_KEY>` is used when registering a generator function with that experiment. The `<experiment_name>` is the value accepted by the `--experiment`/`-e` CLI option;
+2. For a specific model and input_name, add the `<EXPERIMENT_KEY>` to any generator function who should be associated with that experiment (or create a new one) in `models/<model>/generators/<input_name>/__init__.py`.
