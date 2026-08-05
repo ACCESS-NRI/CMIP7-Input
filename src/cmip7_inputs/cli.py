@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import sys
 
 from cmip7_inputs.core.dispatch import generate_inputs
 
@@ -75,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     options = dict(args.options)
 
     try:
-        output_path = generate_inputs(
+        generate_inputs(
             model=args.model,
             experiment=args.experiment,
             input_name=args.input_name,
@@ -84,11 +83,3 @@ def main(argv: list[str] | None = None) -> int:
         )
     except KeyError as exc:
         parser.error(str(exc))
-        return 1
-
-    print(output_path)
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())

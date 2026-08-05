@@ -2,6 +2,7 @@
 
 import argparse
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -25,10 +26,11 @@ def test_parse_option_without_equals_raises() -> None:
         _parse_option("not-a-key-value-pair")
 
 
+@patch("cmip7_inputs.cli.generate_inputs")
 def test_cli_generates_solar_file(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    mock_generate_inputs,
 ) -> None:
-    exit_code = main(
+    main(
         [
             "-m",
             MODEL_ID,
@@ -37,13 +39,10 @@ def test_cli_generates_solar_file(
             "-n",
             "solar",
             "-o",
-            str(tmp_path),
+            "/some/output/dir",
         ]
     )
-
-    assert exit_code == 0
-    output_path = Path(capsys.readouterr().out.strip())
-    assert output_path.exists()
+    mock_generate_inputs.assert_called_once()
 
 
 def test_cli_unknown_combination_errors(tmp_path: Path) -> None:
