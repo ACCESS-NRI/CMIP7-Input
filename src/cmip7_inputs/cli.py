@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     except KeyError as exc:
         parser.error(str(exc))
-        return 2
+        return 1
 
     print(output_path)
     return 0

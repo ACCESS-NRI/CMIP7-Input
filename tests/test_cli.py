@@ -1,11 +1,28 @@
 """Tests for the ``cmip7-inputs`` command-line interface."""
 
+import argparse
 from pathlib import Path
 
 import pytest
 
-from cmip7_inputs.cli import main
+from cmip7_inputs.cli import _parse_option, main
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
+
+
+def test_parse_option_splits_key_value() -> None:
+    assert _parse_option("key=value") == ("key", "value")
+
+
+def test_parse_option_splits_only_on_first_equals() -> None:
+    assert _parse_option("key=value=with=equals") == (
+        "key",
+        "value=with=equals",
+    )
+
+
+def test_parse_option_without_equals_raises() -> None:
+    with pytest.raises(argparse.ArgumentTypeError):
+        _parse_option("not-a-key-value-pair")
 
 
 def test_cli_generates_solar_file(
