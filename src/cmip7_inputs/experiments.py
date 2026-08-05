@@ -5,3 +5,4 @@ option and used as keys when registering generators.
 """
 
 PI_CONTROL = "piControl"
+HISTORICAL = "historical"

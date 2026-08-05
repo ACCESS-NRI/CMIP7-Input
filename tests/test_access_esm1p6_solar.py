@@ -1,4 +1,4 @@
-"""End-to-end test of the real ACCESS-ESM1.6 solar/piControl path."""
+"""End-to-end test of the real ACCESS-ESM1.6 solar generators."""
 
 from pathlib import Path
 
@@ -9,10 +9,16 @@ from cmip7_inputs.core.dispatch import generate_inputs
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
 
-def test_generate_picontrol_solar_writes_file(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "experiment",
+    [experiments.PI_CONTROL, experiments.HISTORICAL],
+)
+def test_generate_solar_writes_file(
+    tmp_path: Path, experiment: str
+) -> None:
     output_path = generate_inputs(
         model=MODEL_ID,
-        experiment=experiments.PI_CONTROL,
+        experiment=experiment,
         input_name=input_names.SOLAR,
         output_dir=tmp_path,
     )
@@ -22,7 +28,7 @@ def test_generate_picontrol_solar_writes_file(tmp_path: Path) -> None:
 
     content = output_path.read_text()
     assert MODEL_ID in content
-    assert experiments.PI_CONTROL in content
+    assert experiment in content
     assert input_names.SOLAR in content
 
 
