@@ -7,5 +7,5 @@ and importing it from ``generators/__init__.py``.
 
 MODEL_ID = "access-esm1.6"
 
-from . import generators  # noqa: F401
+from cmip7_inputs.models.access_esm1p6 import generators  # noqa: F401
 
