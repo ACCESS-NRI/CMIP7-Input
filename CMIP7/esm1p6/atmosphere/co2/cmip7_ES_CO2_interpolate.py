@@ -47,33 +47,19 @@ def esm_es_co2_save_dirpath(args):
 
 
 def cmip7_es_co2_anthro_interpolate(args):
-    print(49)
-    cube = load_cmip7_sm_aerosol_anthro(args, SPECIES)
-    print(51)
-    cube_sum = cube.collapsed(["sector"], iris.analysis.SUM)
-    print(53)
+    cube = load_cmip7_sm_aerosol_anthro(args, SPECIES, collapse_sector=True)
     cube_air = load_cmip7_sm_aerosol_air_anthro(args, SPECIES)
-    print(55)
-    cube_air_sum = cube_air.collapsed(["altitude"], iris.analysis.SUM)
-    print(57)
-    cube_tot = cube_sum + cube_air_sum
-    print(59)
+    cube_tot = cube + cube_air
 
     esm_cube = cube_tot.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)
-    print(62)
     esm_cube.data = esm_cube.data.filled(0.0)
-    print(65)
     zero_poles(esm_cube)
-    print(67)
     esm_cube.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=STASH_ITEM
     )
-    print(70)
 
     save_dirpath = esm_es_co2_save_dirpath(args)
-    print(73)
     save_ancil(esm_cube, save_dirpath, args.save_filename)
-    print(75)
 
 
 if __name__ == "__main__":

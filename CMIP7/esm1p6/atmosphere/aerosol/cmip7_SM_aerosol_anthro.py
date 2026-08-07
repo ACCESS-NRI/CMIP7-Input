@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
+import iris
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_interpolate
 from aerosol.cmip7_aerosol_common import load_cmip7_aerosol
 from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
@@ -71,13 +72,16 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
         cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
     )
     fix_coords(args, cube)
+    if cube.coords("altitude"):
+        cube = cube.collapsed(["altitude"], iris.analysis.SUM)
+        cube.remove_coord("altitude")
     interpolated = interpolate_monthly(
         cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
     )
     return extend_years(interpolated)
 
 
-def load_cmip7_sm_aerosol_anthro(args, species):
+def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
     cube = load_cmip7_aerosol(
         args,
         cmip7_sm_aerosol_anthro_filepath,
@@ -86,6 +90,9 @@ def load_cmip7_sm_aerosol_anthro(args, species):
         cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
     )
     fix_coords(args, cube)
+    if collapse_sector and cube.coords("sector"):
+        cube = cube.collapsed(["sector"], iris.analysis.SUM)
+        cube.remove_coord("sector")
     interpolated = interpolate_monthly(
         cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
     )

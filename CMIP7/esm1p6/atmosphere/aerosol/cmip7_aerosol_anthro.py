@@ -67,6 +67,9 @@ def load_cmip7_aerosol_air_anthro_list(
         constraint,
     )
     fix_coords(args, cube)
+    if cube.coords("altitude"):
+        cube = cube.collapsed(["altitude"], iris.analysis.SUM)
+        cube.remove_coord("altitude")
     return cube
 
 
