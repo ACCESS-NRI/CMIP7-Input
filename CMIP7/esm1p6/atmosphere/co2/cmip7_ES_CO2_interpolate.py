@@ -65,6 +65,6 @@ def cmip7_es_co2_anthro_interpolate(args):
 
 
 if __name__ == "__main__":
-    args = parse_args(species=SPECIES)
+    args = parse_args()
 
     cmip7_es_co2_anthro_interpolate(args)
