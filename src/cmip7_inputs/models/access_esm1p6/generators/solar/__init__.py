@@ -20,7 +20,7 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
 @registry.register(
     model=MODEL_ID,
     input_name=input_names.SOLAR,
-    experiments=[experiments.PI_CONTROL],
+    experiments=[experiments.PI_CONTROL, experiments.HISTORICAL, experiments.TEST],
 )
 def generate_solar_picontrol(request: GenerationRequest) -> Path:
     """Generate solar forcing input file for:
@@ -33,17 +33,6 @@ def generate_solar_picontrol(request: GenerationRequest) -> Path:
     return write_mock_solar_file(request)
 
 
-@registry.register(
-    model=MODEL_ID,
-    input_name=input_names.SOLAR,
-    experiments=[experiments.HISTORICAL],
-)
-def generate_solar_historical(request: GenerationRequest) -> Path:
-    """Generate solar forcing input file for:
-    model: ACCESS-ESM1.6
-    experiment: historical
 
-    Placeholder processing that writes a text file describing the
-    request instead of real solar forcing data.
-    """
-    return write_mock_solar_file(request)
+
+

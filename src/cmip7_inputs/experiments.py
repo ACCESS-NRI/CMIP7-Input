@@ -12,3 +12,5 @@ option and used as keys when registering generators.
 # `--experiment`/`-e` CLI option.
 PI_CONTROL = "picontrol"
 HISTORICAL = "historical"
+# key to introduce a new experiment in the code = the value of the experiment in the CLI option
+TEST = "test"
