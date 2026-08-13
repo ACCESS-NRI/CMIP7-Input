@@ -12,6 +12,8 @@ from cmip7_PI import cmip7_pi_date_constraint
 
 
 def parse_args():
+    '''
+    Parse command line arguments for CMIP7 pre-industrial (PI) biomass burning emissions.'''
     parser = ArgumentParser(
         prog="cmip7_PI_Bio_interpolate",
         description=(
@@ -25,18 +27,27 @@ def parse_args():
 
 
 def load_cmip7_pi_aerosol_biomass(args, species):
+    '''
+    Load the CMIP7 pre-industrial (PI) biomass burning aerosol data for the given species and date range.
+    '''
     return load_cmip7_aerosol_biomass(
         args, species, args.dataset_date_range, cmip7_pi_date_constraint()
     )
 
 
 def load_cmip7_pi_aerosol_biomass_percentage(args, species):
+    '''
+    Load the CMIP7 pre-industrial (PI) biomass burning aerosol data for the given species and date range percentage. (It is given as a date range percentage, e.g. '175001-202312')
+    '''
     return load_cmip7_aerosol_biomass(
         args, species, args.percent_date_range, cmip7_pi_date_constraint()
     )
 
 
 if __name__ == "__main__":
+    '''
+    Interpolate CMIP7 pre-industrial (PI) biomass burning emissions to the ESM1.6 grid and save as an ancillary file.
+    '''
     args = parse_args()
 
     save_cmip7_aerosol_biomass(

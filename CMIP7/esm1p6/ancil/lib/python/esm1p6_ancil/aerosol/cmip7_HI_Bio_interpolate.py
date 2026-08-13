@@ -21,6 +21,9 @@ from cmip7_ancil_common import cmip7_date_constraint_from_years
 
 
 def parse_args():
+    '''
+    Parse command line arguments for CMIP7 historical emissions aerosol biomass burning.
+    '''
     parser = ArgumentParser(
         prog="cmip7_HI_Bio_interpolate",
         description=(
@@ -37,6 +40,9 @@ def parse_args():
 
 
 def load_cmip7_hi_aerosol_biomass(args, species):
+    '''
+    Load the CMIP7 historical emissions aerosol biomass burning data for the given species and date range.
+    '''
     return load_cmip7_aerosol_biomass_list(
         args,
         species,
@@ -49,6 +55,9 @@ def load_cmip7_hi_aerosol_biomass(args, species):
 
 
 def load_cmip7_hi_aerosol_biomass_percentage(args, species):
+    '''
+    Load the CMIP7 historical emissions aerosol biomass burning data for the given species and date range percentage. (It is given as a date range percentage, e.g. '175001-202312')
+    '''
     return load_cmip7_aerosol_biomass(
         args,
         species,
@@ -61,6 +70,9 @@ def load_cmip7_hi_aerosol_biomass_percentage(args, species):
 
 
 if __name__ == "__main__":
+    '''
+    Interpolate CMIP7 historical emissions aerosol biomass burning data to the ESM1.6 grid.
+    '''
     args = parse_args()
 
     save_cmip7_aerosol_biomass(

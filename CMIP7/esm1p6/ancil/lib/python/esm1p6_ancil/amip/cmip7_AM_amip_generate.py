@@ -1,3 +1,7 @@
+'''
+    Generate the CMIP7 AMIP ancil file.
+    This script loads the CMIP7 AMIP forcings, and then saves the ancil file in the specified directory.
+'''
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -15,6 +19,9 @@ from cmip7_ancil_ukesm import (
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 AMIP forcings.
+    '''
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ukesm_parser()],
         prog="cmip7_AM_amip_generate",
@@ -24,6 +31,8 @@ def parse_args():
 
 
 def esm_am_amip_save_dirpath(args):
+    '''
+    Return the directory path to save the ESM1.5 AMIP ancil files.'''
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -36,6 +45,9 @@ def esm_am_amip_save_dirpath(args):
 
 
 def save_cmip7_am_amip(args, cube):
+    '''
+    Save the CMIP7 AMIP ancil file.
+    '''
     # Save as an ancillary file
     save_dirpath = esm_am_amip_save_dirpath(args)
     save_ancil(
@@ -47,6 +59,9 @@ def save_cmip7_am_amip(args, cube):
 
 
 if __name__ == "__main__":
+    '''
+    Generate the CMIP7 AMIP ancil file.
+    '''
     args = parse_args()
 
     # Load the CMIP7 datasets

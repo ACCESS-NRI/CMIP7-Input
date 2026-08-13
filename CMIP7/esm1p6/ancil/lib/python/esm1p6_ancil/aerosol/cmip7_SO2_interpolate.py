@@ -1,5 +1,12 @@
-# Interpolate CMIP7 PI SO2 emissions to ESM1-6 grid
 
+'''
+    SO2 = Sulfur Dioxide.
+    Generic functions for loading and saving CMIP7 SO2 emissions data and ancillary files.
+    This module provides functions to load CMIP7 emissions SO2 data, interpolate it to the ESM1.6 grid, 
+    and save it as an ancillary file.
+    
+    save_cmip7_so2_aerosol_anthro function is used in all the CMIP7 SO2 interpolation scripts.
+'''
 import tempfile
 from os import fsdecode
 from pathlib import Path
@@ -19,8 +26,12 @@ DMS_NAME_CONSTRAINT = iris.Constraint(
     "dimethyl_sulfide_expressed_as_sulfur_due_to_emission"
 )
 
-
+# TODO: similar to the function in cmip7_SM_Bio_interpolate.py.
 def load_sector_dict(args, filepath_fn, date_range_maybe_list):
+    '''
+    Load the sector dictionary from the CMIP7 ScenarioMIP emissions SO2 data 
+    for the given date range.
+    '''
     date_range = (
         date_range_maybe_list[0]
         if isinstance(date_range_maybe_list, list)
@@ -37,7 +48,10 @@ def load_sector_dict(args, filepath_fn, date_range_maybe_list):
 
 
 def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
-    # Use the CMIP6 DMS
+    '''
+    Load the CMIP6 DMS ancillary data for the given date range.
+    DMS = Dimethyl Sulfide (sulfur emission source).
+    '''
     dms_ancil_pathname = fsdecode(dms_ancil_dirpath / args.dms_ancil_filename)
     with tempfile.TemporaryDirectory() as temp:
         dms_ancil_tempname = fsdecode(Path(temp) / args.dms_ancil_filename)
@@ -51,25 +65,37 @@ def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
 
 
 def tile_yearly_data(from_cube, to_cube):
+    '''
+    Tile the yearly data from the to_cube to match the number of years in the from_cube.
+    '''
     from_mons = from_cube.data.shape[0]
     from_years = from_mons // 12
     to_year0 = to_cube.data[0:12, :, :]
+    # Repeat the single-year DMS pattern for each year in the SO2 dataset.
     return np.tile(to_year0, (from_years, 1, 1))
 
 
 def save_cmip7_so2_aerosol_anthro(
     args, cmip7_load_fn, filepath_fn, date_range, dms_load_fn, save_dirpath
 ):
+    '''
+    Load the CMIP7 emissions SO2 data for the given date range, interpolate to the ESM1.6 grid, 
+    and save as an ancillary file.
+    '''
+    # Load the raw SO2 emissions cube from CMIP7.
     cmip7_so2 = cmip7_load_fn(args, "SO2")
 
     # Iris doesn't read the sector coordinate
     sectord = load_sector_dict(args, filepath_fn, date_range)
 
+    # Construct the high-altitude SO2 component from the Energy and Industrial sectors.
     cmip7_so2_high = (
         cmip7_so2[:, sectord["Energy"]]
         + 0.5 * cmip7_so2[:, sectord["Industrial"]]
     )
+    # Total emissions are the sum across all sectors.
     cmip7_so2_tot = cmip7_so2.collapsed(["sector"], iris.analysis.SUM)
+    # Low-altitude is the remainder after subtracting the high-altitude contribution.
     cmip7_so2_low = cmip7_so2_tot - cmip7_so2_high
 
     # For ESM1.6, factor of 0.5 to go to mass of S
@@ -80,12 +106,15 @@ def save_cmip7_so2_aerosol_anthro(
         esm_grid_mask_cube(args), INTERPOLATION_SCHEME
     )
 
+    # Fill any masked points with zero before saving.
     so2_low.data = so2_low.data.filled(0.0)
     so2_high.data = so2_high.data.filled(0.0)
 
+    # Ensure polar rows are zeroed after regridding.
     zero_poles(so2_low)
     zero_poles(so2_high)
 
+    # Attach UM STASH metadata for the low/high SO2 ancillary fields.
     so2_low.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=58
     )
@@ -94,17 +123,16 @@ def save_cmip7_so2_aerosol_anthro(
     )
 
     # Need to remove the sector coordinate before saving
-    # because high doesn't have it
+    # because high doesn't have it (so both cubes have compatible dimensions for save)
     so2_low.remove_coord("sector")
 
-    # Use the CMIP6 DMS
+    # Use the CMIP6 DMS ancillary data to tile the yearly data to match the number of years in the SO2 emissions data.
     cmip6_dms = dms_load_fn(args)
-
-    # Extend the yearly dms data
     dms_data = tile_yearly_data(so2_low, cmip6_dms)
     dms_time = so2_low.coord("time")
     dms_lat = cmip6_dms.coord("latitude")
     dms_lon = cmip6_dms.coord("longitude")
+    # Create a new cube with the same metadata as the CMIP6 DMS cube but with the tiled data.
     dms = iris.cube.Cube(
         dms_data,
         standard_name=cmip6_dms.standard_name,
@@ -119,6 +147,8 @@ def save_cmip7_so2_aerosol_anthro(
             (dms_lon, 2),
         ],
     )
+
+    # Save low/high SO2 plus the tiled DMS ancillary cube to disk.
     save_ancil(
         [so2_low, so2_high, dms],
         save_dirpath,

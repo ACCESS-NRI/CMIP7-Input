@@ -1,3 +1,7 @@
+'''
+CMIP7 ScenarioMIP emissions aerosol anthropogenic interpolation functions.
+This module provides functions to interpolate CMIP7 ScenarioMIP emissions aerosol anthropogenic data to the ESM1.6 grid.
+'''
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -15,6 +19,9 @@ from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 
 
 def parse_args(species):
+    '''
+    Parse command line arguments for CMIP7 ScenarioMIP emissions aerosol anthropogenic.
+    '''
     parser = ArgumentParser(
         prog=f"cmip7_SM_{species}_interpolate",
         description=(
@@ -29,6 +36,10 @@ def parse_args(species):
 
 
 def _anthro_dirpath(args, variable):
+    ''' 
+    Get the directory path for CMIP7 ScenarioMIP emissions aerosol anthropogenic data 
+    for the given variable.
+    '''
     return (
         Path(args.cmip7_source_data_dirname)
         / "ScenarioMIP"
@@ -43,6 +54,10 @@ def _anthro_dirpath(args, variable):
 
 
 def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
+    '''
+    Get the file path for CMIP7 ScenarioMIP emissions aerosol anthropogenic data 
+    for the given species and date range.
+    '''
     dirpath = _anthro_dirpath(args, f"{species}_em_anthro")
     filename = (
         f"{species}-em-anthro_input4MIPs_emissions_ScenarioMIP_"
@@ -53,6 +68,10 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
 
 
 def load_cmip7_sm_aerosol_anthro(args, species):
+    '''
+    Load the CMIP7 ScenarioMIP emissions aerosol anthropogenic data 
+    for the given species and date range.
+    '''
     cube = load_cmip7_aerosol(
         args,
         cmip7_sm_aerosol_anthro_filepath,
@@ -60,14 +79,21 @@ def load_cmip7_sm_aerosol_anthro(args, species):
         args.dataset_date_range,
         cmip7_date_constraint_from_years(CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR),
     )
+    # Align cube coordinates before interpolation so the grid metadata is consistent.
     fix_coords(args, cube)
+    # Fill any missing monthly values by performing per-month linear interpolation.
     interpolated = interpolate_monthly(
         cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
     )
+    # Duplicate the first and last year boundaries so the final series covers
+    # the full model period with buffered endpoints.
     return extend_years(interpolated)
 
 
 def cmip7_sm_aerosol_anthro_interpolate(args, species, stash_item):
+    '''
+    Interpolate CMIP7 ScenarioMIP emissions aerosol anthropogenic data to the ESM1.6 grid.
+    '''
     cmip7_aerosol_anthro_interpolate(
         args,
         load_cmip7_sm_aerosol_anthro,

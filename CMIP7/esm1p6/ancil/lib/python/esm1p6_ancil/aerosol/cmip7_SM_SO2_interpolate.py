@@ -1,5 +1,8 @@
-# Interpolate CMIP7 HI SO2 emissions to ESM1.6 grid
-
+'''
+    Interpolate CMIP7 ScenarioMIP SO2 emissions to ESM1.6 grid.
+    This module provides a function to interpolate CMIP7 ScenarioMIP SO2 emissions data to the ESM1.6 grid.
+    SO2 = Sulfur Dioxide.
+'''
 from argparse import ArgumentParser
 
 from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_ancil_dirpath
@@ -21,6 +24,9 @@ from cmip7_PI import fix_esm15_pi_ancil_date
 
 
 def parse_args():
+    '''
+    Parse command line arguments for CMIP7 ScenarioMIP emissions SO2.
+    '''
     parser = ArgumentParser(
         prog="cmip7_SM_SO2_interpolate",
         description=(
@@ -36,12 +42,18 @@ def parse_args():
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
-
+# TODO: Is it okay to not define this function?
 def load_cmip7_sm_so2_aerosol_anthro(args, species):
+    '''
+    Load the CMIP7 ScenarioMIP emissions SO2 aerosol anthropogenic data for the given species and date range.
+    '''
     return load_cmip7_sm_aerosol_anthro(args, species)
 
 
 def load_sm_dms(args):
+    '''
+    Load the CMIP6 DMS ancillary data for the given date range.
+    '''
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
         esm_pi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)
@@ -52,6 +64,9 @@ def load_sm_dms(args):
 
 
 if __name__ == "__main__":
+    '''
+    Interpolate CMIP7 ScenarioMIP SO2 emissions to ESM1.6 grid.
+    '''
     args = parse_args()
 
     save_cmip7_so2_aerosol_anthro(

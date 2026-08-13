@@ -1,3 +1,8 @@
+'''
+    Load the CMIP7 greenhouse gas series and update the namelist file.
+    This module provides functions to load the CMIP7 greenhouse gas series for each greenhouse gas, and then update the namelist file with the loaded data.
+'''
+
 from collections import OrderedDict
 from pathlib import Path
 
@@ -16,6 +21,9 @@ from ghg.cmip7_ghg import (
 
 
 def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
+    '''
+    Load the CMIP7 greenhouse gas mass mixing ratio for the given greenhouse gas, between the specified years.
+    '''
     dirpath = cmip7_ghg_dirpath(args, activity, ghg)
     filename = cmip7_ghg_filename(args, activity, ghg)
     cmip7_filepath = dirpath / filename

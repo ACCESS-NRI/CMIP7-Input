@@ -1,5 +1,14 @@
 # Interpolate CMIP7 SM Biomass burning emissions to ESM1.6 grid
 
+"""Command-line helper for ScenarioMIP biomass burning aerosol interpolation.
+
+This module drives the CMIP7 ScenarioMIP aerosol biomass-burning workflow for
+ESM1.6. It assembles file paths, loads BC/OC emission datasets, partitions low
+and high injection height emissions, regrids the results to the target model
+grid, cleans pole values, labels output STASH metadata, and writes UM ancillary
+files.
+"""
+
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
@@ -25,6 +34,9 @@ from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
 
 
 def parse_args():
+    '''
+    Parse command line arguments for CMIP7 ScenarioMIP aerosol biomass burning.
+    '''
     parser = ArgumentParser(
         prog="cmip7_SM_Bio_interpolate",
         description=(
@@ -39,10 +51,16 @@ def parse_args():
 
 
 def _biomass_variable(species):
+    '''
+    Return the variable name for the given species in the CMIP7 ScenarioMIP biomass burning dataset.
+    '''
     return f"{species}-em-openburning"
 
 
 def _biomass_dirpath(args, species):
+    '''
+    Return the directory path to the CMIP7 ScenarioMIP biomass burning aerosol emissions data for the given species.
+    '''
     return (
         Path(args.cmip7_source_data_dirname)
         / "ScenarioMIP"
@@ -57,6 +75,10 @@ def _biomass_dirpath(args, species):
 
 
 def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
+    '''
+    Return the file path to the CMIP7 ScenarioMIP biomass burning aerosol 
+    emissions data for the given species and date range.
+    '''
     dirpath = _biomass_dirpath(args, species)
     filename = (
         f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
@@ -67,6 +89,13 @@ def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
 
 
 def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
+    """
+    Load ScenarioMIP biomass-burning aerosol data and fill missing ocean values.
+
+    This loader reads BC or OC emissions from the CMIP7 ScenarioMIP dataset,
+    applies the requested time constraint, and fills missing data over oceans
+    with zero because the model expects full global coverage.
+    """
     cube = load_cmip7_aerosol(
         args, cmip7_sm_aerosol_biomass_filepath, species, date_range, constraint
     )
@@ -77,6 +106,14 @@ def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
 
 
 def load_sector_dict(args, filepath_fn):
+    """
+    Read the ScenarioMIP sector mapping from the input file metadata.
+
+    The ScenarioMIP biomass burning dataset stores sector information in a
+    text attribute rather than a standard Iris coordinate, so this function
+    opens the NetCDF file with netCDF4 and converts the sector list into a
+    lookup dictionary.
+    """
     # Iris doesn't read the sector coordinate so use netCDF4
     date_range = args.dataset_date_range
     d = netCDF4.Dataset(filepath_fn(args, "BC", date_range))
@@ -88,6 +125,8 @@ def load_sector_dict(args, filepath_fn):
     return sectord
 
 
+# When True, force load the low/high cubes so timing and memory behavior can
+# be observed before expensive regridding and saving.
 force_load = True
 
 
@@ -133,26 +172,41 @@ def split_sm_low_high(bc_cube, oc_cube, sector_dict):
 
 
 def save_cmip7_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
+    """
+    Load, process and save ScenarioMIP biomass burning low/high aerosol fields.
+
+    This function drives the full biomass burning ancillary creation path. It
+    loads BC and OC emissions, partitions them into low- and high-altitude
+    injection categories, regrids the results to the ESM1.6 grid, zeros the
+    pole rows, attaches the correct STASH metadata, and writes the ancillary
+    files to the output directory.
+    """
+    # Load the raw BC and OC biomass burning cubes using the provided loader.
     bc = load_fn(args, "BC")
     oc = load_fn(args, "OC")
 
+    # Load the sector mapping required to partition the data into low/high.
     sector_dict = load_sector_dict(args, filepath_fn)
 
+    # Split the loaded species into bulk low-level and high-level emission fields.
     low, high = split_sm_low_high(bc, oc, sector_dict)
 
     if force_load:
+        # Force data evaluation now so timing/memory behavior is visible before
+        # expensive regridding and saving operations.
         _ = low.data
         _ = high.data
         now = datetime.now()
         print(f"{now}: LO, HI done")
 
-    # Regrid requires matching coordinate systems
+    # Regridding requires matching coordinate systems.
     set_coord_system(low)
     set_coord_system(high)
 
     now = datetime.now()
     print(f"{now}: set_coord_system done")
 
+    # Regrid each split field to the target ESM1.6 grid using the shared scheme.
     esm_grid_mask = esm_grid_mask_cube(args)
     low_esm = low.regrid(esm_grid_mask, INTERPOLATION_SCHEME)
     high_esm = high.regrid(esm_grid_mask, INTERPOLATION_SCHEME)
@@ -160,12 +214,14 @@ def save_cmip7_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
     now = datetime.now()
     print(f"{now}: regrid done")
 
+    # Zero any polar rows.
     zero_poles(low_esm)
     zero_poles(high_esm)
 
     now = datetime.now()
     print(f"{now}: zero_poles done")
 
+    # Attach UM STASH metadata so the saved ancillary fields are labeled correctly.
     low_esm.attributes["STASH"] = iris.fileformats.pp.STASH(
         model=1, section=0, item=130
     )
@@ -173,6 +229,7 @@ def save_cmip7_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
         model=1, section=0, item=131
     )
 
+    # Write both output fields to the destination directory.
     save_ancil([low_esm, high_esm], save_dirpath, args.save_filename)
 
     now = datetime.now()
@@ -180,6 +237,16 @@ def save_cmip7_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
 
 
 def load_cmip7_sm_aerosol_biomass(args, species):
+    """
+    Load and prepare ScenarioMIP biomass burning aerosol input for interpolation.
+
+    This wrapper loads the requested species cube with the ScenarioMIP time
+    constraint for the ScenarioMIP time window, performs monthly interpolation
+    to fill gaps, and extends the time series by duplicating the first and
+    last year boundaries.
+
+    """
+    # Load the selected CMIP7 biomass burning aerosol cube using the SM time constraint.
     cube = load_cmip7_aerosol_biomass(
         args,
         species,
@@ -189,13 +256,20 @@ def load_cmip7_sm_aerosol_biomass(args, species):
             CMIP7_SM_END_YEAR,
         ),
     )
+
+    # Fill any missing monthly values by linear interpolation for each month.
     interpolated = interpolate_monthly(
         cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
     )
+
+    # Extend the series by duplicating the first and last year.
     return extend_years(interpolated)
 
 
 if __name__ == "__main__":
+    '''
+    Interpolate CMIP7 ScenarioMIP biomass burning emissions to ESM1.6 grid.
+    '''
     args = parse_args()
 
     save_cmip7_aerosol_biomass(

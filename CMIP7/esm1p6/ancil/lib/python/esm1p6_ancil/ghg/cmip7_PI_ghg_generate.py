@@ -1,3 +1,8 @@
+'''
+    Modify the CMIP7 pre-industrial greenhouse gas namelist.
+    This script loads the CMIP7 pre-industrial greenhouse gas series for each greenhouse gas, and then updates the namelist file with the loaded data.
+'''
+
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -15,6 +20,9 @@ from ghg.cmip7_ghg import (
 
 
 def parse_args():
+    '''
+    Parse the command line arguments for CMIP7 pre-industrial greenhouse gas namelist modification.
+    '''
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
         prog="cmip7_PI_ghg_generate",
@@ -28,6 +36,9 @@ def parse_args():
 
 
 def load_cmip7_pi_ghg_mmr(args, ghg):
+    '''
+    Load the CMIP7 pre-industrial greenhouse gas mass mixing ratio for the given greenhouse gas.
+    '''
     dirpath = cmip7_ghg_dirpath(args, "CMIP", ghg)
     filename = cmip7_ghg_filename(args, "CMIP", ghg)
     cmip7_filepath = dirpath / filename
@@ -53,6 +64,8 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     """
     Patch the greenhouse gas variables in the RUN_Radiation namelist
     """
+
+    # Define the mapping from greenhouse gas names to namelist variable names
     GHG_PI_NAME = {
         "co2": "CO2_MMR",
         "n2o": "N2OMMR",
@@ -66,6 +79,7 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     }
 
     namelist_dict = dict()
+    # Patch the greenhouse gas variables in the RUN_Radiation namelist. Example: namelist_dict["CO2_MMR"] = ghg_mmr_dict["co2"]
     for ghg in ghg_mmr_dict:
         namelist_dict[GHG_PI_NAME[ghg]] = ghg_mmr_dict[ghg]
     patch = {"RUN_Radiation": namelist_dict}
@@ -94,8 +108,13 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
 
 
 if __name__ == "__main__":
+    '''
+    Modify the CMIP7 pre-industrial greenhouse gas namelist.
+    '''
+    # Parse the command line arguments
     args = parse_args()
 
+    # Load the CMIP7 pre-industrial greenhouse gas mass mixing ratios for each greenhouse gas
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
         ghg_mmr_dict[ghg] = load_cmip7_pi_ghg_mmr(args, ghg)

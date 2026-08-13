@@ -1,5 +1,8 @@
-# Interpolate CMIP7 PI SO2 emissions to ESM1.6 grid
-
+'''
+CMIP7 pre-industrial (PI) emissions aerosol SO2 interpolation functions.
+This module provides a function to interpolate CMIP7 pre-industrial (PI) emissions SO2 data to the ESM1.6 grid.
+SO2 = Sulfur Dioxide.
+'''
 from argparse import ArgumentParser
 
 from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
@@ -19,6 +22,9 @@ PI_DMS_ANCIL_FILENAME = "scycl_1850_ESM1_v4.anc"
 
 
 def parse_args():
+    ''' 
+    Parse command line arguments for CMIP7 pre-industrial (PI) SO2.
+    '''
     parser = ArgumentParser(
         prog="cmip7_PI_SO2_interpolate",
         description=(
@@ -35,6 +41,9 @@ def parse_args():
 
 
 def load_pi_dms(args):
+    '''
+    Load the CMIP6 pre-industrial (PI) DMS ancillary data for the given date range.
+    '''
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
         esm_pi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)
@@ -45,6 +54,9 @@ def load_pi_dms(args):
 
 
 if __name__ == "__main__":
+    '''
+    Interpolate CMIP7 pre-industrial (PI) SO2 data to the ESM1.6 grid and save as an ancillary file.
+    '''
     args = parse_args()
 
     save_cmip7_so2_aerosol_anthro(

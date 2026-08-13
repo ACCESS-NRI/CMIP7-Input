@@ -1,3 +1,6 @@
+'''
+CMIP7 historical emissions aerosol anthropogenic functions
+'''
 from argparse import ArgumentParser
 from ast import literal_eval
 
@@ -16,6 +19,9 @@ from cmip7_ancil_common import cmip7_date_constraint_from_years
 
 
 def parse_args(species):
+    '''
+    Parse command line arguments for CMIP7 historical emissions aerosol anthropogenic.
+    '''
     parser = ArgumentParser(
         prog=f"cmip7_HI_{species}_interpolate",
         description=(
@@ -34,6 +40,8 @@ def load_cmip7_hi_aerosol_air_anthro(
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
 ):
+    '''
+    Load the CMIP7 historical emissions aerosol anthropogenic air data for the given species and date range.'''
     return load_cmip7_aerosol_air_anthro_list(
         args,
         species,
@@ -48,6 +56,9 @@ def load_cmip7_hi_aerosol_anthro(
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
 ):
+    '''
+    Load the CMIP7 historical emissions aerosol anthropogenic data for the given species and date range.
+    '''
     return load_cmip7_aerosol_anthro_list(
         args,
         species,
@@ -57,6 +68,8 @@ def load_cmip7_hi_aerosol_anthro(
 
 
 def cmip7_hi_aerosol_anthro_interpolate(args, species, stash_item):
+    '''
+    Interpolate CMIP7 historical emissions aerosol anthropogenic data to the ESM1.6 grid.'''
     cmip7_aerosol_anthro_interpolate(
         args,
         load_cmip7_hi_aerosol_anthro,
