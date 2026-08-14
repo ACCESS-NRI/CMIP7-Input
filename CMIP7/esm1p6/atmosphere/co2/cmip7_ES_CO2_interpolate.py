@@ -28,6 +28,8 @@ def parse_args():
         ),
         parents=[common_parser()],
     )
+    parser.add_argument("--dataset-air-version")
+    parser.add_argument("--dataset-air-vdate")
     parser.add_argument("--scenario")
     parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
