@@ -1,3 +1,7 @@
+'''
+    This contains all the common functions for generating the ESM1.5 scenarioMIP forcing ancil files.
+    Originally it is the CMIP7_SM.py
+'''
 from pathlib import Path
 
 from cmip7_inputs.core.context import GenerationRequest

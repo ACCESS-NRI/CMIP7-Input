@@ -4,6 +4,8 @@ Importing this package registers all of ACCESS-ESM1.6's solar
 generators.
 """
 
+"""In here I compiled the cmip7_HI_solar_generate.py, cmip7_PI_solar_generate.py and cmip7_SM_solar_generate.py into one file."""
+
 # TODO: Maybe historical and scenarioMIP should be combined into one function 
 # with a parameter for the experiment type. 
 # The only difference is the directory path and the years to save.

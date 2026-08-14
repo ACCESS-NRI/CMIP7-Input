@@ -1,4 +1,7 @@
-
+'''
+    This contains all the common functions for generating the ESM1.5 historical forcing ancil files.
+    Originally it is the CMIP7_HI.py
+'''
 from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.models.access_esm1p6.generators._constants import ANCIL_TODAY
 from pathlib import Path
