@@ -1,49 +1,26 @@
-> [!IMPORTANT] 
-> This repository is temporary and is a private copy of the public [CMIP7-Input](https://github.com/ACCESS-NRI/CMIP7-Input) public repository. 
-> It was created to allow porting on GitHub the CMIP7 workflow, which might have licensing issue being added directly to a public GitHub repository. 
-> Once the potential licensing issues have been sorted out and the CMIP7 inputs workflow is added to the CMIP7-Input public repository, this repository can be deleted.
-> For further information about this repo, please check the public [CMIP7-Input](https://github.com/ACCESS-NRI/CMIP7-Input) repo.
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 
+# CMIP7-Input: Code and documentation for ACCESS CMIP7 forcings and input files
 
-# cmip7_inputs
-Generate a CMIP7 input file for a given model, experiment and input name.
+This repository is intended for code and documentation related to the input data used by the ACCESS models used for CMIP7, notably [ACCESS-ESM1.6](https://github.com/ACCESS-NRI/access-esm1.6-configs) and [ACCESS-CM3](https://github.com/ACCESS-NRI/cm3-suite). This includes code and documentation related to transformations applied to [CMIP7 forcing files](https://wcrp-cmip.org/cmip7-task-teams/forcings/) to produce model input files for each CMIP7 experiment.
 
-## Development
+## Development strategies
+NOTE: The following development strategies are suggestions, subject to discussion and confirmation
 
-### How to install
-To install a development version of the package, we suggest using `micromamba`.
+### Suggested code strategy
 
-After [installing micromamba](https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html), from this repo's root directory run the following command:
+As much code as possible would be developed via this GitHub repository. The main exceptions would be the code and suites currently developed via [MOSRS](https://code.metoffice.gov.uk/) repositories such as [ANTS](https://code.metoffice.gov.uk/doc/ancil/ants/2.0/index.html), [the ANCIL Contrib project](https://code.metoffice.gov.uk/trac/ancil/browser/contrib/trunk/), Rose/Cylc suites, and Rose Stem tests. These would initially be developed via [contributing](https://code.metoffice.gov.uk/doc/ancil/ants/2.0/contributing.html) to the relevant MOSRS repository according to [current ANTS working practices](https://code.metoffice.gov.uk/trac/ancil/wiki/ANTS/WorkingPractices) and would be migrated to GitHub when appropriate. The GitHub Continuous Integration infrastructure for such MOSRS code would be developed in parallel with the code development via MOSRS.
 
-```
-micromamba create -n cmip7_inputs python==3.11 -y
-micromamba activate cmip7_inputs
-python -m pip install .[dev]
-```
+### Suggested documentation strategy
 
-### Run tests
-Run tests with:
-```
-micromamba run -n cmip7_inputs pytest
-```
+Similarly, as much documentation as possible would be contained in the Wiki for this repository, then published to other locations when appropriate. The main exception would be documentation that describes some of the internal workings of some UK Met Office and Momentum Partnership projects, such as [the ANCIL project](https://code.metoffice.gov.uk/trac/ancil), [the UK CMIP6 project](https://code.metoffice.gov.uk/trac/ukcmip6), and [the UKESM project](https://code.metoffice.gov.uk/trac/UKESM).  In this case, only a top-level description would be given in the Wiki for this repository, with details in an appropriate MOSRS project Wiki.  
 
-### How it works
-- `cmip7_inputs/core/context.py::GenerationRequest` carries model, experiment, input_name, output_dir, and an open options dict for generator-specific kwargs.
-- `cmip7_inputs/core/registry.py::GenerationRegistry` maps `(model, input_name, experiment) -> generator`, populated via the `@registry.register(...)` decorator as an import side effect (nothing registered by hand centrally). Passing `experiments=[...]` registers for specific experiments (letting several experiments share one generator); `experiments=None` registers a default fallback for any experiment.
-- `generate_inputs(model=..., experiment=..., input_name=..., output_dir=..., **options)` is the internal entry point function. It resolves the generator and calls it.
-- The CLI (`cmip7-inputs -m ... -e ... -n ... -o ...  [-O KEY=VALUE [...]]`) wraps `generate_inputs`, plus a repeatable `-O KEY=VALUE` flag for generator-specific options.
+## Suggested project plan outline with major milestones
 
-### Adding a new model/experiment/input_name
-**New model**
-1. Add a new subpackage under `models/` (e.g., `models/my_new_model/__init__.py`);
-2. In the new model subpackage `__init__.py` add the `MODEL_ID` and import its generators;
-3. Import the model from the `models/__init__.py`.
+1. Document the correspondence between CMIP6 DECK forcings and ESM1.5 or ESM1.6 input files.
+2. CMIP6 and CMIP7 DECK ancillary suite for ACCESS-ESM1.6, using updated Python scripts for ancillary generation.
+3. CMIP7 DECK ancillary suite for ACCESS-*M3.
+4. CMIP7 ancillary suite for CMIP7 MIPs for ACCESS-ESM1.6.
+5. CMIP7 ancillary suite for CMIP7 MIPs for ACCESS-*M3.
 
-**New input_name**
-1. For a specific model, add a new module under its generators (e.g., `models/access_esm1p6/generators/my_new_input/__init__.py`) where you define all its generator functions;
-2. Add a new `<INPUT_NAME_KEY> = "<input_name>"` line in `input_names.py`. The `<INPUT_NAME_KEY>` is used when registering a generator function with that input_name. The `<input_name>` is the value accepted by the `--input_name`/`-n` CLI option;
-3. Import the input_name from the `models/<model>/generators/__init__.py`.
-
-**New experiment**
-1. Add a new `<EXPERIMENT_KEY> = "<experiment_name>"` line in `experiments.py`. The `<EXPERIMENT_KEY>` is used when registering a generator function with that experiment. The `<experiment_name>` is the value accepted by the `--experiment`/`-e` CLI option;
-2. For a specific model and input_name, add the `<EXPERIMENT_KEY>` to any generator function who should be associated with that experiment (or create a new one) in `models/<model>/generators/<input_name>/__init__.py`.
+Each of these milestones is to be broken down into goals, subgoals, and project items.
