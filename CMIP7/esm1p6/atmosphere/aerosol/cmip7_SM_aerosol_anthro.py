@@ -65,7 +65,6 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
         args.dataset_vdate,
         f"{species}_em_anthro"
     )
-    dirpath = _anthro_dirpath(args, f"{species}_em_anthro")
     filename = (
         f"{species}-em-anthro_input4MIPs_emissions_ScenarioMIP_"
         f"{args.dataset_version}_gn_"
