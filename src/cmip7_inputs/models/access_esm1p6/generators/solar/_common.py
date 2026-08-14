@@ -1,10 +1,12 @@
 """Shared helpers for ACCESS-ESM1.6 solar generators."""
 
+"""Contains the functions originally in cmip7_solar.py"""
+
 from __future__ import annotations
 
 from pathlib import Path
 
-#import iris
+import iris
 import numpy as np
 
 from cmip7_inputs.core.context import GenerationRequest
