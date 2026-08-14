@@ -11,3 +11,4 @@ option and used as keys when registering generators.
 # The <input_name_value> is the value accepted by the
 # `--input_name`/`-n` CLI option.
 SOLAR = "solar"
+VOLCANIC = "volcanic"
