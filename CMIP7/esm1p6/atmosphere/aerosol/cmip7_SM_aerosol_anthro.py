@@ -48,7 +48,7 @@ def cmip7_sm_aerosol_air_anthro_filepath(args, species, date_range):
         args.cmip7_source_data_dirname,
         args.dataset_air_version,
         args.dataset_air_vdate,
-        f"{species}_em_AIR_anthro"
+        f"{species}_em_AIR_anthro",
     )
     filename = (
         f"{species}-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_"
@@ -63,7 +63,7 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
         args.cmip7_source_data_dirname,
         args.dataset_version,
         args.dataset_vdate,
-        f"{species}_em_anthro"
+        f"{species}_em_anthro",
     )
     filename = (
         f"{species}-em-anthro_input4MIPs_emissions_ScenarioMIP_"
