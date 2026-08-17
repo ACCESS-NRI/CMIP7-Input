@@ -790,8 +790,16 @@
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
               python_env python \
                   -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n solar \
-                  -o {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }} \
-                  -O dataset-date-range={{quote(CMIP7_HI_SOLAR_DATE_RANGE)}}
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+                  -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
+                  -O esm15_grid_version={{ quote(ESM15_GRID_VERSION) }} \
+                  -O save_filename={{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }} \
+                  -O dataset_version={{ quote(CMIP7_SOLAR_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_SOLAR_VDATE) }} \
+                  -O dataset_date_range={{quote(CMIP7_HI_SOLAR_DATE_RANGE)}}
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
               python_env python \
