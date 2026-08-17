@@ -791,7 +791,7 @@
               python_env python \
                   -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n solar \
                   -o {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }} \
-                  -O 'dataset-date-range={{quote(CMIP7_HI_SOLAR_DATE_RANGE)}}'
+                  -O dataset-date-range={{quote(CMIP7_HI_SOLAR_DATE_RANGE)}}
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
               python_env python \
@@ -801,16 +801,6 @@
                   --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
                   --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
             {% endif %}
-              python_env python \
-                  -m solar.cmip7_{{EXP}}_solar_generate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_SOLAR_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }}
-                  {% endif %}
               """
       {% endif %}
     {% endif %}
