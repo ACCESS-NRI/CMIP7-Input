@@ -58,7 +58,7 @@ def generate_solar_historical(request: GenerationRequest):
     model: ACCESS-ESM1.6
     experiment: historical
     """
-    args = cmip7_hi_parse_args()
+    args = cmip7_hi_parse_args(request)
 
     dirpath = cmip7_solar_dirpath(args, "CMIP", "mon")
     filename = (
