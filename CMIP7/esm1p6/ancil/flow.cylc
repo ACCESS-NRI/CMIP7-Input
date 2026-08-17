@@ -215,7 +215,7 @@
         inherit = CMIP7, ANTS
 
         [[[environment]]]
-            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/esm1p6_ancil:${PYTHONPATH}
+            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python:${CYLC_WORKFLOW_RUN_DIR}/lib/python/esm1p6_ancil:${PYTHONPATH}
 
     [[UKESM_ANCIL]]
         inherit = CMIP7, ANTS
@@ -788,8 +788,18 @@
           script = """
             {% if EXP == "HI" %}
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n solar \
+                  -o {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }} \
+                  -O 'dataset-date-range={{quote(CMIP7_HI_SOLAR_DATE_RANGE)}}'
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
+              python_env python \
+                  -m solar.cmip7_{{EXP}}_solar_generate \
+                  {{ PATH_ARGS }}
+                  {{ GRID_ARGS }}
+                  --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
+                  --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
             {% endif %}
               python_env python \
                   -m solar.cmip7_{{EXP}}_solar_generate \
