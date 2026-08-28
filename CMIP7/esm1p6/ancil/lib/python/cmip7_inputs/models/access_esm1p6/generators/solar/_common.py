@@ -5,14 +5,12 @@ Contains the functions originally in cmip7_solar.py
 """
 
 from __future__ import annotations
-from argparse import Namespace
 
 from pathlib import Path
 
 import iris
 import numpy as np
 
-from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.models.access_esm1p6.generators._common_PI import CMIP7_PI_YEAR
 from cmip7_inputs.models.access_esm1p6.generators._constants import REAL_MISSING_DATA_INDICATOR
 
@@ -21,12 +19,6 @@ SOLAR_ARRAY_BEG_YEAR = 1700
 SOLAR_ARRAY_END_YEAR = 2300
 SOLAR_PI_DEFAULT_YEAR_MEAN = 1361.603
 
-def cmip7_parse_args(request: GenerationRequest) -> Namespace:
-    '''
-    Parse the command line arguments for CMIP7 historical
-    solar ancil file generation.
-    '''
-    return Namespace(**request.options)
 
 def cmip7_solar_dirpath(args, activity, period)->Path:
     '''

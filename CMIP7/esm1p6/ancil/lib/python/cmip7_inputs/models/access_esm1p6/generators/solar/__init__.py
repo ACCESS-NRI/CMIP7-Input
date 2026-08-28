@@ -17,12 +17,7 @@ from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.core.registry import registry
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
-from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
-    cmip7_solar_dirpath,
-    load_cmip7_solar_cube,
-    cmip7_solar_save,
-    cmip7_parse_args
-)
+from cmip7_inputs.models.access_esm1p6.generators._common import cmip7_parse_args
 
 from cmip7_inputs.models.access_esm1p6.generators._common_HI import (
     CMIP7_HI_BEG_YEAR,
@@ -31,6 +26,14 @@ from cmip7_inputs.models.access_esm1p6.generators._common_HI import (
 )
 
 from cmip7_inputs.models.access_esm1p6.generators._common_SM import esm_sm_forcing_save_dirpath
+
+from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
+    cmip7_solar_dirpath,
+    load_cmip7_solar_cube,
+    cmip7_solar_save
+)
+
+
 
 # TODO: Maybe historical and scenarioMIP should be combined into one function 
 # with a parameter for the experiment type. 
@@ -43,11 +46,6 @@ from cmip7_inputs.models.access_esm1p6.generators._common_SM import esm_sm_forci
 # ------------------------------------------------------
 # ------------------- PI CONTROL -----------------------
 # ------------------------------------------------------
-@registry.register(
-    model=MODEL_ID,
-    input_name=input_names.SOLAR,
-    experiments=[experiments.PI_CONTROL, experiments.TEST],
-)
 def cmip7_pi_solar_patch(solar_irradiance):
     """
     Patch the SC variable in the coupling namelist
@@ -75,6 +73,11 @@ def cmip7_pi_solar_patch(solar_irradiance):
     # Replace the original namelist
     new_namelist_filepath.replace(pi_solar_namelist_filepath)
 
+@registry.register(
+    model=MODEL_ID,
+    input_name=input_names.SOLAR,
+    experiments=[experiments.PI_CONTROL],
+)
 def generate_solar_picontrol(request: GenerationRequest) :
     """Generate solar forcing input file for:
     model: ACCESS-ESM1.6

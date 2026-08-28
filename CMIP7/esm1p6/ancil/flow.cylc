@@ -803,11 +803,15 @@
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
               python_env python \
-                  -m solar.cmip7_{{EXP}}_solar_generate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n solar \
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+                  -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
+                  -O esm15_grid_version={{ quote(ESM15_GRID_VERSION) }} \
+                  -O dataset_version={{ quote(CMIP7_SOLAR_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_SOLAR_VDATE) }} 
             {% endif %}
               """
       {% endif %}
