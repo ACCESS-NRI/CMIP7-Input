@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 
-from cmip7_inputs.core.dispatch import generate_inputs
+from cmip7_inputs_old.core.dispatch import generate_inputs
 
 
 def _parse_option(raw: str) -> tuple[str, str]:

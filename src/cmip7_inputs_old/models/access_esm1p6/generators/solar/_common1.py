@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cmip7_inputs.core.context import GenerationRequest
+from cmip7_inputs_old.core.context import GenerationRequest
 
 
 def write_mock_solar_file(request: GenerationRequest) -> Path:

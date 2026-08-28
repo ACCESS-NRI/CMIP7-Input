@@ -8,11 +8,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from cmip7_inputs import experiments, input_names
-from cmip7_inputs.core.context import GenerationRequest
-from cmip7_inputs.core.registry import registry
-from cmip7_inputs.models.access_esm1p6 import MODEL_ID
-from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
+from cmip7_inputs_old import experiments, input_names
+from cmip7_inputs_old.core.context import GenerationRequest
+from cmip7_inputs_old.core.registry import registry
+from cmip7_inputs_old.models.access_esm1p6 import MODEL_ID
+from cmip7_inputs_old.models.access_esm1p6.generators.solar._common1 import (
     write_mock_solar_file,
 )
 
