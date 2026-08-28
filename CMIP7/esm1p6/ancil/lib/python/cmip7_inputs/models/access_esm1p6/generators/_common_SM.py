@@ -4,7 +4,6 @@
 '''
 from pathlib import Path
 
-from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.models.access_esm1p6.generators._constants import ANCIL_TODAY
 
 CMIP7_SM_BEG_YEAR = 2022

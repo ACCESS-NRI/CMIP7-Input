@@ -1,16 +1,12 @@
-from __future__ import annotations
-
-"""ACCESS-ESM1.6 solar forcing generators.
+"""
+ACCESS-ESM1.6 solar forcing generators.
 
 Importing this package registers all of ACCESS-ESM1.6's solar
 generators.
+
+In here I compiled the cmip7_HI_solar_generate.py, cmip7_PI_solar_generate.py and cmip7_SM_solar_generate.py into one file.
 """
-
-"""In here I compiled the cmip7_HI_solar_generate.py, cmip7_PI_solar_generate.py and cmip7_SM_solar_generate.py into one file."""
-
-# TODO: Maybe historical and scenarioMIP should be combined into one function 
-# with a parameter for the experiment type. 
-# The only difference is the directory path and the years to save.
+from __future__ import annotations
 
 import f90nml
 
@@ -35,6 +31,10 @@ from cmip7_inputs.models.access_esm1p6.generators._common_HI import (
 )
 
 from cmip7_inputs.models.access_esm1p6.generators._common_SM import esm_sm_forcing_save_dirpath
+
+# TODO: Maybe historical and scenarioMIP should be combined into one function 
+# with a parameter for the experiment type. 
+# The only difference is the directory path and the years to save.
 
 # These two are inputs from the CLI and are located in the variables.cylc file
 #CMIP7_SOURCE_PATH = '/g/data/qv56/replicas/input4MIPs/CMIP7'
