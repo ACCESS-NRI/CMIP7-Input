@@ -1,18 +1,25 @@
-'''
+"""
 CMIP7 Volcanic Ancil File Utilities.
 This module contains functions for processing CMIP7 volcanic ancil files.
 The functions are used by the CMIP7 volcanic ancil file processing scripts.
 The functions include:
-- cmip7_volcanic_dirpath: Return the directory path for the CMIP7 volcanic ancil file.
+- cmip7_volcanic_dirpath: Return the directory path for the CMIP7 volcanic ancil
+  file.
 - constrain_to_wavelength: Constrain to just the prescribed wavelength.
 - mean_over_latitudes: Find the mean over all latitude bands, weighted by area.
-- sum_over_height_layers: Calculate the stratospheric aerosol optical depth by summing over stratospheric layers, weighted by layer height.
+- sum_over_height_layers: Calculate the stratospheric aerosol optical depth by
+  summing over stratospheric layers, weighted by layer height.
 - constrain_to_year_month: Constrain to a given year and month.
 - constrain_to_latitude_band: Constrain to one of four equal latitude bands
-- taper_saod: Interpolate between the saod values in saod_for_beg_year and saod_for_end_year.
-- save_year_tapered_saod: Save one year's worth of interpolated saod values in save_file.
-- save_stratospheric_aerosol_optical_depth: Calculate the average stratospheric aerosol optical depth (SAOD) for each historical month by averaging extinction over latitude, and summing over stratospheric layers.
-'''
+- taper_saod: Interpolate between the saod values in saod_for_beg_year and saod
+ _for_end_year.
+- save_year_tapered_saod: Save one year's worth of interpolated saod values in
+  save_file.
+- save_stratospheric_aerosol_optical_depth: Calculate the average stratospheric
+  aerosol optical depth (SAOD) for each historical month by averaging extinction
+  over latitude, and summing over stratospheric layers.
+"""
+
 from pathlib import Path
 
 import cftime
@@ -29,12 +36,17 @@ SAOD_WAVELENGTH = 550.0 * 1e-9
 # Scaling ratio to use with calculated SAOD
 SAOD_SCALING = 10000.0
 
+
 def cmip7_volcanic_dirpath(
-    args, activity, period, dataset_version, dataset_vdate,
+    args,
+    activity,
+    period,
+    dataset_version,
+    dataset_vdate,
 ):
-    '''
+    """
     Return the directory path for the CMIP7 volcanic ancil file.
-    '''
+    """
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -135,7 +147,10 @@ def taper_saod(
     # Create the interpolation ratios for the taper window.
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
-        # Step the ratio from 0 to 1 over the NBR_TAPER_YEARS years after the volcanic event.
+        """
+        Step the ratio from 0 to 1 over the NBR_TAPER_YEARS years
+        after the volcanic event.
+        """
         ratio_array[index] = (index + 1) / float(NBR_TAPER_YEARS)
     ratio_endpoints = np.array([0.0, 1.0])
     for month_m1 in range(MONTHS_IN_A_YEAR):
@@ -174,13 +189,30 @@ def save_year_tapered_saod(
         print(file=save_file)
 
 
+def print_early_saod(volcanic_beg_year, save_file, pi_mean_saod):
+    """
+    Print the PI average SOAD for all years before volcanic_beg_year
+    """
+    for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
+        for month in range(1, MONTHS_IN_A_YEAR + 1):
+            print(f"{year:4d} {month:4d}", end="", file=save_file)
+            # Divide into latitude bands.
+            for lat_band_nbr in range(NBR_OF_BANDS):
+                print(
+                    f"{pi_mean_saod:7.1f}",
+                    end="",
+                    file=save_file,
+                )
+            print(file=save_file)
+
+
 def save_stratospheric_aerosol_optical_depth(
     args,
     volcanic_beg_year,
     volcanic_end_year,
     dataset_path,
     save_dirpath,
-    pi_mean_saod=None
+    pi_mean_saod=None,
 ):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
@@ -205,18 +237,9 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Print the PI average SOAD for all years before volcanic_beg_year.
-        if volcanic_beg_year > SAOD_BEG_YEAR:
-            for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
-                for month in range(1, MONTHS_IN_A_YEAR + 1):
-                    print(f"{year:4d} {month:4d}", end="", file=save_file)
-                    # Divide into latitude bands.
-                    for lat_band_nbr in range(NBR_OF_BANDS):
-                        print(
-                            f"{pi_mean_saod:7.1f}",
-                            end="",
-                            file=save_file,
-                        )
-                    print(file=save_file)
+        if volcanic_beg_year > SAOD_BEG_YEAR and pi_mean_saod is not None:
+            print_early_saod(volcanic_beg_year, save_file, pi_mean_saod)
+
         # Iterate over years and months.
         for year in range(volcanic_beg_year, volcanic_end_year + 1):
             for month in range(1, MONTHS_IN_A_YEAR + 1):
@@ -235,7 +258,7 @@ def save_stratospheric_aerosol_optical_depth(
                     # by summing over stratospheric layers,
                     # weighted by layer height.
                     lat_cube = sum_over_height_layers(lat_cube)
-                    saod = lat_cube.data * 10000.0
+                    saod = lat_cube.data * SAOD_SCALING
                     print(
                         f"{saod:7.1f}",
                         end="",
