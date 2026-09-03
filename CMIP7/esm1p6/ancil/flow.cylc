@@ -154,7 +154,15 @@
 
             # Carbon dioxide emissions
             {% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
-                EH_ancil_co2
+            EH_ancil_co2
+            {% endif %}
+
+            {% if ANCIL_CREATE_CO2 and USE_EXP["ES"] %}
+              {% for SCEN in SCENARIOS %}
+                {% if USE_SCEN[SCEN] %}
+            ES_{{SCEN}}_ancil_co2
+                {% endif %}
+	      {% endfor %}
             {% endif %}
 
             # Ozone
@@ -324,12 +332,13 @@
       {% endfor %}
     {% endif %}
 
-{% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
+{% if ANCIL_CREATE_CO2 %}
     [[ANCIL_CO2]]
         inherit = ESM1P6_ANCIL
 
+  {% if USE_EXP["EH"] %}
     [[EH_ancil_co2]]
-        inherit = ANCIL_CO2, MEDIUM_JOB
+        inherit = ANCIL_CO2, SMALL_JOB
         script = """
             mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
             python_env python \
@@ -340,7 +349,32 @@
                 --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
                 --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
                 --save-filename {{ quote(ESM_EH_CO2_SAVE_FILENAME) }}
+  {% endif %}
             """
+
+  {% if USE_EXP["ES"] %}
+    {% for SCEN in SCENARIOS %}
+      {% if USE_SCEN[SCEN] %}
+    [[ES_{{SCEN}}_ancil_co2]]
+        inherit = ANCIL_CO2, SMALL_JOB
+        script = """
+            mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+	    export PYTHONUNBUFFERED=1
+            python_env python \
+                -m co2.cmip7_ES_CO2_interpolate \
+                --scenario {{ SCEN }} \
+                {{ PATH_ARGS }}
+                {{ GRID_ARGS }}
+                --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
+                --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
+                --dataset-air-version {{ quote(CMIP7_SM_AEROSOL_AIR_VERSION[SCEN]) }} \
+                --dataset-air-vdate {{ quote(CMIP7_SM_AEROSOL_AIR_VDATE[SCEN]) }} \
+                --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                --save-filename {{ quote(ESM_ES_CO2_SAVE_FILENAME[SCEN]) }}
+            """
+      {% endif %}
+    {% endfor %}
+  {% endif %}
 {% endif %}
 
 {% if ANCIL_CREATE_OZONE %}
