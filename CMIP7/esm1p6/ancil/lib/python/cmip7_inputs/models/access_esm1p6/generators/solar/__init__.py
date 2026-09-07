@@ -79,7 +79,7 @@ def cmip7_pi_solar_patch(solar_irradiance):
     experiments=[experiments.PI_CONTROL],
 )
 def generate_solar_picontrol(request: GenerationRequest) :
-    """Generate solar forcing input file for:
+    """Modify solar forcing namelist for:
     model: ACCESS-ESM1.6
     experiment: piControl
 

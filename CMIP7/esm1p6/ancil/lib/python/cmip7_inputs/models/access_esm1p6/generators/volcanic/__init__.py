@@ -136,10 +136,10 @@ def cmip7_pi_volcanic_patch(average_saod):
 @registry.register(
     model=MODEL_ID,
     input_name=input_names.VOLCANIC,
-    experiments=[experiments.PI_CONTROL, experiments.TEST],
+    experiments=[experiments.PI_CONTROL],
 )
-def generate_solar_picontrol(request: GenerationRequest) :
-    """Generate volcanic forcing input file for:
+def generate_volcanic_picontrol(request: GenerationRequest) :
+    """Modify volcanic namelist for:
     model: ACCESS-ESM1.6
     experiment: piControl
 
@@ -204,9 +204,9 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
 @registry.register(
     model=MODEL_ID,
     input_name=input_names.VOLCANIC,
-    experiments=[experiments.HISTORICAL,],
+    experiments=[experiments.HISTORICAL],
 )
-def generate_solar_historical(request: GenerationRequest):
+def generate_volcanic_historical(request: GenerationRequest):
     """Generate volcanic forcing ancillary file for:
     model: ACCESS-ESM1.6
     experiment: historical
