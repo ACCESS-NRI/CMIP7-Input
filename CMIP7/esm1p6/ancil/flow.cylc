@@ -853,20 +853,28 @@
           script = """
             {% if EXP == "HI" %}
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
+              python_env python \
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n volcanic \
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+                  -O save_filename={{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }} \
+                  -O dataset_version={{ quote(CMIP7_VOLCANIC_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_VOLCANIC_VDATE) }} \
+                  -O dataset_date_range={{quote(CMIP7_HI_VOLCANIC_DATE_RANGE)}}
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
-            {% endif %}
               python_env python \
-                  -m volcanic.cmip7_{{EXP}}_volcanic_generate \
-                  {{ PATH_ARGS }}
-                  --dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_VOLCANIC_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }}
-                  {% endif %}
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n volcanic \
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+                  -O dataset_version={{ quote(CMIP7_VOLCANIC_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_VOLCANIC_VDATE) }} \
+                  -O dataset_date_range={{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }}
+            {% endif %}
               """
       {% endif %}
     {% endif %}
