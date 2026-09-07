@@ -612,11 +612,14 @@
           script = """
               cd $GIT_{{EXP}}_CONFIG_DIR
               python_env python \
-                  -m ghg.cmip7_{{EXP}}_ghg_generate \
-                  {{ PATH_ARGS }}
-                  --dataset-version {{ quote(CMIP7_GHG_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_GHG_VDATE) }} \
-                  --dataset-date-range {{ quote(CMIP7_GHG_DATE_RANGE) }}
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n ghg \
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+                  -O dataset_version={{ quote(CMIP7_GHG_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_GHG_VDATE) }} \
+                  -O dataset_date_range={{quote(CMIP7_GHG_DATE_RANGE)}}
               """
       {% endif %}
     {% endif %}

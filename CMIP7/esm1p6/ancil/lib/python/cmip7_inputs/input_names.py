@@ -12,3 +12,4 @@ option and used as keys when registering generators.
 # `--input_name`/`-n` CLI option.
 SOLAR = "solar"
 VOLCANIC="volcanic"
+GHG = "ghg"
