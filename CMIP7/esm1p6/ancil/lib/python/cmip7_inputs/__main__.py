@@ -1,5 +1,0 @@
-from cmip7_inputs.cli import main
-
-
-if __name__ == "__main__":
-    main()
