@@ -1,0 +1,71 @@
+{% set NCI_PROJECT = environ['PROJECT'] %}
+{% set NCI_QUEUE = "normalsr" %}
+{% set NCI_STORAGE = "gdata/"~environ['PROJECT']~"+scratch/"~environ['PROJECT']~"+gdata/access+gdata/hr22+gdata/ki32+gdata/qv56+gdata/tm70+gdata/vk83" %}
+
+    [[root]]
+        [[[events]]]
+            mail events =
+        [[[environment]]]
+            UMDIR = /g/data/access/umdir
+
+    [[HOST_LOCAL]]
+        execution time limit = PT15M
+        platform = localhost
+
+    [[HOST_HPC]]
+        init-script = """
+        # ants module is loaded in python_env
+        ulimit -s unlimited
+        """
+        platform = gadi_pbs
+        execution time limit = PT30M
+        execution retry delays =
+        submission retry delays =
+        [[[directives]]]
+            -q = {{NCI_QUEUE}}
+            -P = {{NCI_PROJECT}}
+            -l ncpus = 1
+            -l mem = 4gb
+            -l jobfs = 10gb
+            -l storage = {{NCI_STORAGE}}
+            -W umask = 0022
+
+    {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
+    [[COMPILER]]
+        pre-script = """
+	module load binutils/2.44
+	module load gcc/15.1.0
+	module load intel-compiler-llvm/2023.2.0
+	"""
+    {% endif %}
+
+    [[LOCAL_JOB]]
+        inherit = HOST_LOCAL
+
+    [[SMALL_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT10M
+        [[[directives]]]
+            -l mem = 64gb
+            -l ncpus = 3
+
+    [[MEDIUM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT30M
+        [[[directives]]]
+            -l mem = 128gb
+            -l ncpus = 6
+
+    [[LARGE_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT1H
+        [[[directives]]]
+            -l mem = 384gb
+            -l ncpus = 12
+
+    [[SERIAL_LARGE_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT3H
+        [[[directives]]]
+            -l mem = 384gb
+            -l ncpus = 2
