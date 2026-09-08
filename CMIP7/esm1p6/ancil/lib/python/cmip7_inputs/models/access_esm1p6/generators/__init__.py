@@ -3,5 +3,6 @@
 from cmip7_inputs.models.access_esm1p6.generators import (
     solar, 
     volcanic,
-    ghg
+    ghg,
+    nitrogen
   )  # noqa: F401

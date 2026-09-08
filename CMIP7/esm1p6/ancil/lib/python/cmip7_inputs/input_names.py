@@ -13,3 +13,4 @@ option and used as keys when registering generators.
 SOLAR = "solar"
 VOLCANIC="volcanic"
 GHG = "ghg"
+NITROGEN = "nitrogen"
