@@ -14,6 +14,7 @@
 
 {# Define variables used for tests #}
 {% set UPDATE_CONFIG = ANCIL_CREATE_GHG or ((ANCIL_CREATE_SOLAR or ANCIL_CREATE_VOLCANIC) and USE_EXP["PI"]) %}
+{% set USE_CMIP7_INPUTS = ANCIL_CREATE_SOLAR and USE_EXP["HI"] %}
 
 {# Define a quote macro to use for comand line arguments #}
 {% macro quote(string) %}"{{string}}"{% endmacro %}
@@ -103,9 +104,10 @@
           {% endif %}
         {% endfor %}
       {% else %}
-        {{EXP}}_ancil_solar
         {% if EXP != "HI" %}
         {{EXP}}_git_clone_checkout => {{EXP}}_ancil_solar => {{EXP}}_git_commit_push
+        {% else %}
+        install_cmip7_inputs => HI_ancil_solar
         {% endif %}
       {% endif %}
     {% endif %}
@@ -143,6 +145,10 @@
 {% endfor %}
 
         R1 = """
+            # CMIP7_INPUTS
+        {% if USE_CMIP7_INPUTS %}
+            git_clone_cmip7_input_repo => install_cmip7_inputs
+        {% endif %}
             # AMIP
         {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
             git_clone_amip_scripts => install_amip => AM_ukesm_regrid => AM_ukesm_taylor => AM_ukesm_ancil
@@ -243,11 +249,25 @@
         inherit = GIT
 
         [[[environment]]]
+            GIT_CMIP7_INPUT_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_CMIP7_INPUT_REPO}}
+
     {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
             GIT_AMIP_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_AMIP_SCRIPTS_REPO}}-amip
     {% endif %}
     {% if ANCIL_CREATE_OZONE %}
             GIT_OZONE_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_OZONE_SCRIPTS_REPO}}-ozone
+    {% endif %}
+
+    {% if USE_CMIP7_INPUTS %}
+        [[git_clone_cmip7_input_repo]]
+            inherit = GIT_SCRIPTS, LOCAL_JOB
+            script = """
+                set -e
+                git clone {{GIT_REPO_URL(GIT_CMIP7_INPUT_REPO)}} --branch {{GIT_CMIP7_INPUT_BRANCH}} ${GIT_CMIP7_INPUT_CLONE_DIR}
+            """
+
+        [[install_cmip7_inputs]]
+            inherit = GIT_SCRIPTS, LOCAL_JOB
     {% endif %}
 
     {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
