@@ -17,19 +17,20 @@ from ozone.cmip7_ozone import (
 def parse_args():
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ozone_parser()],
-        prog="cmip7_PI_ozone_generate",
+        prog="cmip7_SM_ozone_generate",
         description=(
-            "Generate input files from UK CMIP7 pre-industrial ozone forcings"
+            "Generate input files from UK CMIP7 ScenarioMIP ozone forcings"
         ),
     )
+    parser.add_argument("--scenario")
     return parser.parse_args()
 
 
-def esm_pi_ozone_save_dirpath(args):
+def esm_sm_ozone_save_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
-        / "modern"
-        / "pre-industrial"
+        / "scenarios"
+        / args.scenario
         / "atmosphere"
         / "forcing"
         / args.esm_grid_rel_dirname
@@ -37,9 +38,9 @@ def esm_pi_ozone_save_dirpath(args):
     )
 
 
-def save_cmip7_pi_ozone(args, cube):
+def save_cmip7_sm_ozone(args, cube):
     # Save as an ancillary file
-    save_dirpath = esm_pi_ozone_save_dirpath(args)
+    save_dirpath = esm_sm_ozone_save_dirpath(args)
     save_ancil(cube, save_dirpath, args.save_filename, replace_bounds=True)
 
 
@@ -51,4 +52,4 @@ if __name__ == "__main__":
     # Match the ESM1.5 mask
     esm_cube = fix_cmip7_ozone(args, ozone_cube)
     # Save the ancillary
-    save_cmip7_pi_ozone(args, esm_cube)
+    save_cmip7_sm_ozone(args, esm_cube)

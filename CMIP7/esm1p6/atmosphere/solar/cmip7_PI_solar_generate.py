@@ -48,12 +48,11 @@ def cmip7_pi_solar_patch(solar_irradiance):
 if __name__ == "__main__":
     args = parse_args()
 
-    cmip7_filename = (
-        f"multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc"
-    )
-    cmip7_filepath = cmip7_solar_dirpath(args, "fx") / cmip7_filename
+    dirpath = cmip7_solar_dirpath(args, "CMIP", "fx")
+    filename = f"multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc"
+    dataset_path = dirpath / filename
 
-    solar_irradiance_cube = load_cmip7_solar_cube(cmip7_filepath)
+    solar_irradiance_cube = load_cmip7_solar_cube(dataset_path)
     solar_irradiance = solar_irradiance_cube[0].data
 
     # Patch the SC variable in the coupling namelist

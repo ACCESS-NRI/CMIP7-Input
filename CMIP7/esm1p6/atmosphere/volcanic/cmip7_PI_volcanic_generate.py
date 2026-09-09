@@ -7,6 +7,7 @@ import numpy as np
 from cmip7_ancil_argparse import dataset_parser, path_parser
 from cmip7_PI import DAYS_IN_CMIP7_PI_YEAR
 from volcanic.cmip7_volcanic import (
+    SAOD_SCALING,
     SAOD_WAVELENGTH,
     cmip7_volcanic_dirpath,
     constrain_to_wavelength,
@@ -27,11 +28,11 @@ def parse_args():
     return parser.parse_args()
 
 
-def cmip7_pi_volcanic_filename(args):
+def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
     return (
         f"ext_input4MIPs_aerosolProperties_CMIP_"
-        f"{args.dataset_version}_gnz_"
-        f"{args.dataset_date_range}-clim.nc"
+        f"{dataset_version}_gnz_"
+        f"{dataset_date_range}-clim.nc"
     )
 
 
@@ -82,7 +83,7 @@ def cmip7_pi_volcanic_patch(average_saod):
     Patch the VOLCTS_val variable in the coupling namelist
     """
     namelist_dict = dict()
-    namelist_dict["VOLCTS_val"] = average_saod * 10000.0
+    namelist_dict["VOLCTS_val"] = average_saod * SAOD_SCALING
     patch = {"coupling": namelist_dict}
     patch_namelist = f90nml.namelist.Namelist(patch)
     # Set the floating point format to the right value
@@ -113,9 +114,18 @@ def cmip7_pi_volcanic_patch(average_saod):
 if __name__ == "__main__":
     args = parse_args()
 
-    dataset_path = cmip7_volcanic_dirpath(
-        args, period="monC"
-    ) / cmip7_pi_volcanic_filename(args)
+    dirpath = cmip7_volcanic_dirpath(
+        args,
+        "CMIP",
+        "monC",
+        args.dataset_version,
+        args.dataset_vdate,
+    )
+    filename = cmip7_pi_volcanic_filename(
+        args.dataset_version,
+        args.dataset_date_range,
+    )
+    dataset_path = dirpath / filename
 
     # Calculate the average stratospheric optical depth.
     average_saod = average_stratospheric_aerosol_optical_depth(dataset_path)
