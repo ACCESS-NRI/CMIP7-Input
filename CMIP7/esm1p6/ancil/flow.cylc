@@ -650,22 +650,39 @@
       {% else %}
       [[{{EXP}}_ancil_nitrogen]]
           inherit = ANCIL_NITROGEN, SMALL_JOB
-
-          script = """
+          script= """
+          {% if EXP == "HI" %}
               python_env python \
-                  -m nitrogen.cmip7_{{EXP}}_nitrogen_generate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_NITROGEN_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_NITROGEN_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_NITROGEN_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_NITROGEN_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }}
-                  {% endif %}
-              """
+                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n nitrogen \
+                  -o "none" \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                  -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+
+                  -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
+                  -O esm15_grid_version={{ quote(ESM15_GRID_VERSION) }} \
+
+                  -O save_filename={{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }} \
+                  -O dataset_version={{ quote(CMIP7_NITROGEN_VERSION) }} \
+                  -O dataset_vdate={{ quote(CMIP7_NITROGEN_VDATE) }} \
+                  -O dataset_date_range={{quote(CMIP7_HI_NITROGEN_DATE_RANGE)}}
+          {% else %}
+              python_env python \
+                      -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n nitrogen \
+                      -o "none" \
+                      -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                      -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
+                      -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
+
+                      -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
+                      -O esm15_grid_version={{ quote(ESM15_GRID_VERSION) }} \
+
+                      -O dataset_version={{ quote(CMIP7_NITROGEN_VERSION) }} \
+                      -O dataset_vdate={{ quote(CMIP7_NITROGEN_VDATE) }} \
+                      -O save_filename={{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }} \
+                      -O dataset_date_range={{quote(CMIP7_PI_NITROGEN_DATE_RANGE)}}
+          {% endif %}
+          """
       {% endif %}
     {% endif %}
 
