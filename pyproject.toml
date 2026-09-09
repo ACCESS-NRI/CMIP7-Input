@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "cmip-inputs"
+name = "cmip7-inputs"
 dynamic = ["version"]
 description = "Generate input files for different climate models, to be used for modelling experiments for the CMIP7 submission."
 readme = "README.md"
