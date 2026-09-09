@@ -215,7 +215,7 @@
         inherit = CMIP7, ANTS
 
         [[[environment]]]
-            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python:${CYLC_WORKFLOW_RUN_DIR}/lib/python/esm1p6_ancil:${PYTHONPATH}
+            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/cmip7_inputs:${PYTHONPATH}
 
     [[UKESM_ANCIL]]
         inherit = CMIP7, ANTS
@@ -789,9 +789,11 @@
             {% if EXP == "HI" %}
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
               python_env python \
-                  -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n solar \
-                  -o "none" \
-                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -m cmip7_inputs \
+                  -m {{ MODEL }} \
+                  -e {{ EXP_NAME[EXP] }} \
+                  -n solar \
+                  -o {{ quote(VAR.ANCIL_TARGET_PATH) }} \
                   -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
                   -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
                   -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
