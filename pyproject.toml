@@ -10,7 +10,7 @@ name = "cmip-inputs"
 dynamic = ["version"]
 description = "Generate input files for different climate models, to be used for modelling experiments for the CMIP7 submission."
 readme = "README.md"
-requires-python = "==3.11"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [
   {name = "Paul Leopardi", email="paul.leopardi@anu.edu.au"},
