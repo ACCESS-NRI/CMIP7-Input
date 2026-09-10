@@ -24,7 +24,6 @@ from cmip7_inputs.models.access_esm1p6.generators._common_HI import esm_hi_forci
 from cmip7_inputs.models.access_esm1p6.generators._common_PI import (
     DAYS_IN_CMIP7_PI_YEAR
 )
-from cmip7_inputs.models.access_esm1p6.generators._common_SM import esm_sm_forcing_save_dirpath
 
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import (
     cmip7_volcanic_dirpath,
