@@ -794,6 +794,7 @@
                   -e {{ EXP_NAME[EXP] }} \
                   -n solar \
                   -o {{ quote(VAR.ANCIL_TARGET_PATH) }} \
+                  -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
                   -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
                   -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
                   -O esm_grid_rel_dirname={{ quote(ESM_GRID_DIRNAME) }} \
