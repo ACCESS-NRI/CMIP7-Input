@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import (
+    common_parser,
+    pad_parser,
+)
 from cmip7_SM import esm_sm_forcing_save_dirpath
 from solar.cmip7_solar import (
     cmip7_solar_dirpath,
@@ -20,6 +23,7 @@ def parse_args():
         ),
         parents=[
             common_parser(),
+            pad_parser(),
         ],
     )
     parser.add_argument("--scenario")
@@ -33,13 +37,24 @@ def cmip7_sm_solar_save(args, cube):
     Save the TSI values for each year into a text file.
     """
     save_dirpath = esm_sm_forcing_save_dirpath(args)
-    cmip7_solar_save(
-        args,
-        cube,
-        CMIP7_SM_SOLAR_BEG_YEAR,
-        CMIP7_SM_SOLAR_END_YEAR,
-        save_dirpath,
-    )
+    if args.pad:
+        cmip7_solar_save(
+            args,
+            cube,
+            CMIP7_SM_SOLAR_BEG_YEAR,
+            CMIP7_SM_SOLAR_END_YEAR,
+            save_dirpath,
+        )
+    else:
+        cmip7_solar_save(
+            args,
+            cube,
+            CMIP7_SM_SOLAR_BEG_YEAR,
+            CMIP7_SM_SOLAR_END_YEAR,
+            save_dirpath,
+            array_beg_year=CMIP7_SM_SOLAR_BEG_YEAR,
+            array_end_year=CMIP7_SM_SOLAR_END_YEAR,
+        )
 
 
 if __name__ == "__main__":

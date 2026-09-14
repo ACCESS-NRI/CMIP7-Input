@@ -1,6 +1,9 @@
 from argparse import ArgumentParser
 
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import (
+    common_parser,
+    pad_parser,
+)
 from cmip7_HI import (
     CMIP7_HI_BEG_YEAR,
     CMIP7_HI_END_YEAR,
@@ -21,6 +24,7 @@ def parse_args():
         ),
         parents=[
             common_parser(),
+            pad_parser(),
         ],
     )
     parser.add_argument("--dataset-date-range")
@@ -33,9 +37,20 @@ def cmip7_hi_solar_save(args, cube):
     Save the TSI values for each year into a text file.
     """
     save_dirpath = esm_hi_forcing_save_dirpath(args)
-    cmip7_solar_save(
-        args, cube, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR, save_dirpath
-    )
+    if args.pad:
+        cmip7_solar_save(
+            args, cube, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR, save_dirpath
+        )
+    else:
+        cmip7_solar_save(
+            args,
+            cube,
+            CMIP7_HI_BEG_YEAR,
+            CMIP7_HI_END_YEAR,
+            save_dirpath,
+            array_beg_year=CMIP7_HI_BEG_YEAR,
+            array_end_year=CMIP7_HI_END_YEAR,
+        )
 
 
 if __name__ == "__main__":

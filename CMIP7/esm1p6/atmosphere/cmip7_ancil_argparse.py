@@ -15,6 +15,11 @@ def dms_filename_parser(dms_ancil_filename=None):
     return parser
 
 
+def pad_parser():
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument("--pad", action="store_true")
+
+
 def grid_parser():
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--esm-grid-rel-dirname")
