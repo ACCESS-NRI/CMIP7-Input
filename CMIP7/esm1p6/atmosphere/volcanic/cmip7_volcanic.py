@@ -100,6 +100,7 @@ def constrain_to_latitude_band(cube, band):
 
 def taper_saod(
     volcanic_end_year,
+    save_end_year,
     saod_for_beg_year,
     saod_for_end_year,
 ):
@@ -109,7 +110,7 @@ def taper_saod(
     towards saod_for_beg_year for NBR_TAPER_YEARS, and remain at
     saod_for_beg_year afterwards.
     """
-    RATIO_ARRAY_LEN = SAOD_END_YEAR - volcanic_end_year
+    RATIO_ARRAY_LEN = save_end_year - volcanic_end_year
     saod_array = np.zeros((RATIO_ARRAY_LEN, MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     ratio_array = np.zeros(RATIO_ARRAY_LEN)
     for index in range(RATIO_ARRAY_LEN):
@@ -172,6 +173,8 @@ def save_stratospheric_aerosol_optical_depth(
     dataset_path,
     save_dirpath,
     pi_mean_saod=None,
+    save_beg_year=SAOD_BEG_YEAR,
+    save_end_year=SAOD_END_YEAR,
 ):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
@@ -196,7 +199,7 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Print the PI average SOAD for all years before volcanic_beg_year.
-        if volcanic_beg_year > SAOD_BEG_YEAR and pi_mean_saod is not None:
+        if volcanic_beg_year > save_beg_year and pi_mean_saod is not None:
             print_early_saod(volcanic_beg_year, save_file, pi_mean_saod)
 
         # Iterate over years and months.
@@ -230,13 +233,17 @@ def save_stratospheric_aerosol_optical_depth(
                     if year == volcanic_end_year:
                         saod_for_end_year[month - 1, lat_band_nbr] = saod
                 print(file=save_file)
-        # For years from volcanic_end_year + 1 to SAOD_END_YEAR
-        # interpolate between the saod values in saod_for_beg_year and
-        # saod_for_end_year and save values in save_file.
-        tapered_saod_array = taper_saod(
-            volcanic_end_year, saod_for_beg_year, saod_for_end_year
-        )
-        for year in range(volcanic_end_year + 1, SAOD_END_YEAR + 1):
-            save_year_tapered_saod(
-                year, tapered_saod_array, volcanic_end_year, save_file
+        if save_end_year > volcanic_end_year:
+            # For years from volcanic_end_year + 1 to save_end_year
+            # interpolate between the saod values in saod_for_beg_year and
+            # saod_for_end_year and save values in save_file.
+            tapered_saod_array = taper_saod(
+                volcanic_end_year,
+                save_end_year,
+                saod_for_beg_year,
+                saod_for_end_year,
             )
+            for year in range(volcanic_end_year + 1, save_end_year + 1):
+                save_year_tapered_saod(
+                    year, tapered_saod_array, volcanic_end_year, save_file
+                )

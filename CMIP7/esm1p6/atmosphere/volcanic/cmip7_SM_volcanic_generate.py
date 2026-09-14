@@ -1,6 +1,10 @@
 from argparse import ArgumentParser
 
-from cmip7_ancil_argparse import dataset_parser, path_parser
+from cmip7_ancil_argparse import (
+    dataset_parser,
+    pad_parser,
+    path_parser,
+)
 from cmip7_SM import esm_sm_forcing_save_dirpath
 from volcanic.cmip7_PI_volcanic_generate import (
     average_stratospheric_aerosol_optical_depth,
@@ -22,7 +26,11 @@ def parse_args():
         description=(
             "Generate input files from CMIP7 ScenarioMIP volcanic forcings"
         ),
-        parents=[path_parser(), dataset_parser()],
+        parents=[
+            dataset_parser(),
+            pad_parser(),
+            path_parser(),
+        ],
     )
     parser.add_argument("--pi-dataset-version")
     parser.add_argument("--pi-dataset-vdate")
@@ -49,14 +57,26 @@ def save_sm_stratospheric_aerosol_optical_depth(
     for each historical month by averaging extinction over latitude,
     and summing over stratospheric layers. Save to the save file.
     """
-    save_stratospheric_aerosol_optical_depth(
-        args,
-        CMIP7_SM_VOLCANIC_BEG_YEAR,
-        CMIP7_SM_VOLCANIC_END_YEAR,
-        dataset_path,
-        esm_sm_forcing_save_dirpath(args),
-        pi_mean_saod=pi_mean_saod,
-    )
+    if args.pad:
+        save_stratospheric_aerosol_optical_depth(
+            args,
+            CMIP7_SM_VOLCANIC_BEG_YEAR,
+            CMIP7_SM_VOLCANIC_END_YEAR,
+            dataset_path,
+            esm_sm_forcing_save_dirpath(args),
+            pi_mean_saod=pi_mean_saod,
+        )
+    else:
+        save_stratospheric_aerosol_optical_depth(
+            args,
+            CMIP7_SM_VOLCANIC_BEG_YEAR,
+            CMIP7_SM_VOLCANIC_END_YEAR,
+            dataset_path,
+            esm_sm_forcing_save_dirpath(args),
+            pi_mean_saod=pi_mean_saod,
+            save_beg_year=CMIP7_SM_VOLCANIC_BEG_YEAR,
+            save_end_year=CMIP7_SM_VOLCANIC_END_YEAR,
+        )
 
 
 if __name__ == "__main__":
