@@ -138,7 +138,10 @@ def extend_years(cube):
 
 
 def _interpolate_months_separately(cube, tpoints):
-    # Perform linear time-interpolation
+    """
+    Interpolate to monthly frequency by extracting and interpolating
+    separate time series for each month of the year.
+    """
     new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
     new_cube.data = np.ma.asarray(new_cube.data)
 

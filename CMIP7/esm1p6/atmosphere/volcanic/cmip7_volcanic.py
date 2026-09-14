@@ -178,7 +178,7 @@ def save_stratospheric_aerosol_optical_depth(
 ):
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
-    for each historical month by averaging extinction over latitude,
+    for each month by averaging extinction over latitude,
     and summing over stratospheric layers. Save to the save file.
     """
 

@@ -132,7 +132,7 @@ def split_sm_low_high(bc_cube, oc_cube, sector_dict):
     return low, high
 
 
-def save_cmip7_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
+def save_cmip7_sm_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
     bc = load_fn(args, "BC")
     oc = load_fn(args, "OC")
 
@@ -198,7 +198,7 @@ def load_cmip7_sm_aerosol_biomass(args, species):
 if __name__ == "__main__":
     args = parse_args()
 
-    save_cmip7_aerosol_biomass(
+    save_cmip7_sm_aerosol_biomass(
         args,
         cmip7_sm_aerosol_biomass_filepath,
         load_cmip7_sm_aerosol_biomass,
