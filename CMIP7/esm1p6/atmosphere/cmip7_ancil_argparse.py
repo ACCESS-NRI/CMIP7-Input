@@ -18,6 +18,7 @@ def dms_filename_parser(dms_ancil_filename=None):
 def pad_parser():
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--pad", action="store_true")
+    return parser
 
 
 def grid_parser():
