@@ -15,17 +15,12 @@ from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
 from cmip7_inputs.models.access_esm1p6.generators._common import cmip7_parse_args
 
-from cmip7_inputs.models.access_esm1p6.generators._common_HI import (
-    CMIP7_HI_BEG_YEAR,
-    CMIP7_HI_END_YEAR,
-    esm_hi_forcing_save_dirpath
-)
-
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     cmip7_solar_dirpath,
-    load_cmip7_solar_cube,
-    cmip7_solar_save
+    load_cmip7_solar_cube
 )
+
+from cmip7_inputs.models.access_esm1p6.generators.solar._historical import cmip7_hi_solar_save
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
@@ -34,16 +29,6 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
 # -O dataset-version=SOLARIS-HEPPA-CMIP-4-6 -O dataset-vdate=v20250219 
 # -O dataset-date-range=185001-202312 -O save-filename=TSI_CMIP7_ESM 
 # -O cmip7-source-data-dirname=/input_test -O ancil_target_dirname=/ancil_dirname
-
-def cmip7_hi_solar_save(args, cube):
-    """
-    Save the TSI values for each year into a text file.
-    """
-    save_dirpath = esm_hi_forcing_save_dirpath(args)
-    cmip7_solar_save(
-        args, cube, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR, save_dirpath
-    )
-
 
 @registry.register(
     model=MODEL_ID,
@@ -67,7 +52,7 @@ def generate_solar_historical(request: GenerationRequest):
 
     solar_irradiance_cube = load_cmip7_solar_cube(dataset_path)
 
-    cmip7_hi_solar_save(args, solar_irradiance_cube)
+    cmip7_hi_solar_save(request.output_dir, args, solar_irradiance_cube)
 
 # ------------------------------------------------------
 # ------------------- PI CONTROL -----------------------
