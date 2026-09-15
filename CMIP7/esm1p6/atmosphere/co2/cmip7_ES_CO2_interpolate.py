@@ -39,8 +39,8 @@ def parse_args():
 def esm_es_co2_save_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
-        / "esm-scenarios"
-        / args.scenario
+        / "modern"
+        / f"esm-scen7-{args.scenario}"
         / "atmosphere"
         / "forcing"
         / args.esm_grid_rel_dirname
