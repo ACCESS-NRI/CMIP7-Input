@@ -39,8 +39,8 @@ def cmip7_sm_nitrogen_filepath(args, species):
 def esm_sm_nitrogen_save_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
-        / "scenarios"
-        / args.scenario
+        / "modern"
+        / f"scen7-{args.scenario}"
         / "atmosphere"
         / "land"
         / "biogeochemistry"

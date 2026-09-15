@@ -29,8 +29,8 @@ def parse_args():
 def esm_sm_ozone_save_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
-        / "scenarios"
-        / args.scenario
+        / "modern"
+        / f"scen7-{args.scenario}"
         / "atmosphere"
         / "forcing"
         / args.esm_grid_rel_dirname

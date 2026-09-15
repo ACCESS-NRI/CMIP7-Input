@@ -6,8 +6,8 @@ from cmip7_ancil_constants import ANCIL_TODAY
 def esm_sm_aerosol_ancil_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
-        / "scenarios"
-        / args.scenario
+        / "modern"
+        / f"scen7-{args.scenario}"
         / "atmosphere"
         / "aerosol"
     )
