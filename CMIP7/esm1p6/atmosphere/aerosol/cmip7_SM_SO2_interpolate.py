@@ -1,4 +1,4 @@
-# Interpolate CMIP7 HI SO2 emissions to ESM1.6 grid
+# Interpolate CMIP7 SM SO2 emissions to ESM1.6 grid
 
 from argparse import ArgumentParser
 
