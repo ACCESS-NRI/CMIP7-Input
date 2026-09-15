@@ -55,7 +55,7 @@ def cmip7_solar_year_mean(
     for year in range(array_beg_year, beg_year):
         solar_array[year - array_beg_year] = pi_year_mean
 
-    # For the years from CMIP7_HI_END_YEAR + 1 to array_end_year,
+    # For the years from end_year + 1 to array_end_year,
     # set the saved TSI value to the real missing data indicator
     for year in range(end_year + 1, array_end_year + 1):
         solar_array[year - array_beg_year] = REAL_MISSING_DATA_INDICATOR
