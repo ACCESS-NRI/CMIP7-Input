@@ -48,8 +48,8 @@ def cmip7_hi_solar_save(args, cube):
             CMIP7_HI_BEG_YEAR,
             CMIP7_HI_END_YEAR,
             save_dirpath,
-            array_beg_year=CMIP7_HI_BEG_YEAR,
-            array_end_year=CMIP7_HI_END_YEAR,
+            save_beg_year=CMIP7_HI_BEG_YEAR,
+            save_end_year=CMIP7_HI_END_YEAR,
         )
 
 
