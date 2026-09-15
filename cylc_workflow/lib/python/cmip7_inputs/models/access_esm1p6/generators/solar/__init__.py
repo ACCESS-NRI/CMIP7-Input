@@ -18,6 +18,8 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     save_solar,
 )
 
+from cmip7_inputs.models.access_esm1p6.generators.solar._historical import cmip7_hi_solar_save
+
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
 # ------------------------------------------------------
@@ -25,7 +27,6 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
 # -O dataset-version=SOLARIS-HEPPA-CMIP-4-6 -O dataset-vdate=v20250219
 # -O dataset-date-range=185001-202312 -O save-filename=TSI_CMIP7_ESM
 # -O cmip7-source-data-dirname=/input_test -O ancil_target_dirname=/ancil_dirname
-
 
 @registry.register(
     model=MODEL_ID,
