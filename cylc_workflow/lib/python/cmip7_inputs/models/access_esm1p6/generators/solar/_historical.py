@@ -7,8 +7,8 @@ from cmip7_inputs.models.access_esm1p6.generators._common_historical import esm_
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import cmip7_solar_save
 
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
-    CMIP7_HI_BEG_YEAR,
-    CMIP7_HI_END_YEAR
+    HI_START_YEAR,
+    HI_END_YEAR
 )
 
 def cmip7_hi_solar_save(ancil_target_dirname, args, cube):
@@ -17,5 +17,5 @@ def cmip7_hi_solar_save(ancil_target_dirname, args, cube):
     """
     save_dirpath = esm_hi_forcing_save_dirpath(ancil_target_dirname)
     cmip7_solar_save(
-        args, cube, CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR, save_dirpath
+        args, cube, HI_START_YEAR, HI_END_YEAR, save_dirpath
     )
