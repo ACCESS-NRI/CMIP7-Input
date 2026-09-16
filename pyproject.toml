@@ -22,7 +22,7 @@ maintainers = [
     { name = "ACCESS-NRI", email = "access.nri@anu.edu.au" }
 ]
 dependencies = [
-    "iris",
+    "scitools-iris",
 ]
 
 [project.scripts]
