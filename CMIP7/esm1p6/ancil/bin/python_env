@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -eu
+module purge
+module use $MODULE_USE_DIR
+module load $ANTS_MODULE
+
+# exec
+eval "$@"
