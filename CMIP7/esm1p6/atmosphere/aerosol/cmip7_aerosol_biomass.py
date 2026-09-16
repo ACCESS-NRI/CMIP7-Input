@@ -16,24 +16,28 @@ from cmip7_ancil_common import (
 )
 
 
-def cmip7_aerosol_biomass_rootpath(args):
+def _biomass_dirpath(args, species):
     return (
         Path(args.cmip7_source_data_dirname)
+        / "CMIP"
         / "DRES"
         / args.dataset_version
         / "atmos"
         / "mon"
+        / species
+        / "gn"
+        / args.dataset_vdate
     )
 
 
 def cmip7_aerosol_biomass_filepath(args, species, date_range):
-    rootpath = cmip7_aerosol_biomass_rootpath(args)
+    dirpath = _biomass_dirpath(args, species)
     filename = (
         f"{species}_input4MIPs_emissions_CMIP_"
         f"{args.dataset_version}_gn_"
         f"{date_range}.nc"
     )
-    return rootpath / species / "gn" / args.dataset_vdate / filename
+    return dirpath / filename
 
 
 def load_cmip7_aerosol_biomass(args, species, date_range, constraint):

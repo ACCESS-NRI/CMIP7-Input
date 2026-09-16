@@ -26,7 +26,7 @@ def parse_args():
 
 
 def cmip7_hi_nitrogen_filepath(args, species):
-    dirpath = cmip7_nitrogen_dirpath(args, "mon", species)
+    dirpath = cmip7_nitrogen_dirpath(args, "CMIP", "mon", species)
     filename = (
         f"{species}_input4MIPs_surfaceFluxes_CMIP_"
         f"{args.dataset_version}_gn_"

@@ -35,9 +35,10 @@ def cmip7_ghg_mmr(cube, ghg):
     return conc * ghg_scale * GHG_MOLAR_MASS[ghg] / DRY_AIR_MOLAR_MASS
 
 
-def cmip7_ghg_dirpath(args, ghg):
+def cmip7_ghg_dirpath(args, activity, ghg):
     return (
         Path(args.cmip7_source_data_dirname)
+        / activity
         / "CR"
         / args.dataset_version
         / "atmos"
@@ -48,9 +49,9 @@ def cmip7_ghg_dirpath(args, ghg):
     )
 
 
-def cmip7_ghg_filename(args, ghg):
+def cmip7_ghg_filename(args, activity, ghg):
     return (
-        f"{ghg}_input4MIPs_GHGConcentrations_CMIP_"
+        f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
         f"{args.dataset_version}_gm_"
         f"{args.dataset_date_range}.nc"
     )

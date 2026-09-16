@@ -17,9 +17,10 @@ https://github.com/ACCESS-NRI/access-esm1.6-configs/blob/dev-preindustrial%2Bcon
 NITROGEN_STASH_ITEM = 884
 
 
-def cmip7_nitrogen_dirpath(args, period, species):
+def cmip7_nitrogen_dirpath(args, activity, period, species):
     return (
         Path(args.cmip7_source_data_dirname)
+        / activity
         / "FZJ"
         / args.dataset_version
         / "atmos"
