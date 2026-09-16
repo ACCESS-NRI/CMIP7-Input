@@ -43,15 +43,16 @@ def cmip7_eh_co2_anthro_interpolate(args):
         beg_year=CMIP7_HI_CO2_BEG_YEAR,
         end_year=CMIP7_HI_CO2_END_YEAR,
     )
-    cube_sum = cube.collapsed(["sector"], iris.analysis.SUM)
+    if cube.coords("sector"):
+        cube = cube.collapsed(["sector"], iris.analysis.SUM)
+        cube.remove_coord("sector")
     cube_air = load_cmip7_hi_aerosol_air_anthro(
         args,
         SPECIES,
         beg_year=CMIP7_HI_CO2_BEG_YEAR,
         end_year=CMIP7_HI_CO2_END_YEAR,
     )
-    cube_air_sum = cube_air.collapsed(["altitude"], iris.analysis.SUM)
-    cube_tot = cube_sum + cube_air_sum
+    cube_tot = cube + cube_air
 
     esm_cube = cube_tot.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)
     esm_cube.data = esm_cube.data.filled(0.0)
