@@ -13,7 +13,7 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
 
 def cmip7_hi_solar_save(ancil_target_dirname, args, cube):
     """
-    Save the TSI values for each year into a text file.
+    Save the Total Solar Irradiance values for each year into a text file.
     """
     save_dirpath = esm_hi_forcing_save_dirpath(ancil_target_dirname)
     cmip7_solar_save(
