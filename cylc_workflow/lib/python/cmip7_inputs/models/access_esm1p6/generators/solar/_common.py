@@ -9,16 +9,14 @@ import numpy as np
 
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
-    PI_START_YEAR
+    PI_START_YEAR,
+    SOLAR_ARRAY_START_YEAR,
+    SOLAR_ARRAY_END_YEAR,
+    SOLAR_PI_DEFAULT_YEARLY_MEAN
 )
 
 
-SOLAR_ARRAY_START_YEAR = 1700
-SOLAR_ARRAY_END_YEAR = 2300
-SOLAR_PI_DEFAULT_YEARLY_MEAN = 1361.603
-
-
-def cmip7_solar_dirpath(args, activity, period)->Path:
+def get_solar_dirpath(args, activity, period)->Path:
     '''
     Return the directory path for the CMIP7 SOLARIS-HEPPA solar ancil file.
     '''
@@ -34,7 +32,7 @@ def cmip7_solar_dirpath(args, activity, period)->Path:
         / args.dataset_vdate
     )
 
-def load_cmip7_solar_cube(path):
+def load_solar_cube(path):
     '''
     Loads the solar irradiance cube from the CMIP7 SOLARIS-HEPPA solar ancil file.
     '''
@@ -42,7 +40,7 @@ def load_cmip7_solar_cube(path):
     name_constraint = iris.Constraint(name="solar_irradiance")
     return cubelist.extract_cube(name_constraint)
 
-def cmip7_solar_year_mean(cube, beg_year, end_year):
+def compute_solar_yearly_mean(cube, beg_year, end_year):
     """
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
@@ -74,11 +72,11 @@ def cmip7_solar_year_mean(cube, beg_year, end_year):
         solar_array[year - SOLAR_ARRAY_START_YEAR] = REAL_MISSING_DATA_INDICATOR
     return solar_array
 
-def cmip7_solar_save(args, cube, beg_year, end_year, save_dirpath):
+def save_solar(args, cube, beg_year, end_year, save_dirpath):
     """
     Save the TSI values for each year into a text file.
     """
-    solar_array = cmip7_solar_year_mean(cube, beg_year, end_year)
+    solar_array = compute_solar_yearly_mean(cube, beg_year, end_year)
     # Ensure that the save directory exists.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename

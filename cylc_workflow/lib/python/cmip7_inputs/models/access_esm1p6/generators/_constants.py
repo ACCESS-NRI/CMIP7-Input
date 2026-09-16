@@ -1,4 +1,4 @@
-""" This contains all the common constants for generating the ESM1.5 ancil files. """
+""" This contains all the constants for generating the ESM1.6 ancil files. """
 
 from datetime import datetime
 
@@ -12,3 +12,11 @@ PI_START_YEAR = 1850
 HI_START_YEAR = PI_START_YEAR
 # Model time interpolation requires an extra year
 HI_END_YEAR = 2023
+
+#===============================
+# solar constants
+#===============================
+
+SOLAR_ARRAY_START_YEAR = 1700
+SOLAR_ARRAY_END_YEAR = 2300
+SOLAR_PI_DEFAULT_YEARLY_MEAN = 1361.603
