@@ -33,23 +33,23 @@
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
-        install_scripts => SM_{{SCEN}}_ancil_aerosol_BC
+        SM_{{SCEN}}_ancil_aerosol_BC
 
-        install_scripts => SM_{{SCEN}}_ancil_aerosol_Bio
+        SM_{{SCEN}}_ancil_aerosol_Bio
 
-        install_scripts => SM_{{SCEN}}_ancil_aerosol_OC
+        SM_{{SCEN}}_ancil_aerosol_OC
 
-        install_scripts => SM_{{SCEN}}_ancil_aerosol_SO2
+        SM_{{SCEN}}_ancil_aerosol_SO2
           {% endif %}
         {% endfor %}
       {% else %}
-        install_scripts => {{EXP}}_ancil_aerosol_BC
+        {{EXP}}_ancil_aerosol_BC
 
-        install_scripts => {{EXP}}_ancil_aerosol_Bio
+        {{EXP}}_ancil_aerosol_Bio
 
-        install_scripts => {{EXP}}_ancil_aerosol_OC
+        {{EXP}}_ancil_aerosol_OC
 
-        install_scripts => {{EXP}}_ancil_aerosol_SO2
+        {{EXP}}_ancil_aerosol_SO2
       {% endif %}
     {% endif %}
 
@@ -58,12 +58,12 @@
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
-        install_scripts => SM_{{SCEN}}_ancil_ghg
+        SM_{{SCEN}}_ancil_ghg
         SM_{{SCEN}}_git_clone_checkout => SM_{{SCEN}}_ancil_ghg => SM_{{SCEN}}_git_commit_push
           {% endif %}
         {% endfor %}
       {% else %}
-        install_scripts => {{EXP}}_ancil_ghg
+        {{EXP}}_ancil_ghg
         {{EXP}}_git_clone_checkout => {{EXP}}_ancil_ghg => {{EXP}}_git_commit_push
       {% endif %}
     {% endif %}
@@ -73,11 +73,11 @@
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
-        install_scripts => SM_{{SCEN}}_ancil_nitrogen
+        SM_{{SCEN}}_ancil_nitrogen
           {% endif %}
         {% endfor %}
       {% else %}
-        install_scripts => {{EXP}}_ancil_nitrogen
+        {{EXP}}_ancil_nitrogen
       {% endif %}
     {% endif %}
 
@@ -86,20 +86,20 @@
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
-        install_scripts => SM_{{SCEN}}_ukesm_ancil_ozone => SM_{{SCEN}}_ancil_ozone
+        install_ozone_scripts => SM_{{SCEN}}_ukesm_ancil_ozone => SM_{{SCEN}}_ancil_ozone
           {% endif %}
         {% endfor %}
       {% else %}
-        install_scripts => {{EXP}}_ukesm_ancil_ozone => {{EXP}}_ancil_ozone
+        install_ozone_scripts => {{EXP}}_ukesm_ancil_ozone => {{EXP}}_ancil_ozone
       {% endif %}
     {% endif %}
 
         # Solar
     {% if ANCIL_CREATE_SOLAR %}
       {% if EXP == "SM" %}
-        install_scripts => SM_ancil_solar
+        SM_ancil_solar
       {% else %}
-        install_scripts => {{EXP}}_ancil_solar
+        {{EXP}}_ancil_solar
         {% if EXP != "HI" %}
         {{EXP}}_git_clone_checkout => {{EXP}}_ancil_solar => {{EXP}}_git_commit_push
         {% endif %}
@@ -109,9 +109,9 @@
         # Volcanic
     {% if ANCIL_CREATE_VOLCANIC %}
       {% if EXP == "SM" %}
-        install_scripts => SM_ancil_volcanic
+        SM_ancil_volcanic
       {% else %}
-        install_scripts => {{EXP}}_ancil_volcanic
+        {{EXP}}_ancil_volcanic
         {% if EXP != "HI" %}
         {{EXP}}_git_clone_checkout => {{EXP}}_ancil_volcanic => {{EXP}}_git_commit_push
         {% endif %}
@@ -135,38 +135,35 @@
 {% endfor %}
 
         R1 = """
-            # Ancillary generation scripts
-            git_clone_scripts => install_scripts
-
             # AMIP
         {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
             git_clone_amip_scripts => install_amip => AM_ukesm_regrid => AM_ukesm_taylor => AM_ukesm_ancil
           {% for VAR in AMIP_VARS %}
-            install_scripts => AM_{{VAR}}_ancil_amip
+            AM_{{VAR}}_ancil_amip
             AM_ukesm_ancil => AM_{{VAR}}_ancil_amip
           {% endfor %}
         {% endif %}
 
             # Carbon dioxide emissions
             {% if ANCIL_CREATE_CO2 and USE_EXP["EH"] %}
-            install_scripts => EH_ancil_co2
+            EH_ancil_co2
             {% endif %}
 
             {% if ANCIL_CREATE_CO2 and USE_EXP["ES"] %}
               {% for SCEN in SCENARIOS %}
                 {% if USE_SCEN[SCEN] %}
-            install_scripts => ES_{{SCEN}}_ancil_co2
+            ES_{{SCEN}}_ancil_co2
                 {% endif %}
 	      {% endfor %}
             {% endif %}
 
             # Ozone
             {% if ANCIL_CREATE_OZONE %}
-              git_clone_ozone_scripts => install_ozone_scripts => install_scripts
-            {% endif %}
+              git_clone_ozone_scripts => install_ozone_scripts
 
-            {% if ANCIL_CREATE_OZONE and USE_EXP["PM"] %}
-                install_scripts => PI_mean_ukesm_ancil_ozone => PI_mean_ancil_ozone
+              {% if USE_EXP["PM"] %}
+                install_ozone_scripts => PI_mean_ukesm_ancil_ozone => PI_mean_ancil_ozone
+              {% endif %}
             {% endif %}
 
             # Preindustrial Solar and Volcanic forcings update the same namelist file.
@@ -253,17 +250,6 @@
     {% if ANCIL_CREATE_OZONE %}
             GIT_OZONE_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_OZONE_SCRIPTS_REPO}}-ozone
     {% endif %}
-
-      [[git_clone_scripts]]
-          inherit = GIT_SCRIPTS, LOCAL_JOB
-
-          script = """
-              set -e
-              git clone {{GIT_REPO_URL(GIT_SCRIPTS_REPO)}} --branch {{GIT_SCRIPTS_BRANCH}} ${GIT_SCRIPTS_CLONE_DIR}
-              """
-
-      [[install_scripts]]
-          inherit = GIT_SCRIPTS, LOCAL_JOB
 
     {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
 
