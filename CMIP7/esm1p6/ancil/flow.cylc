@@ -243,7 +243,6 @@
         inherit = GIT
 
         [[[environment]]]
-            GIT_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_SCRIPTS_REPO}}
     {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
             GIT_AMIP_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_AMIP_SCRIPTS_REPO}}-amip
     {% endif %}
