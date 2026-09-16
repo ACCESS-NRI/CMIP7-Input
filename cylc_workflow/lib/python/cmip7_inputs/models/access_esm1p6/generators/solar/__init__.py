@@ -18,7 +18,7 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     save_solar,
 )
 
-from cmip7_inputs.models.access_esm1p6.generators.solar._historical import cmip7_hi_solar_save
+from cmip7_inputs.models.access_esm1p6.generators.solar._historical import save_historical_solar
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
