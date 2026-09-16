@@ -44,8 +44,8 @@ def load_cmip7_solar_cube(path):
 
 def cmip7_solar_year_mean(cube, beg_year, end_year):
     """
-    Calculate mean TSI values for each year and save them into an array.
-    TSI stands for Total Solar Irradiance, which is the solar power per unit area received at the top of the Earth's atmosphere.
+    Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
+    The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
     """
     NBR_YEARS = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_START_YEAR + 1
     solar_array = np.zeros(NBR_YEARS)
