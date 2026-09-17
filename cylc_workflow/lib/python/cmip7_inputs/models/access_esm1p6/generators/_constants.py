@@ -4,6 +4,9 @@ from datetime import datetime
 
 ANCIL_TODAY = datetime.now().strftime("%Y.%m.%d")
 REAL_MISSING_DATA_INDICATOR = -32768 * 32768.0
+<<<<<<< HEAD
+MONTHS_IN_A_YEAR = 12
+=======
 MONTHS_IN_A_YEAR = 12
 
 
@@ -40,3 +43,4 @@ SAOD_END_YEAR = 2300
 SAOD_WAVELENGTH = 550.0 * 1e-9
 # Scaling ratio to use with calculated SAOD
 SAOD_SCALING = 10000.0
+>>>>>>> 846bfef (Add volcanic before testing)

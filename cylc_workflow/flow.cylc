@@ -857,7 +857,10 @@
               python_env python \
                   -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n volcanic \
                   -o "none" \
+<<<<<<< HEAD
                   -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+=======
+>>>>>>> 846bfef (Add volcanic before testing)
                   -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
                   -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
                   -O save_filename={{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }} \
@@ -869,7 +872,10 @@
               python_env python \
                   -m cmip7_inputs -m {{ MODEL }} -e {{ EXP_NAME[EXP] }} -n volcanic \
                   -o "none" \
+<<<<<<< HEAD
                   -O ancil_target_dirname={{ quote(VAR.ANCIL_TARGET_PATH) }} \
+=======
+>>>>>>> 846bfef (Add volcanic before testing)
                   -O cmip7_source_data_dirname="${CMIP7_SOURCE_PATH}" \
                   -O esm15_inputs_dirname={{ quote(VAR.ESM15_INPUTS_PATH) }} \
                   -O dataset_version={{ quote(CMIP7_VOLCANIC_VERSION) }} \

@@ -7,6 +7,7 @@ import iris
 from pathlib import Path
 import numpy as np
 
+<<<<<<< HEAD
 from cmip7_inputs.models.access_esm1p6.generators._common_PI import (
     DAYS_IN_CMIP7_PI_YEAR
 )
@@ -14,12 +15,25 @@ from cmip7_inputs.models.access_esm1p6.generators._common_PI import (
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import (
     SAOD_SCALING,
     SAOD_WAVELENGTH,
+=======
+from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import (
+>>>>>>> 846bfef (Add volcanic before testing)
     constrain_to_wavelength,
     mean_over_latitudes,
     sum_over_height_layers,
 )
 
+<<<<<<< HEAD
 def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
+=======
+from cmip7_inputs.models.access_esm1p6.generators._constants import (
+    SAOD_SCALING,
+    SAOD_WAVELENGTH,
+    DAYS_IN_PI_YEAR
+)
+
+def get_pi_volcanic_filename(dataset_version, dataset_date_range):
+>>>>>>> 846bfef (Add volcanic before testing)
     '''
     Return the filename for the CMIP7 pre-industrial volcanic ancil file.
     '''
@@ -36,8 +50,13 @@ def mean_over_pi_months(cube):
     """
     time_coord = next(c for c in cube.coords() if c.standard_name == "time")
     time_weights = (
+<<<<<<< HEAD
         np.diff(np.append(time_coord.points, [DAYS_IN_CMIP7_PI_YEAR]))
         / DAYS_IN_CMIP7_PI_YEAR
+=======
+        np.diff(np.append(time_coord.points, [DAYS_IN_PI_YEAR]))
+        / DAYS_IN_PI_YEAR
+>>>>>>> 846bfef (Add volcanic before testing)
     )
     return cube.collapsed(["time"], iris.analysis.MEAN, weights=time_weights)
 
@@ -71,7 +90,11 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
     return cube.data
 
 
+<<<<<<< HEAD
 def cmip7_pi_volcanic_patch(average_saod):
+=======
+def patch_pi_volcanic(average_saod):
+>>>>>>> 846bfef (Add volcanic before testing)
     """
     Patch the VOLCTS_val variable in the coupling namelist
     """

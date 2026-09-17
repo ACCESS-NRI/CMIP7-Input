@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 from cmip7_inputs.models.access_esm1p6.generators._common_HI import esm_hi_forcing_save_dirpath
 
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import save_stratospheric_aerosol_optical_depth
@@ -13,6 +14,19 @@ CMIP7_HI_VOLCANIC_END_YEAR = 2023
 
 
 def cmip7_hi_volcanic_filename(dataset_version, dataset_date_range):
+=======
+from cmip7_inputs.models.access_esm1p6.generators._common_historical import get_historical_save_dirpath
+
+from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import save_stratospheric_aerosol_optical_depth
+
+from cmip7_inputs.models.access_esm1p6.generators._constants import (
+    HI_VOLCANIC_START_YEAR,
+    HI_VOLCANIC_END_YEAR,
+)
+
+
+def get_hi_volcanic_filename(dataset_version, dataset_date_range):
+>>>>>>> 846bfef (Add volcanic before testing)
     '''
     Return the filename for the CMIP7 historical volcanic ancil file.
     '''
@@ -23,7 +37,11 @@ def cmip7_hi_volcanic_filename(dataset_version, dataset_date_range):
     )
 
 #  TODO: Is this function really needed?
+<<<<<<< HEAD
 def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
+=======
+def save_hi_stratospheric_aerosol_optical_depth(ancil_target_dirname,args, dataset_path):
+>>>>>>> 846bfef (Add volcanic before testing)
     """
     Calculate the average stratospheric aerosol optical depth (SAOD)
     for each historical month by averaging extinction over latitude,
@@ -31,8 +49,15 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     """
     save_stratospheric_aerosol_optical_depth(
         args,
+<<<<<<< HEAD
         CMIP7_HI_VOLCANIC_BEG_YEAR,
         CMIP7_HI_VOLCANIC_END_YEAR,
         dataset_path,
         esm_hi_forcing_save_dirpath(args),
+=======
+        HI_VOLCANIC_START_YEAR,
+        HI_VOLCANIC_END_YEAR,
+        dataset_path,
+        get_historical_save_dirpath(ancil_target_dirname),
+>>>>>>> 846bfef (Add volcanic before testing)
     )

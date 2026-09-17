@@ -21,6 +21,7 @@ from pathlib import Path
 import cftime
 import iris
 import numpy as np
+<<<<<<< HEAD
 from cmip7_inputs.models.access_esm1p6.generators._constants import MONTHS_IN_A_YEAR
 
 NBR_OF_BANDS = 4
@@ -33,6 +34,19 @@ SAOD_WAVELENGTH = 550.0 * 1e-9
 SAOD_SCALING = 10000.0
 
 def cmip7_volcanic_dirpath(
+=======
+
+from cmip7_inputs.models.access_esm1p6.generators._constants import (
+    MONTHS_IN_A_YEAR,
+    SAOD_START_YEAR,
+    SAOD_END_YEAR,
+    NBR_TAPER_YEARS,
+    NBR_OF_BANDS,
+    SAOD_WAVELENGTH,
+)
+
+def get_volcanic_dirpath(
+>>>>>>> 846bfef (Add volcanic before testing)
     args, activity, period, dataset_version, dataset_vdate,
 ):
     '''
@@ -208,8 +222,13 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
         # Print the PI average SOAD for all years before volcanic_beg_year.
+<<<<<<< HEAD
         if volcanic_beg_year > SAOD_BEG_YEAR:
             for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
+=======
+        if volcanic_beg_year > SAOD_START_YEAR:
+            for year in range(SAOD_START_YEAR, volcanic_beg_year):
+>>>>>>> 846bfef (Add volcanic before testing)
                 for month in range(1, MONTHS_IN_A_YEAR + 1):
                     print(f"{year:4d} {month:4d}", end="", file=save_file)
                     # Divide into latitude bands.

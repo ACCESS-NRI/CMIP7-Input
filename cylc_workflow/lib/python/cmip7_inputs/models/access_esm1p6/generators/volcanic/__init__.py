@@ -15,6 +15,7 @@ from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
 from cmip7_inputs.models.access_esm1p6.generators._common import cmip7_parse_args
 
+<<<<<<< HEAD
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import cmip7_volcanic_dirpath
 
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._picontrol import (
@@ -25,6 +26,18 @@ from cmip7_inputs.models.access_esm1p6.generators.volcanic._picontrol import (
 
 from cmip7_inputs.models.access_esm1p6.generators.volcanic._historical import (
     cmip7_hi_volcanic_filename,
+=======
+from cmip7_inputs.models.access_esm1p6.generators.volcanic._common import get_volcanic_dirpath
+
+from cmip7_inputs.models.access_esm1p6.generators.volcanic._picontrol import (
+    get_pi_volcanic_filename,
+    average_stratospheric_aerosol_optical_depth,
+    patch_pi_volcanic,
+)
+
+from cmip7_inputs.models.access_esm1p6.generators.volcanic._historical import (
+    get_hi_volcanic_filename,
+>>>>>>> 846bfef (Add volcanic before testing)
     save_hi_stratospheric_aerosol_optical_depth,
 )
 
@@ -54,10 +67,17 @@ def generate_volcanic_picontrol(request: GenerationRequest) :
     """
 
     args = cmip7_parse_args(request)
+<<<<<<< HEAD
     dirpath = cmip7_volcanic_dirpath(
         args, "CMIP", "monC", args.dataset_version, args.dataset_vdate,
     )
     filename = cmip7_pi_volcanic_filename(
+=======
+    dirpath = get_volcanic_dirpath(
+        args, "CMIP", "monC", args.dataset_version, args.dataset_vdate,
+    )
+    filename = get_pi_volcanic_filename(
+>>>>>>> 846bfef (Add volcanic before testing)
         args.dataset_version, args.dataset_date_range,
     )
     dataset_path = dirpath / filename
@@ -66,7 +86,11 @@ def generate_volcanic_picontrol(request: GenerationRequest) :
     average_saod = average_stratospheric_aerosol_optical_depth(dataset_path)
 
     # Patch the VOLCTS_val variable in the coupling namelist.
+<<<<<<< HEAD
     cmip7_pi_volcanic_patch(average_saod)
+=======
+    patch_pi_volcanic(average_saod)
+>>>>>>> 846bfef (Add volcanic before testing)
 
 
 # ------------------------------------------------------
@@ -90,16 +114,27 @@ def generate_volcanic_historical(request: GenerationRequest):
     """
     args = cmip7_parse_args(request)
 
+<<<<<<< HEAD
     dirpath = cmip7_volcanic_dirpath(
         args, "CMIP", "mon", args.dataset_version, args.dataset_vdate,
     )
     filename = cmip7_hi_volcanic_filename(
+=======
+    dirpath = get_volcanic_dirpath(
+        args, "CMIP", "mon", args.dataset_version, args.dataset_vdate,
+    )
+    filename = get_hi_volcanic_filename(
+>>>>>>> 846bfef (Add volcanic before testing)
         args.dataset_version, args.dataset_date_range,
     )
     dataset_path = dirpath / filename
 
     # Calculate and save the average stratospheric aerosol optical depth.
+<<<<<<< HEAD
     save_hi_stratospheric_aerosol_optical_depth(args, dataset_path)
+=======
+    save_hi_stratospheric_aerosol_optical_depth(request.ancil_target_dirname, args, dataset_path)
+>>>>>>> 846bfef (Add volcanic before testing)
 
 # ----------------------------------------------------------
 # --------------------- SCENARIO MIP -----------------------
