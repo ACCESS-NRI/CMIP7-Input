@@ -6,6 +6,8 @@ import iris
 import numpy as np
 from iris.coord_categorisation import add_year
 
+from iris.coord_categorisation import add_year 
+
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     HI_END_YEAR,
     HI_START_YEAR,
