@@ -13,14 +13,13 @@ from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.core.registry import registry
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
-from cmip7_inputs.models.access_esm1p6.generators._common import parse_additional_args
 
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
-    get_solar_dirpath,
     load_solar_cube
 )
 
 from cmip7_inputs.models.access_esm1p6.generators.solar._historical import save_historical_solar
+from cmip7_inputs.models.access_esm1p6.generators._constants import TODAY
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
@@ -40,19 +39,16 @@ def generate_solar_historical(request: GenerationRequest):
     model: ACCESS-ESM1.6
     experiment: historical
     """
-    args = parse_additional_args(request)
-
-    dirpath = get_solar_dirpath(args, "CMIP", "mon")
-    filename = (
-        "multiple_input4MIPs_solar_CMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{args.dataset_date_range}.nc"
-    )
+    
+    dirpath = Path(request.options["load_dirpath"])
+    filename = request.options["load_filename"]
     dataset_path = dirpath / filename
 
     solar_irradiance_cube = load_solar_cube(dataset_path)
+    historical_save_dirpath = Path(request.output_dir) / TODAY
+    save_filename = request.options["save_filename"]
 
-    save_historical_solar(request.output_dir, args, solar_irradiance_cube)
+    save_historical_solar(historical_save_dirpath, save_filename, solar_irradiance_cube)
 
 # ------------------------------------------------------
 # ------------------- PI CONTROL -----------------------

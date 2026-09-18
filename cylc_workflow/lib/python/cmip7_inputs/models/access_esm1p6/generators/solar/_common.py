@@ -17,29 +17,12 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
     SOLAR_PI_DEFAULT_YEARLY_MEAN
 )
 
-
-def get_solar_dirpath(args, activity, period)->Path:
-    '''
-    Return the directory path for the CMIP7 SOLARIS-HEPPA solar ancil file.
-    '''
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / activity
-        / "SOLARIS-HEPPA"
-        / args.dataset_version
-        / "atmos"
-        / period
-        / "multiple"
-        / "gn"
-        / args.dataset_vdate
-    )
-
 def load_solar_cube(path):
     '''
     Loads the solar irradiance cube from an ancil file
     '''
     name_constraint = iris.Constraint(name="solar_irradiance")
-    return iris.load_single(path, name_constraint)
+    return iris.load_cube(path, name_constraint)
 
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
@@ -70,7 +53,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
-def save_solar(args, cube, beg_year, end_year, save_dirpath):
+def save_solar(save_filename, cube, beg_year, end_year, save_dirpath):
     """
     Save the TSI values for each year into a text file.
     """
@@ -87,5 +70,5 @@ def save_solar(args, cube, beg_year, end_year, save_dirpath):
 
     # Ensure that the save directory exists and write the file atomically.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
-    save_filepath = save_dirpath / args.save_filename
+    save_filepath = save_dirpath / save_filename
     save_filepath.write_text("\n".join(lines) + "\n")
