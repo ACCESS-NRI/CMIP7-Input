@@ -7,6 +7,8 @@ from pathlib import Path
 import iris
 import numpy as np
 
+from iris.coord_categorisation import add_year 
+
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
     PI_START_YEAR,
@@ -34,42 +36,38 @@ def get_solar_dirpath(args, activity, period)->Path:
 
 def load_solar_cube(path):
     '''
-    Loads the solar irradiance cube from the CMIP7 SOLARIS-HEPPA solar ancil file.
+    Loads the solar irradiance cube from an ancil file
     '''
-    cubelist = iris.load(path)
     name_constraint = iris.Constraint(name="solar_irradiance")
-    return cubelist.extract_cube(name_constraint)
+    return iris.load_single(path, name_constraint)
 
-def compute_solar_yearly_mean(cube, beg_year, end_year):
+def compute_solar_yearly_mean(cube, start_year, end_year):
     """
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
     """
-    NBR_YEARS = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_START_YEAR + 1
-    solar_array = np.zeros(NBR_YEARS)
-    # Calculate and save the mean annual TSI for each CMIP7 historical year.
-    year_range = range(beg_year, end_year + 1)
-    pi_year_mean = SOLAR_PI_DEFAULT_YEARLY_MEAN
-    for year in year_range:
-        year_cons = iris.Constraint(time=lambda cell: cell.point.year == year)
-        # Extract the cube for the year
-        year_cube = cube.extract(year_cons)
-        # Calculate year mean 
-        year_mean = year_cube.collapsed("time", iris.analysis.MEAN).data
-        solar_array[year - SOLAR_ARRAY_START_YEAR] = year_mean
-        # Save the year mean for the pre-industrial year.
-        if year == PI_START_YEAR:
-            pi_year_mean = year_mean
+    n_years = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_START_YEAR + 1
+    solar_array = np.full(n_years, REAL_MISSING_DATA_INDICATOR, dtype=float)
 
-    # For the years from SOLAR_ARRAY_START_YEAR to beg_year - 1, i.e. before beg_year,
-    # set the saved TSI value to the pre-industrial year mean TSI.
-    for year in range(SOLAR_ARRAY_START_YEAR, beg_year):
-        solar_array[year - SOLAR_ARRAY_START_YEAR] = pi_year_mean
+    # Compute all yearly means in one pass instead of looping extract+collapse per year.
+    period = cube.extract(
+        iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year)
+    )
+    add_year(period, "time")
+    yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
 
-    # For the years from CMIP7_HI_END_YEAR + 1 to SOLAR_ARRAY_END_YEAR, i.e. after end_year,
-    # set the saved TSI value to the real missing data indicator
-    for year in range(end_year + 1, SOLAR_ARRAY_END_YEAR + 1):
-        solar_array[year - SOLAR_ARRAY_START_YEAR] = REAL_MISSING_DATA_INDICATOR
+    years = yearly_means.coord("year").points
+    means = yearly_means.data
+
+    idx = years - SOLAR_ARRAY_START_YEAR
+    solar_array[idx] = means
+
+    # Years before start_year: fill with the pre-industrial year mean (fall back to default).
+    pi_matches = means[years == PI_START_YEAR]
+    pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
+    solar_array[: start_year - SOLAR_ARRAY_START_YEAR] = pi_year_mean
+
+    # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
 def save_solar(args, cube, beg_year, end_year, save_dirpath):
@@ -77,13 +75,17 @@ def save_solar(args, cube, beg_year, end_year, save_dirpath):
     Save the TSI values for each year into a text file.
     """
     solar_array = compute_solar_yearly_mean(cube, beg_year, end_year)
-    # Ensure that the save directory exists.
+
+    years = np.arange(SOLAR_ARRAY_START_YEAR, SOLAR_ARRAY_END_YEAR + 1)
+    is_missing = solar_array == REAL_MISSING_DATA_INDICATOR
+
+    # Missing-data entries get 1 decimal place, real values get 3.
+    lines = [
+        f"{year} {value:.1f}" if missing else f"{year} {value:.3f}"
+        for year, value, missing in zip(years, solar_array, is_missing)
+    ]
+
+    # Ensure that the save directory exists and write the file atomically.
     save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath = save_dirpath / args.save_filename
-    with open(save_filepath, "w") as save_file:
-        for year in range(SOLAR_ARRAY_START_YEAR, SOLAR_ARRAY_END_YEAR + 1):
-            year_mean = solar_array[year - SOLAR_ARRAY_START_YEAR]
-            if year_mean == REAL_MISSING_DATA_INDICATOR:
-                print(year, f"{year_mean:.1f}", file=save_file)
-            else:
-                print(year, f"{year_mean:.3f}", file=save_file)
+    save_filepath.write_text("\n".join(lines) + "\n")

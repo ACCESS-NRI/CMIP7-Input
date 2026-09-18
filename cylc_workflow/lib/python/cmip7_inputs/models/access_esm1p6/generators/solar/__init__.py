@@ -58,17 +58,17 @@ def generate_solar_historical(request: GenerationRequest):
 # ------------------- PI CONTROL -----------------------
 # ------------------------------------------------------
 
-@registry.register(
-    model=MODEL_ID,
-    input_name=input_names.SOLAR,
-    experiments=[experiments.PI_CONTROL],
-)
-def generate_solar_picontrol(request: GenerationRequest) -> Path:
-    """Generate solar forcing input file for:
-    model: ACCESS-ESM1.6
-    experiment: piControl
+# @registry.register(
+#     model=MODEL_ID,
+#     input_name=input_names.SOLAR,
+#     experiments=[experiments.PI_CONTROL],
+# )
+# def generate_solar_picontrol(request: GenerationRequest) -> Path:
+#     """Generate solar forcing input file for:
+#     model: ACCESS-ESM1.6
+#     experiment: piControl
 
-    Placeholder processing that writes a text file describing the
-    request instead of real solar forcing data.
-    """
-    return write_mock_solar_file(request)
+#     Placeholder processing that writes a text file describing the
+#     request instead of real solar forcing data.
+#     """
+#     return write_mock_solar_file(request)
