@@ -12,38 +12,59 @@ from cmip7_inputs import experiments, input_names
 from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.core.registry import registry
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
+
+
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
-    write_mock_solar_file,
+    load_solar_cube
 )
 
+from cmip7_inputs.models.access_esm1p6.generators.solar._historical import save_historical_solar
+from cmip7_inputs.models.access_esm1p6.generators._constants import TODAY
+
+# ------------------------------------------------------
+# ------------------- HISTORICAL -----------------------
+# ------------------------------------------------------
+# cmip7-inputs -m access-esm1.6 -n solar -e historical -o output_test 
+# -O dataset-version=SOLARIS-HEPPA-CMIP-4-6 -O dataset-vdate=v20250219 
+# -O dataset-date-range=185001-202312 -O save-filename=TSI_CMIP7_ESM 
+# -O cmip7-source-data-dirname=/input_test -O ancil_target_dirname=/ancil_dirname
 
 @registry.register(
     model=MODEL_ID,
     input_name=input_names.SOLAR,
-    experiments=[experiments.PI_CONTROL],
+    experiments=[experiments.HISTORICAL,],
 )
-def generate_solar_picontrol(request: GenerationRequest) -> Path:
-    """Generate solar forcing input file for:
-    model: ACCESS-ESM1.6
-    experiment: piControl
-
-    Placeholder processing that writes a text file describing the
-    request instead of real solar forcing data.
-    """
-    return write_mock_solar_file(request)
-
-
-@registry.register(
-    model=MODEL_ID,
-    input_name=input_names.SOLAR,
-    experiments=[experiments.HISTORICAL],
-)
-def generate_solar_historical(request: GenerationRequest) -> Path:
+def generate_solar_historical(request: GenerationRequest):
     """Generate solar forcing input file for:
     model: ACCESS-ESM1.6
     experiment: historical
-
-    Placeholder processing that writes a text file describing the
-    request instead of real solar forcing data.
     """
-    return write_mock_solar_file(request)
+    
+    dirpath = Path(request.options["load_dirpath"])
+    filename = request.options["load_filename"]
+    dataset_path = dirpath / filename
+
+    solar_irradiance_cube = load_solar_cube(dataset_path)
+    historical_save_dirpath = Path(request.output_dir) / TODAY
+    save_filename = request.options["save_filename"]
+
+    save_historical_solar(historical_save_dirpath, save_filename, solar_irradiance_cube)
+
+# ------------------------------------------------------
+# ------------------- PI CONTROL -----------------------
+# ------------------------------------------------------
+
+# @registry.register(
+#     model=MODEL_ID,
+#     input_name=input_names.SOLAR,
+#     experiments=[experiments.PI_CONTROL],
+# )
+# def generate_solar_picontrol(request: GenerationRequest) -> Path:
+#     """Generate solar forcing input file for:
+#     model: ACCESS-ESM1.6
+#     experiment: piControl
+
+#     Placeholder processing that writes a text file describing the
+#     request instead of real solar forcing data.
+#     """
+#     return write_mock_solar_file(request)
