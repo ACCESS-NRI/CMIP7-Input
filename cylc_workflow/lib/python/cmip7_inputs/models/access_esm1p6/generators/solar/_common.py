@@ -6,14 +6,11 @@ import iris
 import numpy as np
 from iris.coord_categorisation import add_year
 
-from iris.coord_categorisation import add_year 
-
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     HI_END_YEAR,
     HI_START_YEAR,
     REAL_MISSING_DATA_INDICATOR,
 )
-
 
 def load_solar_cube(path):
     """
@@ -21,7 +18,6 @@ def load_solar_cube(path):
     """
     name_constraint = iris.Constraint(name="solar_irradiance")
     return iris.load_cube(path, name_constraint)
-
 
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
