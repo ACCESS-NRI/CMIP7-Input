@@ -62,9 +62,9 @@ def generate_solar_picontrol(request: GenerationRequest) :
     Placeholder processing that writes a text file describing the
     request instead of real solar forcing data.
     """
-    
-    dirpath = Path(request.options["load_dirpath"]) # cmip7_solar_dirpath(args, "CMIP", "fx")
-    filename = request.options["load_filename"] #f"multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc"
+
+    dirpath = Path(request.options["load_dirpath"])
+    filename = request.options["load_filename"]
     dataset_path = dirpath / filename
 
     solar_irradiance_cube = load_solar_cube(dataset_path)
