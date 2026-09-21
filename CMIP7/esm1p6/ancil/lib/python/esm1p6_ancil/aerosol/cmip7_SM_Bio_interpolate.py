@@ -1,5 +1,4 @@
-# Interpolate CMIP7 SM Biomass burning emissions to ESM1.6 grid
-
+import warnings
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
@@ -11,7 +10,7 @@ from aerosol.cmip7_aerosol_common import (
     zero_poles,
 )
 from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import common_parser, ext_parser
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     cmip7_date_constraint_from_years,
@@ -21,7 +20,8 @@ from cmip7_ancil_common import (
     save_ancil,
     set_coord_system,
 )
-from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
+from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR, CMIP7_SM_EXT_END_YEAR
+from iris.util import equalise_attributes, unify_time_units
 
 
 def parse_args():
@@ -30,7 +30,7 @@ def parse_args():
         description=(
             "Generate input files from CMIP7 ScenarioMIP biomass forcings"
         ),
-        parents=[common_parser()],
+        parents=[common_parser(), ext_parser()],
     )
     parser.add_argument("--scenario")
     parser.add_argument("--dataset-date-range")
@@ -61,6 +61,26 @@ def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
     filename = (
         f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
         f"{args.dataset_version}_gn_"
+        f"{date_range}.nc"
+    )
+    return dirpath / filename
+
+
+def cmip7_sm_aerosol_biomass_ext_filepath(args, species, date_range, ext_version, ext_vdate):
+    dirpath = (
+        Path(args.cmip7_source_data_dirname)
+        / "ScenarioMIP"
+        / "IIASA-IAMC"
+        / ext_version
+        / "atmos"
+        / "mon"
+        / _biomass_variable(species).replace("-", "_")
+        / "gn"
+        / ext_vdate
+    )
+    filename = (
+        f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
+        f"{ext_version}_gn_"
         f"{date_range}.nc"
     )
     return dirpath / filename
@@ -180,7 +200,45 @@ def save_cmip7_sm_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
 
 
 def load_cmip7_sm_aerosol_biomass(args, species):
-    cube = load_cmip7_aerosol_biomass(
+    is_ext = getattr(args, "ext", False)
+    target_end_year = CMIP7_SM_END_YEAR
+    ext_cube = None
+
+    if is_ext:
+        ext_version = getattr(args, "dataset_ext_version", None)
+        if not ext_version and hasattr(args, "dataset_version") and args.dataset_version:
+            ext_version = args.dataset_version.replace("-1-1-1", "-ext-1-1-1")
+        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(args, "dataset_vdate", None)
+        ext_date_range = getattr(args, "dataset_ext_date_range", None)
+        target_end_year = getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+
+        if ext_version and ext_vdate and ext_date_range:
+            ext_filepath = cmip7_sm_aerosol_biomass_ext_filepath(
+                args, species, ext_date_range, ext_version, ext_vdate
+            )
+            if ext_filepath.exists():
+                ext_cube = load_cmip7_aerosol(
+                    args,
+                    lambda a, s, dr: ext_filepath,
+                    species,
+                    ext_date_range,
+                    cmip7_date_constraint_from_years(CMIP7_SM_END_YEAR + 1, target_end_year),
+                )
+                ext_cube.data = ext_cube.data.filled(0.0)
+            else:
+                warnings.warn(
+                    f"Biomass extension file {ext_filepath} not found. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                    UserWarning,
+                )
+                target_end_year = CMIP7_SM_END_YEAR
+        else:
+            warnings.warn(
+                f"Biomass extension parameters incomplete for {species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                UserWarning,
+            )
+            target_end_year = CMIP7_SM_END_YEAR
+
+    base_cube = load_cmip7_aerosol_biomass(
         args,
         species,
         args.dataset_date_range,
@@ -189,8 +247,17 @@ def load_cmip7_sm_aerosol_biomass(args, species):
             CMIP7_SM_END_YEAR,
         ),
     )
+
+    if ext_cube is not None:
+        cubelist = iris.cube.CubeList([base_cube, ext_cube])
+        equalise_attributes(cubelist)
+        unify_time_units(cubelist)
+        cube = cubelist.concatenate_cube()
+    else:
+        cube = base_cube
+
     interpolated = interpolate_monthly(
-        cube, CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR
+        cube, CMIP7_SM_BEG_YEAR, target_end_year
     )
     return extend_years(interpolated)
 

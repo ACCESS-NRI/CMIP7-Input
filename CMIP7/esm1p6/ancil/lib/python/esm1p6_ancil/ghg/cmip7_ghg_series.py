@@ -1,3 +1,4 @@
+import warnings
 from collections import OrderedDict
 from pathlib import Path
 
@@ -22,6 +23,40 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
 
     # Read in the CMIP7 cube.
     full_cube = iris.load_cube(cmip7_filepath)
+
+    if end_year > 2100:
+        ext_version = getattr(args, "dataset_ext_version", None) or (
+            args.dataset_version.replace("-1-1-0", "-ext-1-1-0")
+            if hasattr(args, "dataset_version") and args.dataset_version
+            else None
+        )
+        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(args, "dataset_vdate", None)
+        ext_date_range = getattr(args, "dataset_ext_date_range", None) or "2101-2500"
+        if ext_version and ext_vdate and ext_date_range:
+            ext_filepath = (
+                Path(args.cmip7_source_data_dirname)
+                / activity
+                / "CR"
+                / ext_version
+                / "atmos"
+                / "yr"
+                / ghg
+                / "gm"
+                / ext_vdate
+                / f"{ghg}_input4MIPs_GHGConcentrations_{activity}_{ext_version}_gm_{ext_date_range}.nc"
+            )
+            if ext_filepath.exists():
+                ext_cube = iris.load_cube(ext_filepath)
+                cubelist = iris.cube.CubeList([full_cube, ext_cube])
+                iris.util.equalise_attributes(cubelist)
+                iris.util.unify_time_units(cubelist)
+                full_cube = cubelist.concatenate_cube()
+            else:
+                warnings.warn(
+                    f"GHG extension file {ext_filepath} not found. Limiting to 2100.",
+                    UserWarning,
+                )
+                end_year = 2100
 
     # Check that we have the right greenhouse gas.
     variable_id = full_cube.metadata.attributes["variable_id"]
