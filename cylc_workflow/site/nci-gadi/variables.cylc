@@ -4,3 +4,12 @@
 {%- set CMIP7_SOURCE_PATH = '/g/data/qv56/replicas/input4MIPs/CMIP7' %}
 {%- set ESM15_INPUTS_PATH = '/g/data/vk83/configurations/inputs/access-esm1p5' %}
 {%- set UMDIR = '/g/data/access/umdir' %}
+
+#------------------------------------------------------------------------------
+# Raw input filepaths
+#------------------------------------------------------------------------------
+
+# Solar
+
+{%- set SOLAR_INPUT_FILENAME = 'multiple_input4MIPs_solar_CMIP_SOLARIS-HEPPA-CMIP-4-6_gn_185001-202312.nc' %}
+{%- set SOLAR_INPUT_FILEPATH = CMIP7_SOURCE_PATH ~ '/CMIP/SOLARIS-HEPPA/' ~ CMIP7_SOLAR_VERSION ~ '/atmos/mon/multiple/gn/' ~ CMIP7_SOLAR_VDATE ~ '/' ~ SOLAR_INPUT_FILENAME %}

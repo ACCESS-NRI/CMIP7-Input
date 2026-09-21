@@ -794,9 +794,8 @@
                   -e {{ EXP_NAME[EXP] }} \
                   -n solar \
                   -o {{ quote(VAR.ANCIL_TARGET_PATH) }}/modern/historical/atmosphere/forcing/resolution_independent \
-                  -O save_filename={{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }} \
-                  -O load_filename={{ quote(SOLAR_LOAD_FILENAME) }} \
-                  -O load_dirpath={{ quote(VAR.CMIP7_SOURCE_PATH ~ '/CMIP/SOLARIS-HEPPA/' ~ CMIP7_SOLAR_VERSION ~ '/atmos/mon/multiple/gn/' ~ CMIP7_SOLAR_VDATE) }}
+                  -O output_filename="{{ ESM_HI_SOLAR_SAVE_FILENAME }}" \
+                  -O input_filepath="{{ VAR.SOLAR_INPUT_FILEPATH }}"
             {% else %}
               cd $GIT_{{EXP}}_CONFIG_DIR
               python_env python \

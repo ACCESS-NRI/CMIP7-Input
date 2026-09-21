@@ -40,13 +40,9 @@ def generate_solar_historical(request: GenerationRequest):
     experiment: historical
     """
     
-    dirpath = Path(request.options["load_dirpath"])
-    filename = request.options["load_filename"]
-    dataset_path = dirpath / filename
-
-    solar_irradiance_cube = load_solar_cube(dataset_path)
+    solar_irradiance_cube = load_solar_cube(request.options["input_filepath"])
     historical_save_dirpath = Path(request.output_dir) / TODAY
-    save_filename = request.options["save_filename"]
+    save_filename = request.options["output_filename"]
 
     save_historical_solar(historical_save_dirpath, save_filename, solar_irradiance_cube)
 
