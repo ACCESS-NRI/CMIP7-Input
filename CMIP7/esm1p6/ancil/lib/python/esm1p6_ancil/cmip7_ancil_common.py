@@ -137,6 +137,49 @@ def extend_years(cube):
     return cubelist.concatenate_cube()
 
 
+def tile_constant_years(cube, baseline_year, target_end_year):
+    """
+    Extend a monthly time series cube from baseline_year to target_end_year
+    by repeating the 12 monthly time slices of baseline_year for each subsequent year.
+    """
+    if target_end_year <= baseline_year:
+        return cube
+
+    time_coord = cube.coord("time")
+    units = time_coord.units
+
+    year_constraint = iris.Constraint(time=lambda cell: cell.point.year == baseline_year)
+    baseline_slice = cube.extract(year_constraint)
+    if baseline_slice is None or len(baseline_slice.coord("time").points) != MONTHS_IN_A_YEAR:
+        baseline_slice = cube[-MONTHS_IN_A_YEAR:].copy()
+    else:
+        baseline_slice = baseline_slice.copy()
+
+    cubelist = iris.cube.CubeList([cube])
+    for y in range(baseline_year + 1, target_end_year + 1):
+        year_cube = baseline_slice.copy()
+        tc = year_cube.coord("time")
+        new_points = []
+        new_bounds = [] if tc.has_bounds() else None
+        for i in range(len(tc.points)):
+            dt = units.num2date(tc.points[i])
+            new_dt = dt.replace(year=y)
+            new_points.append(units.date2num(new_dt))
+            if tc.has_bounds():
+                b0_date = units.num2date(tc.bounds[i][0])
+                b1_date = units.num2date(tc.bounds[i][1])
+                b0 = b0_date.replace(year=y)
+                year_offset = b1_date.year - dt.year
+                b1 = b1_date.replace(year=y + year_offset)
+                new_bounds.append([units.date2num(b0), units.date2num(b1)])
+        tc.points = np.array(new_points)
+        if new_bounds is not None:
+            tc.bounds = np.array(new_bounds)
+        cubelist.append(year_cube)
+
+    return cubelist.concatenate_cube()
+
+
 def _interpolate_months_separately(cube, tpoints):
     """
     Interpolate to monthly frequency by extracting and interpolating

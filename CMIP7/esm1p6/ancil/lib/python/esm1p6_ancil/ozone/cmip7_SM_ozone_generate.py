@@ -1,12 +1,15 @@
+import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
 from cmip7_ancil_argparse import (
+    ext_parser,
     grid_parser,
     path_parser,
 )
-from cmip7_ancil_common import save_ancil
+from cmip7_ancil_common import save_ancil, tile_constant_years
 from cmip7_ancil_constants import ANCIL_TODAY
+from cmip7_SM import CMIP7_SM_END_YEAR, CMIP7_SM_EXT_END_YEAR
 from ozone.cmip7_ozone import (
     fix_cmip7_ozone,
     load_cmip7_ozone,
@@ -16,7 +19,7 @@ from ozone.cmip7_ozone import (
 
 def parse_args():
     parser = ArgumentParser(
-        parents=[path_parser(), grid_parser(), ozone_parser()],
+        parents=[path_parser(), grid_parser(), ozone_parser(), ext_parser()],
         prog="cmip7_SM_ozone_generate",
         description=(
             "Generate input files from UK CMIP7 ScenarioMIP ozone forcings"
@@ -48,8 +51,21 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load the CMIP7 datasets
-    ozone_cube = load_cmip7_ozone(args)
-    # Match the ESM1.5 mask
-    esm_cube = fix_cmip7_ozone(args, ozone_cube)
-    # Save the ancillary
-    save_cmip7_sm_ozone(args, esm_cube)
+    try:
+        ozone_cube = load_cmip7_ozone(args)
+    except Exception as e:
+        warnings.warn(f"Could not load ozone dataset: {e}", UserWarning)
+        ozone_cube = None
+
+    if ozone_cube is not None:
+        # Match the ESM1.5 mask
+        esm_cube = fix_cmip7_ozone(args, ozone_cube)
+        if getattr(args, "ext", False):
+            target_end_year = (
+                getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+            )
+            esm_cube = tile_constant_years(
+                esm_cube, CMIP7_SM_END_YEAR, target_end_year
+            )
+        # Save the ancillary
+        save_cmip7_sm_ozone(args, esm_cube)
