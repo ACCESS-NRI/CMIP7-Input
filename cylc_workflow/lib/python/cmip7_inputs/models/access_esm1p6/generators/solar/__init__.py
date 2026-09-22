@@ -44,13 +44,10 @@ def generate_solar_historical(request: GenerationRequest):
     """
     
     solar_irradiance_cube = load_solar_cube(request.options["input_filepath"])
-    historical_save_dirpath = Path(request.output_dir) / TODAY
-    save_filename = request.options["output_filename"]
+    historical_save_filepath = Path(request.output_dir) / TODAY / request.options["output_filename"]
 
     # Save the Total Solar Irradiance values for each year into a text file.
-    save_solar(save_filename, solar_irradiance_cube, HI_START_YEAR, HI_END_YEAR, historical_save_dirpath)
-
-# ------------------------------------------------------
+    save_solar(historical_save_filepath, solar_irradiance_cube, HI_START_YEAR, HI_END_YEAR)
 # ------------------- PI CONTROL -----------------------
 # ------------------------------------------------------
 

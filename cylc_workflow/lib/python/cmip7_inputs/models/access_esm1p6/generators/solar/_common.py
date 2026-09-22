@@ -31,33 +31,36 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
     """
-    n_years = HI_END_YEAR - HI_START_YEAR + 1
-    solar_array = np.full(n_years, REAL_MISSING_DATA_INDICATOR, dtype=float)
 
-    # Compute all yearly means in one pass instead of looping extract+collapse per year.
+    # Extract year range from the cube
     period = cube.extract(
         iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year)
     )
     add_year(period, "time")
+    # Calculate yearly mean
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
 
     years = yearly_means.coord("year").points
     means = yearly_means.data
 
-    idx = years - HI_START_YEAR
-    solar_array[idx] = means
+    # Get array  
+    solar_array = means.copy()  
+    # Substitute NaNs with REAL_MISSING_DATA_INDICATOR  
+    solar_array[np.isnan(solar_array)] = REAL_MISSING_DATA_INDICATOR  
 
     # Years before start_year: fill with the pre-industrial year mean (fall back to default).
     pi_matches = means[years == PI_START_YEAR]
     pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
     solar_array[: start_year - HI_START_YEAR] = pi_year_mean
 
-    # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
-def save_solar(save_filename, cube, start_year, end_year, save_dirpath):
+def save_solar(save_filepath, cube, start_year, end_year):
     """
-    Save the TSI values for each year into a text file.
+    Save the TSI values for each year into a text file, in the format:  
+    <year1> <value1>  
+    <year2> <value2>  
+    <year3> <value3>.
     """
     solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
 
@@ -71,6 +74,4 @@ def save_solar(save_filename, cube, start_year, end_year, save_dirpath):
     ]
 
     # Ensure that the save directory exists and write the file atomically.
-    save_dirpath.mkdir(mode=0o755, parents=True, exist_ok=True)
-    save_filepath = save_dirpath / save_filename
     save_filepath.write_text("\n".join(lines) + "\n")
