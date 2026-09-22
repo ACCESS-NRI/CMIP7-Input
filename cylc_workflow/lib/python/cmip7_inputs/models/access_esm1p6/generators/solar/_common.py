@@ -11,12 +11,8 @@ from iris.coord_categorisation import add_year
 
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
-    PI_START_YEAR,
     HI_START_YEAR,
-    HI_END_YEAR,
-    SOLAR_ARRAY_START_YEAR,
-    SOLAR_ARRAY_END_YEAR,
-    SOLAR_PI_DEFAULT_YEARLY_MEAN
+    HI_END_YEAR
 )
 
 def load_solar_cube(path):
@@ -47,12 +43,6 @@ def compute_solar_yearly_mean(cube):
     idx = years - HI_START_YEAR
     solar_array[idx] = means
 
-    # Years before start_year: fill with the pre-industrial year mean (fall back to default).
-    pi_matches = means[years == PI_START_YEAR]
-    pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
-    solar_array[: HI_START_YEAR - HI_START_YEAR] = pi_year_mean
-
-    # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
 def save_solar(cube, save_dirpath, save_filename):

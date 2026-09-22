@@ -12,9 +12,3 @@ PI_START_YEAR = 1850
 HI_START_YEAR = PI_START_YEAR
 # End year for historical experiment
 HI_END_YEAR = 2023
-
-#===============================
-# solar constants
-#===============================
-
-SOLAR_PI_DEFAULT_YEARLY_MEAN = 1361.603
