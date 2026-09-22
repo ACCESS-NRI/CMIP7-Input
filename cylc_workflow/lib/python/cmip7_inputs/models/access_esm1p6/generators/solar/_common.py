@@ -12,6 +12,8 @@ from iris.coord_categorisation import add_year
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
     PI_START_YEAR,
+    HI_START_YEAR,
+    HI_END_YEAR,
     SOLAR_ARRAY_START_YEAR,
     SOLAR_ARRAY_END_YEAR,
     SOLAR_PI_DEFAULT_YEARLY_MEAN
@@ -29,7 +31,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
     """
-    n_years = SOLAR_ARRAY_END_YEAR - SOLAR_ARRAY_START_YEAR + 1
+    n_years = HI_END_YEAR - HI_START_YEAR + 1
     solar_array = np.full(n_years, REAL_MISSING_DATA_INDICATOR, dtype=float)
 
     # Compute all yearly means in one pass instead of looping extract+collapse per year.
@@ -42,24 +44,24 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     years = yearly_means.coord("year").points
     means = yearly_means.data
 
-    idx = years - SOLAR_ARRAY_START_YEAR
+    idx = years - HI_START_YEAR
     solar_array[idx] = means
 
     # Years before start_year: fill with the pre-industrial year mean (fall back to default).
     pi_matches = means[years == PI_START_YEAR]
     pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
-    solar_array[: start_year - SOLAR_ARRAY_START_YEAR] = pi_year_mean
+    solar_array[: start_year - HI_START_YEAR] = pi_year_mean
 
     # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
-def save_solar(save_filename, cube, beg_year, end_year, save_dirpath):
+def save_solar(save_filename, cube, start_year, end_year, save_dirpath):
     """
     Save the TSI values for each year into a text file.
     """
-    solar_array = compute_solar_yearly_mean(cube, beg_year, end_year)
+    solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
 
-    years = np.arange(SOLAR_ARRAY_START_YEAR, SOLAR_ARRAY_END_YEAR + 1)
+    years = np.arange(HI_START_YEAR, HI_END_YEAR + 1)
     is_missing = solar_array == REAL_MISSING_DATA_INDICATOR
 
     # Missing-data entries get 1 decimal place, real values get 3.
