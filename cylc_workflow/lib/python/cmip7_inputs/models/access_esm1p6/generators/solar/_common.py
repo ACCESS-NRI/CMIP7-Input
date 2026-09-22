@@ -19,7 +19,7 @@ def load_solar_cube(path):
     name_constraint = iris.Constraint(name="solar_irradiance")
     return iris.load_cube(path, name_constraint)
 
-def compute_solar_yearly_mean(cube, start_year, end_year):
+def compute_solar_yearly_mean(cube):
     """
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
@@ -47,7 +47,7 @@ def save_solar(save_filepath, cube, start_year, end_year):
     <year3> <value3>
     ...
     """
-    solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
+    solar_array = compute_solar_yearly_mean(cube)
 
     years = np.arange(HI_START_YEAR, HI_END_YEAR + 1)
     is_missing = solar_array == REAL_MISSING_DATA_INDICATOR
