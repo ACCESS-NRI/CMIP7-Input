@@ -13,16 +13,11 @@ from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.core.registry import registry
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
-
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     load_solar_cube,
     save_solar,
 )
-from cmip7_inputs.models.access_esm1p6.generators._constants import (
-    TODAY,
-    HI_START_YEAR,
-    HI_END_YEAR
-)
+from cmip7_inputs.models.access_esm1p6.generators._constants import TODAY
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
@@ -48,7 +43,7 @@ def generate_solar_historical(request: GenerationRequest):
     save_filename = request.options["output_filename"]
 
     # Save the Total Solar Irradiance values for each year into a text file.
-    save_solar(save_filename, solar_irradiance_cube, HI_START_YEAR, HI_END_YEAR, historical_save_dirpath)
+    save_solar(solar_irradiance_cube, historical_save_dirpath, save_filename)
 
 # ------------------------------------------------------
 # ------------------- PI CONTROL -----------------------

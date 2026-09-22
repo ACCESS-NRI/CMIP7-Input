@@ -26,7 +26,7 @@ def load_solar_cube(path):
     name_constraint = iris.Constraint(name="solar_irradiance")
     return iris.load_cube(path, name_constraint)
 
-def compute_solar_yearly_mean(cube, start_year, end_year):
+def compute_solar_yearly_mean(cube):
     """
     Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
@@ -36,7 +36,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
 
     # Compute all yearly means in one pass instead of looping extract+collapse per year.
     period = cube.extract(
-        iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year)
+        iris.Constraint(time=lambda cell: HI_START_YEAR <= cell.point.year <= HI_END_YEAR)
     )
     add_year(period, "time")
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
@@ -50,16 +50,16 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     # Years before start_year: fill with the pre-industrial year mean (fall back to default).
     pi_matches = means[years == PI_START_YEAR]
     pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
-    solar_array[: start_year - HI_START_YEAR] = pi_year_mean
+    solar_array[: HI_START_YEAR - HI_START_YEAR] = pi_year_mean
 
     # Years after end_year already default to REAL_MISSING_DATA_INDICATOR from np.full.
     return solar_array
 
-def save_solar(save_filename, cube, start_year, end_year, save_dirpath):
+def save_solar(cube, save_dirpath, save_filename):
     """
     Save the TSI values for each year into a text file.
     """
-    solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
+    solar_array = compute_solar_yearly_mean(cube)
 
     years = np.arange(HI_START_YEAR, HI_END_YEAR + 1)
     is_missing = solar_array == REAL_MISSING_DATA_INDICATOR
