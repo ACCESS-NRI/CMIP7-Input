@@ -62,12 +62,8 @@ def generate_solar_picontrol(request: GenerationRequest) :
     Placeholder processing that writes a text file describing the
     request instead of real solar forcing data.
     """
-
-    dirpath = Path(request.options["load_dirpath"])
-    filename = request.options["load_filename"]
-    dataset_path = dirpath / filename
-
-    solar_irradiance_cube = load_solar_cube(dataset_path)
+    
+    solar_irradiance_cube = load_solar_cube(request.options["input_filepath"])
     solar_irradiance = solar_irradiance_cube[0].data
 
     # Patch the SC variable in the coupling namelist
