@@ -39,13 +39,26 @@ if __name__ == "__main__":
 
     ghg_mmr_dict = dict()
     try:
+        effective_end_year = target_end_year
         for ghg in GHG_MOLAR_MASS:
-            ghg_mmr_dict[ghg] = load_cmip7_ghg_series_mmr(
+            series = load_cmip7_ghg_series_mmr(
                 args, "ScenarioMIP", ghg, CMIP7_SM_BEG_YEAR, target_end_year
             )
+            ghg_mmr_dict[ghg] = series
+            loaded_end_year = CMIP7_SM_BEG_YEAR + len(series) - 1
+            if loaded_end_year < effective_end_year:
+                effective_end_year = loaded_end_year
+
+        # If any series fell back, synchronize all series to effective_end_year
+        expected_len = effective_end_year - CMIP7_SM_BEG_YEAR + 1
+        for ghg in GHG_MOLAR_MASS:
+            if len(ghg_mmr_dict[ghg]) > expected_len:
+                ghg_mmr_dict[ghg] = ghg_mmr_dict[ghg][:expected_len]
+
         # Patch the greenhouse gas namelist.
         cmip7_ghg_update_namelists_file(
-            ghg_mmr_dict, CMIP7_SM_BEG_YEAR, target_end_year
+            ghg_mmr_dict, CMIP7_SM_BEG_YEAR, effective_end_year
         )
+
     except Exception as e:
         warnings.warn(f"Could not update GHG namelist: {e}", UserWarning)

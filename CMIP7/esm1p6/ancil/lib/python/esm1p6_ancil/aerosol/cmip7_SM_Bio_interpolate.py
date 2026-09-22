@@ -66,7 +66,9 @@ def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
     return dirpath / filename
 
 
-def cmip7_sm_aerosol_biomass_ext_filepath(args, species, date_range, ext_version, ext_vdate):
+def cmip7_sm_aerosol_biomass_ext_filepath(
+    args, species, date_range, ext_version, ext_vdate
+):
     dirpath = (
         Path(args.cmip7_source_data_dirname)
         / "ScenarioMIP"
@@ -206,11 +208,13 @@ def load_cmip7_sm_aerosol_biomass(args, species):
 
     if is_ext:
         ext_version = getattr(args, "dataset_ext_version", None)
-        if not ext_version and hasattr(args, "dataset_version") and args.dataset_version:
-            ext_version = args.dataset_version.replace("-1-1-1", "-ext-1-1-1")
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(args, "dataset_vdate", None)
+        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
+            args, "dataset_vdate", None
+        )
         ext_date_range = getattr(args, "dataset_ext_date_range", None)
-        target_end_year = getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        target_end_year = (
+            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        )
 
         if ext_version and ext_vdate and ext_date_range:
             ext_filepath = cmip7_sm_aerosol_biomass_ext_filepath(
@@ -222,18 +226,22 @@ def load_cmip7_sm_aerosol_biomass(args, species):
                     lambda a, s, dr: ext_filepath,
                     species,
                     ext_date_range,
-                    cmip7_date_constraint_from_years(CMIP7_SM_END_YEAR + 1, target_end_year),
+                    cmip7_date_constraint_from_years(
+                        CMIP7_SM_END_YEAR + 1, target_end_year
+                    ),
                 )
                 ext_cube.data = ext_cube.data.filled(0.0)
             else:
                 warnings.warn(
-                    f"Biomass extension file {ext_filepath} not found. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                    f"Biomass extension file {ext_filepath} not found. "
+                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                     UserWarning,
                 )
                 target_end_year = CMIP7_SM_END_YEAR
         else:
             warnings.warn(
-                f"Biomass extension parameters incomplete for {species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                f"Biomass extension parameters incomplete for {species}. "
+                f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                 UserWarning,
             )
             target_end_year = CMIP7_SM_END_YEAR
@@ -256,9 +264,7 @@ def load_cmip7_sm_aerosol_biomass(args, species):
     else:
         cube = base_cube
 
-    interpolated = interpolate_monthly(
-        cube, CMIP7_SM_BEG_YEAR, target_end_year
-    )
+    interpolated = interpolate_monthly(cube, CMIP7_SM_BEG_YEAR, target_end_year)
     return extend_years(interpolated)
 
 

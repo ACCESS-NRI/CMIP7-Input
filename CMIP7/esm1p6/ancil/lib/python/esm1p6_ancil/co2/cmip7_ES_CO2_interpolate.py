@@ -57,7 +57,8 @@ def cmip7_es_co2_anthro_interpolate(args):
         air_avail = check_aerosol_ext_available(args, SPECIES, is_air=True)
         if not (surf_avail and air_avail):
             warnings.warn(
-                f"CO2 extension dataset(s) incomplete (surface: {surf_avail}, air: {air_avail}). "
+                f"CO2 extension dataset(s) incomplete "
+                f"(surface: {surf_avail}, air: {air_avail}). "
                 f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                 UserWarning,
             )

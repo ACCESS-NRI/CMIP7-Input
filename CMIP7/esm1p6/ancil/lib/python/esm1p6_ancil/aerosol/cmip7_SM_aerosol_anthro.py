@@ -75,7 +75,9 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
     return dirpath / filename
 
 
-def cmip7_sm_aerosol_ext_anthro_filepath(args, species, date_range, ext_version, ext_vdate):
+def cmip7_sm_aerosol_ext_anthro_filepath(
+    args, species, date_range, ext_version, ext_vdate
+):
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         ext_version,
@@ -90,7 +92,9 @@ def cmip7_sm_aerosol_ext_anthro_filepath(args, species, date_range, ext_version,
     return dirpath / filename
 
 
-def cmip7_sm_aerosol_air_ext_anthro_filepath(args, species, date_range, ext_version, ext_vdate):
+def cmip7_sm_aerosol_air_ext_anthro_filepath(
+    args, species, date_range, ext_version, ext_vdate
+):
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         ext_version,
@@ -108,22 +112,26 @@ def cmip7_sm_aerosol_air_ext_anthro_filepath(args, species, date_range, ext_vers
 def check_aerosol_ext_available(args, species, is_air=False):
     if is_air:
         ext_version = getattr(args, "dataset_air_ext_version", None)
-        if not ext_version and hasattr(args, "dataset_air_version") and args.dataset_air_version:
-            ext_version = args.dataset_air_version.replace("-1-1-2", "-ext-1-1-2")
-        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(args, "dataset_air_vdate", None)
+        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(
+            args, "dataset_air_vdate", None
+        )
         ext_date_range = getattr(args, "dataset_air_ext_date_range", None)
         if ext_version and ext_vdate and ext_date_range:
-            p = cmip7_sm_aerosol_air_ext_anthro_filepath(args, species, ext_date_range, ext_version, ext_vdate)
+            p = cmip7_sm_aerosol_air_ext_anthro_filepath(
+                args, species, ext_date_range, ext_version, ext_vdate
+            )
             return p.exists()
         return False
     else:
         ext_version = getattr(args, "dataset_ext_version", None)
-        if not ext_version and hasattr(args, "dataset_version") and args.dataset_version:
-            ext_version = args.dataset_version.replace("-1-1-1", "-ext-1-1-1")
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(args, "dataset_vdate", None)
+        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
+            args, "dataset_vdate", None
+        )
         ext_date_range = getattr(args, "dataset_ext_date_range", None)
         if ext_version and ext_vdate and ext_date_range:
-            p = cmip7_sm_aerosol_ext_anthro_filepath(args, species, ext_date_range, ext_version, ext_vdate)
+            p = cmip7_sm_aerosol_ext_anthro_filepath(
+                args, species, ext_date_range, ext_version, ext_vdate
+            )
             return p.exists()
         return False
 
@@ -135,28 +143,36 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
 
     if is_ext:
         ext_version = getattr(args, "dataset_air_ext_version", None)
-        if not ext_version and hasattr(args, "dataset_air_version") and args.dataset_air_version:
-            ext_version = args.dataset_air_version.replace("-1-1-2", "-ext-1-1-2")
-        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(args, "dataset_air_vdate", None)
+        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(
+            args, "dataset_air_vdate", None
+        )
         ext_date_range = getattr(args, "dataset_air_ext_date_range", None)
-        target_end_year = getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        target_end_year = (
+            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        )
 
         if ext_version and ext_vdate and ext_date_range:
-            ext_path = cmip7_sm_aerosol_air_ext_anthro_filepath(args, species, ext_date_range, ext_version, ext_vdate)
+            ext_path = cmip7_sm_aerosol_air_ext_anthro_filepath(
+                args, species, ext_date_range, ext_version, ext_vdate
+            )
             if ext_path.exists():
                 ext_cube = iris.load_cube(
                     ext_path,
-                    cmip7_date_constraint_from_years(CMIP7_SM_END_YEAR + 1, target_end_year),
+                    cmip7_date_constraint_from_years(
+                        CMIP7_SM_END_YEAR + 1, target_end_year
+                    ),
                 )
             else:
                 warnings.warn(
-                    f"Aircraft aerosol extension file {ext_path} not found. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                    f"Aircraft aerosol extension file {ext_path} not found. "
+                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                     UserWarning,
                 )
                 target_end_year = CMIP7_SM_END_YEAR
         else:
             warnings.warn(
-                f"Aircraft aerosol extension parameters incomplete for {species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                f"Aircraft aerosol extension parameters incomplete for "
+                f"{species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
                 UserWarning,
             )
             target_end_year = CMIP7_SM_END_YEAR
@@ -181,9 +197,7 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
     if cube.coords("altitude"):
         cube = cube.collapsed(["altitude"], iris.analysis.SUM)
         cube.remove_coord("altitude")
-    interpolated = interpolate_monthly(
-        cube, CMIP7_SM_BEG_YEAR, target_end_year
-    )
+    interpolated = interpolate_monthly(cube, CMIP7_SM_BEG_YEAR, target_end_year)
     return extend_years(interpolated)
 
 
@@ -194,28 +208,36 @@ def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
 
     if is_ext:
         ext_version = getattr(args, "dataset_ext_version", None)
-        if not ext_version and hasattr(args, "dataset_version") and args.dataset_version:
-            ext_version = args.dataset_version.replace("-1-1-1", "-ext-1-1-1")
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(args, "dataset_vdate", None)
+        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
+            args, "dataset_vdate", None
+        )
         ext_date_range = getattr(args, "dataset_ext_date_range", None)
-        target_end_year = getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        target_end_year = (
+            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        )
 
         if ext_version and ext_vdate and ext_date_range:
-            ext_path = cmip7_sm_aerosol_ext_anthro_filepath(args, species, ext_date_range, ext_version, ext_vdate)
+            ext_path = cmip7_sm_aerosol_ext_anthro_filepath(
+                args, species, ext_date_range, ext_version, ext_vdate
+            )
             if ext_path.exists():
                 ext_cube = iris.load_cube(
                     ext_path,
-                    cmip7_date_constraint_from_years(CMIP7_SM_END_YEAR + 1, target_end_year),
+                    cmip7_date_constraint_from_years(
+                        CMIP7_SM_END_YEAR + 1, target_end_year
+                    ),
                 )
             else:
                 warnings.warn(
-                    f"Aerosol extension file {ext_path} not found. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                    f"Aerosol extension file {ext_path} not found. "
+                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                     UserWarning,
                 )
                 target_end_year = CMIP7_SM_END_YEAR
         else:
             warnings.warn(
-                f"Aerosol extension parameters incomplete for {species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
+                f"Aerosol extension parameters incomplete for {species}. "
+                f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
                 UserWarning,
             )
             target_end_year = CMIP7_SM_END_YEAR
@@ -240,9 +262,7 @@ def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
     if collapse_sector and cube.coords("sector"):
         cube = cube.collapsed(["sector"], iris.analysis.SUM)
         cube.remove_coord("sector")
-    interpolated = interpolate_monthly(
-        cube, CMIP7_SM_BEG_YEAR, target_end_year
-    )
+    interpolated = interpolate_monthly(cube, CMIP7_SM_BEG_YEAR, target_end_year)
     return extend_years(interpolated)
 
 
