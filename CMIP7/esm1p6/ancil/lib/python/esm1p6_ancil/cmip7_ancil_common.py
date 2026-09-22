@@ -212,6 +212,14 @@ def tile_constant_years(cube, baseline_year, target_end_year):
     baseline_slice = _extract_baseline_slice(cube, baseline_year)
     length_one_year = _calc_annual_time_increment(time_coord)
 
+    # If the cube contains any years beyond baseline_year (e.g. padding),
+    # trim up to baseline_year to avoid overlapping cubes on concatenation.
+    trimmed_cube = cube.extract(
+        iris.Constraint(time=lambda cell: cell.point.year <= baseline_year)
+    )
+    if trimmed_cube is not None:
+        cube = trimmed_cube
+
     target_p_dtype = time_coord.points.dtype
     target_b_dtype = (
         time_coord.bounds.dtype if time_coord.has_bounds() else None
