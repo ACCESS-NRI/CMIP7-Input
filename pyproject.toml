@@ -30,6 +30,7 @@ cmip7-inputs = "cmip7_inputs.cli:main"
 
 [project.optional-dependencies]
 dev = [
+    "pre-commit",
     "pytest>=7.0",
     "pytest-cov",
     "ruff",
