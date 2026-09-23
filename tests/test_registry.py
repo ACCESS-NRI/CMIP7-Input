@@ -21,14 +21,8 @@ def test_resolve_returns_exact_experiment_match() -> None:
     def generator_e2(request):
         return "e2"
 
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="e1")
-        is generator_e1
-    )
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="e2")
-        is generator_e2
-    )
+    assert registry.resolve(model="m", input_name="n", experiment="e1") is generator_e1
+    assert registry.resolve(model="m", input_name="n", experiment="e2") is generator_e2
 
 
 def test_resolve_falls_back_to_default() -> None:
@@ -38,9 +32,7 @@ def test_resolve_falls_back_to_default() -> None:
     def default_generator(request):
         return "default"
 
-    resolved = registry.resolve(
-        model="m", input_name="n", experiment="anything"
-    )
+    resolved = registry.resolve(model="m", input_name="n", experiment="anything")
     assert resolved is default_generator
 
 
@@ -55,14 +47,8 @@ def test_resolve_prefers_exact_match_over_default() -> None:
     def specific_generator(request):
         return "specific"
 
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="e1")
-        is specific_generator
-    )
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="other")
-        is default_generator
-    )
+    assert registry.resolve(model="m", input_name="n", experiment="e1") is specific_generator
+    assert registry.resolve(model="m", input_name="n", experiment="other") is default_generator
 
 
 def test_resolve_raises_when_nothing_registered() -> None:
@@ -75,17 +61,9 @@ def test_resolve_raises_when_nothing_registered() -> None:
 def test_register_shared_across_multiple_experiments() -> None:
     registry = GeneratorRegistry()
 
-    @registry.register(
-        model="m", input_name="n", experiments=["e1", "e2"]
-    )
+    @registry.register(model="m", input_name="n", experiments=["e1", "e2"])
     def shared_generator(request):
         return "shared"
 
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="e1")
-        is shared_generator
-    )
-    assert (
-        registry.resolve(model="m", input_name="n", experiment="e2")
-        is shared_generator
-    )
+    assert registry.resolve(model="m", input_name="n", experiment="e1") is shared_generator
+    assert registry.resolve(model="m", input_name="n", experiment="e2") is shared_generator

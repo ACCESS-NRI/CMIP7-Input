@@ -13,9 +13,7 @@ from cmip7_inputs.models.access_esm1p6 import MODEL_ID
     "experiment",
     [experiments.PI_CONTROL, experiments.HISTORICAL],
 )
-def test_generate_solar_writes_file(
-    tmp_path: Path, experiment: str
-) -> None:
+def test_generate_solar_writes_file(tmp_path: Path, experiment: str) -> None:
     output_path = generate_inputs(
         model=MODEL_ID,
         experiment=experiment,

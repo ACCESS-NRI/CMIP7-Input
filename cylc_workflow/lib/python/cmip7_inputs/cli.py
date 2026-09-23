@@ -9,9 +9,7 @@ from cmip7_inputs.core.dispatch import generate_inputs
 
 def _parse_option(raw: str) -> tuple[str, str]:
     if "=" not in raw:
-        raise argparse.ArgumentTypeError(
-            f"invalid option {raw!r}, expected KEY=VALUE"
-        )
+        raise argparse.ArgumentTypeError(f"invalid option {raw!r}, expected KEY=VALUE")
     key, value = raw.split("=", 1)
     return key, value
 
@@ -20,10 +18,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the ``cmip7-inputs`` argument parser."""
     parser = argparse.ArgumentParser(
         prog="cmip7-inputs",
-        description=(
-            "Generate a CMIP7 input file for a given model, "
-            "experiment and input name."
-        ),
+        description=("Generate a CMIP7 input file for a given model, experiment and input name."),
     )
     parser.add_argument(
         "-m",
@@ -49,10 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--output_dir",
         dest="output_dir",
         default=".",
-        help=(
-            "Directory to write the generated input file to "
-            "(default: %(default)s)"
-        ),
+        help=("Directory to write the generated input file to (default: %(default)s)"),
     )
     parser.add_argument(
         "-O",
