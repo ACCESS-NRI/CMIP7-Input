@@ -13,7 +13,6 @@ from cmip7_inputs.core.context import GenerationRequest
 from cmip7_inputs.core.registry import registry
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
 
-
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     load_solar_cube,
     save_solar,

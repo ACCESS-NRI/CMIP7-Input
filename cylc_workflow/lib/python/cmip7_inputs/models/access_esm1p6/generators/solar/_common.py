@@ -14,9 +14,6 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
     PI_START_YEAR,
     HI_START_YEAR,
     HI_END_YEAR,
-    SOLAR_ARRAY_START_YEAR,
-    SOLAR_ARRAY_END_YEAR,
-    SOLAR_PI_DEFAULT_YEARLY_MEAN
 )
 
 def load_solar_cube(path):
@@ -40,18 +37,10 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     # Calculate yearly mean
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
 
-    years = yearly_means.coord("year").points
-    means = yearly_means.data
-
     # Get array  
-    solar_array = means.copy()  
+    solar_array = yearly_means.data.copy()  
     # Substitute NaNs with REAL_MISSING_DATA_INDICATOR  
-    solar_array[np.isnan(solar_array)] = REAL_MISSING_DATA_INDICATOR  
-
-    # Years before start_year: fill with the pre-industrial year mean (fall back to default).
-    pi_matches = means[years == PI_START_YEAR]
-    pi_year_mean = pi_matches[0] if pi_matches.size else SOLAR_PI_DEFAULT_YEARLY_MEAN
-    solar_array[: start_year - HI_START_YEAR] = pi_year_mean
+    solar_array[np.isnan(solar_array)] = REAL_MISSING_DATA_INDICATOR
 
     return solar_array
 
@@ -69,9 +58,10 @@ def save_solar(save_filepath, cube, start_year, end_year):
 
     # Missing-data entries get 1 decimal place, real values get 3.
     lines = [
-        f"{year} {value:.1f}" if missing else f"{year} {value:.3f}"
+        f"{year} {value:.3f}" if not missing else f"{year} {value:.1f}"
         for year, value, missing in zip(years, solar_array, is_missing)
     ]
 
     # Ensure that the save directory exists and write the file atomically.
+    save_filepath.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
     save_filepath.write_text("\n".join(lines) + "\n")
