@@ -49,9 +49,7 @@ class GeneratorRegistry:
 
         return decorator
 
-    def resolve(
-        self, *, model: str, input_name: str, experiment: str
-    ) -> Generator:
+    def resolve(self, *, model: str, input_name: str, experiment: str) -> Generator:
         """Return the generator for a model/input_name/experiment.
 
         An exact ``(model, input_name, experiment)`` match always
@@ -67,9 +65,7 @@ class GeneratorRegistry:
             return self._defaults[default_key]
 
         raise KeyError(
-            "No generator registered for "
-            f"model={model!r}, input_name={input_name!r}, "
-            f"experiment={experiment!r}"
+            f"No generator registered for model={model!r}, input_name={input_name!r}, experiment={experiment!r}"
         )
 
 

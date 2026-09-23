@@ -5,4 +5,3 @@ Add a new model by creating a subpackage here (mirroring
 """
 
 from cmip7_inputs.models import access_esm1p6  # noqa: F401
-

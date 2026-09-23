@@ -27,9 +27,7 @@ def generate_inputs(
     ``cmip7_inputs.models``), so the registry is fully populated by
     the time this runs.
     """
-    generator = registry.resolve(
-        model=model, input_name=input_name, experiment=experiment
-    )
+    generator = registry.resolve(model=model, input_name=input_name, experiment=experiment)
     request = GenerationRequest(
         model=model,
         experiment=experiment,

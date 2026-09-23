@@ -1,4 +1,4 @@
-""" This contains all the constants for generating the ESM1.6 ancil files. """
+"""This contains all the constants for generating the ESM1.6 ancil files."""
 
 from datetime import datetime
 

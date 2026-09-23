@@ -53,9 +53,7 @@ def test_cli_valid_combination_dispatches(
         real_resolve(**kwargs)  # raises if not a real combination
         return MagicMock()
 
-    with patch.object(
-        registry, "resolve", side_effect=resolve_with_mock_generator
-    ) as mock_resolve:
+    with patch.object(registry, "resolve", side_effect=resolve_with_mock_generator) as mock_resolve:
         main(
             [
                 "-m",
@@ -69,9 +67,7 @@ def test_cli_valid_combination_dispatches(
             ]
         )
 
-    mock_resolve.assert_called_once_with(
-        model=model, input_name=input_name, experiment=experiment
-    )
+    mock_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)
 
 
 @pytest.mark.parametrize(
@@ -103,9 +99,7 @@ def test_cli_not_valid_combinations_error(
         return MagicMock()
 
     with (
-        patch.object(
-            registry, "resolve", side_effect=resolve_with_mock_generator
-        ) as mock_resolve,
+        patch.object(registry, "resolve", side_effect=resolve_with_mock_generator) as mock_resolve,
         pytest.raises(SystemExit),
     ):
         main(
@@ -121,6 +115,4 @@ def test_cli_not_valid_combinations_error(
             ]
         )
 
-    mock_resolve.assert_called_once_with(
-        model=model, input_name=input_name, experiment=experiment
-    )
+    mock_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)

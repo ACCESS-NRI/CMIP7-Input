@@ -2,26 +2,24 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import iris
 import numpy as np
-
-from iris.coord_categorisation import add_year 
+from iris.coord_categorisation import add_year
 
 from cmip7_inputs.models.access_esm1p6.generators._constants import (
-    REAL_MISSING_DATA_INDICATOR,
-    PI_START_YEAR,
-    HI_START_YEAR,
     HI_END_YEAR,
+    HI_START_YEAR,
+    REAL_MISSING_DATA_INDICATOR,
 )
 
+
 def load_solar_cube(path):
-    '''
+    """
     Loads the solar irradiance cube from an ancil file
-    '''
+    """
     name_constraint = iris.Constraint(name="solar_irradiance")
     return iris.load_cube(path, name_constraint)
+
 
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
@@ -30,19 +28,18 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     """
 
     # Extract year range from the cube
-    period = cube.extract(
-        iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year)
-    )
+    period = cube.extract(iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year))
     add_year(period, "time")
     # Calculate yearly mean
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
 
-    # Get array  
-    solar_array = yearly_means.data.copy()  
-    # Substitute NaNs with REAL_MISSING_DATA_INDICATOR  
+    # Get array
+    solar_array = yearly_means.data.copy()
+    # Substitute NaNs with REAL_MISSING_DATA_INDICATOR
     solar_array[np.isnan(solar_array)] = REAL_MISSING_DATA_INDICATOR
 
     return solar_array
+
 
 def save_solar(save_filepath, cube, start_year, end_year):
     """
