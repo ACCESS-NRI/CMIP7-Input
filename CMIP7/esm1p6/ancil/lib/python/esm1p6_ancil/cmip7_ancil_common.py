@@ -19,6 +19,8 @@ from cmip7_ancil_constants import (
 )
 from iris.util import equalise_attributes
 
+iris.FUTURE.datum_support = True
+
 INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
 
