@@ -63,5 +63,5 @@ def save_solar(save_filepath, cube, start_year, end_year):
     ]
 
     # Ensure that the save directory exists and write the file atomically.
-    save_filepath.parent.mkdir(mode=0o755, parents=True, exist_ok=True)
+    save_filepath.parent.mkdir(parents=True, exist_ok=True)
     save_filepath.write_text("\n".join(lines) + "\n")
