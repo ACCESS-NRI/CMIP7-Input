@@ -46,10 +46,11 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
 
 def save_solar(save_filepath, cube, start_year, end_year):
     """
-    Save the TSI values for each year into a text file, in the format:  
-    <year1> <value1>  
-    <year2> <value2>  
-    <year3> <value3>.
+    Save the TSI values for each year into a text file, in the format:
+    <year1> <value1>
+    <year2> <value2>
+    <year3> <value3>
+    ...
     """
     solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
 

@@ -10,7 +10,7 @@ repos:
     -   id: requirements-txt-fixer
 # Run linter and formatter.
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: 'v0.12.4'
+    rev: 'v0.16.7'
     hooks:
     # Run the linter
     -   id: ruff-check
