@@ -49,15 +49,15 @@ def save_solar(save_filepath, cube, start_year, end_year):
     <year3> <value3>
     ...
     """
-    solar_array = compute_solar_yearly_mean(cube, start_year, end_year)
+    solar_cube = compute_solar_yearly_mean(cube, start_year, end_year)
 
-    years = np.arange(HI_START_YEAR, HI_END_YEAR + 1)
-    is_missing = solar_array == REAL_MISSING_DATA_INDICATOR
+    years = solar_cube.coord("year").points
+    is_missing = solar_cube.data == REAL_MISSING_DATA_INDICATOR
 
     # Missing-data entries get 1 decimal place, real values get 3.
     lines = [
         f"{year} {value:.3f}" if not missing else f"{year} {value:.1f}"
-        for year, value, missing in zip(years, solar_array, is_missing)
+        for year, value, missing in zip(years, solar_cube.data, is_missing)
     ]
 
     # Ensure that the save directory exists and write the file atomically.

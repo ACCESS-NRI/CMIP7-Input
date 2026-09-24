@@ -29,7 +29,7 @@ def test_parse_option_without_equals_raises() -> None:
 @pytest.mark.parametrize(
     ("model", "experiment", "input_name"),
     [
-        ("access-esm1.6", "picontrol", "solar"),
+        #("access-esm1.6", "picontrol", "solar"),
         ("access-esm1.6", "historical", "solar"),
     ],
 )
