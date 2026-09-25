@@ -71,4 +71,4 @@ Every task specification in this documentation provides exhaustive coverage acro
 
 * **Code License:** Apache License 2.0.
 * **Input Data:** CMIP7 input4MIPs datasets distributed via the Earth System Grid Federation (ESGF) and hosted locally on NCI Gadi (`/g/data/qv56/replicas/input4MIPs/CMIP7/`).
-* **Governance:** Developed and maintained by the [Australian Centre of Excellence for Climate Extremes (CLEX)](https://climateextremes.org.au/) and the [Australian Climate and Earth System Simulator National Research Infrastructure (ACCESS-NRI)](https://www.access-nri.org.au/).
+* **Governance:** Developed and maintained by the [Australian Climate and Earth System Simulator National Research Infrastructure (ACCESS-NRI)](https://www.access-nri.org.au/).
