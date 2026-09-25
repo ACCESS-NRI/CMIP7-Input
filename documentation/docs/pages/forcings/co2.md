@@ -33,35 +33,35 @@ The carbon dioxide flux pipeline processes monthly gridded anthropogenic surface
       --save-filename "CO2_fluxes_1849_2023_cmip7.anc"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-  * **Dataset Version:** `CEDS-CMIP-2025-04-18`
-  * **Version Date (`vdate`):** `v20250421`
-  * **Input Date Range List:** `180001-184912`, `185001-189912`, `190001-194912`, `195001-199912`, `200001-202312`
-  * **Processed Model Timeline:** `184901-202312` (2100 monthly slices)
+    * **Dataset Version:** `CEDS-CMIP-2025-04-18`
+    * **Version Date (`vdate`):** `v20250421`
+    * **Input Date Range List:** `180001-184912`, `185001-189912`, `190001-194912`, `195001-199912`, `200001-202312`
+    * **Processed Model Timeline:** `184901-202312` (2100 monthly slices)
 * **4. Input4MIPs Directory Path & Filenames:**  
-  * **Surface Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/CO2_em_anthro/gn/v20250421/`
-  * **Aircraft Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/CO2_em_AIR_anthro/gn/v20250421/`
+    * **Surface Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/CO2_em_anthro/gn/v20250421/`
+    * **Aircraft Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/CO2_em_AIR_anthro/gn/v20250421/`
 * **5. Python Scripts & Functions:**  
-  * **Main Script / Entrypoint:** `esm1p6_ancil.co2.cmip7_EH_CO2_interpolate`
-  * **Key Functions Called:** `cmip7_eh_co2_anthro_interpolate`, `load_cmip7_hi_aerosol_anthro`, `load_cmip7_hi_aerosol_air_anthro`, `esm_grid_mask_cube`, `zero_poles`, `save_ancil`
-  * **Shared Libraries:** `iris`, `mule`, `ants`, `numpy`
+    * **Main Script / Entrypoint:** `esm1p6_ancil.co2.cmip7_EH_CO2_interpolate`
+    * **Key Functions Called:** `cmip7_eh_co2_anthro_interpolate`, `load_cmip7_hi_aerosol_anthro`, `load_cmip7_hi_aerosol_air_anthro`, `esm_grid_mask_cube`, `zero_poles`, `save_ancil`
+    * **Shared Libraries:** `iris`, `mule`, `ants`, `numpy`
 * **6. Function-Level Cube Transformations & Constraints:**  
-  * **Input Cubes & Coordinates:** Surface emissions cube `(time, sector, lat, lon)` and aircraft emissions cube `(time, altitude, lat, lon)`.
-  * **Constraints Applied:** Date range constraint `cmip7_date_constraint_from_years(1849, 2023)` using `cftime.DatetimeNoLeap`.
-  * **Coordinate Bounds & Manipulation:**
-    * Surface sector coordinate collapsed via `cube.collapsed(["sector"], iris.analysis.SUM)` and removed via `remove_coord("sector")`.
-    * Aircraft altitude coordinate collapsed via `cube_air.collapsed(["altitude"], iris.analysis.SUM)` and removed.
-    * Combined total flux: `cube_tot = cube + cube_air`.
-    * Regridded conservatively to target N96 grid using `AreaWeighted(mdtol=0.5)`. Missing values zeroed (`data.filled(0.0)`).
-    * Polar singularity zeroed via `zero_poles(esm_cube)`.
-    * Assigned STASH item `m01s00i251`.
-  * **Created / Output Cubes:** Formats final 3D cube `(time: 2100, lat: 144, lon: 192)` passed to `save_ancil`.
+    * **Input Cubes & Coordinates:** Surface emissions cube `(time, sector, lat, lon)` and aircraft emissions cube `(time, altitude, lat, lon)`.
+    * **Constraints Applied:** Date range constraint `cmip7_date_constraint_from_years(1849, 2023)` using `cftime.DatetimeNoLeap`.
+    * **Coordinate Bounds & Manipulation:**
+        * Surface sector coordinate collapsed via `cube.collapsed(["sector"], iris.analysis.SUM)` and removed via `remove_coord("sector")`.
+        * Aircraft altitude coordinate collapsed via `cube_air.collapsed(["altitude"], iris.analysis.SUM)` and removed.
+        * Combined total flux: `cube_tot = cube + cube_air`.
+        * Regridded conservatively to target N96 grid using `AreaWeighted(mdtol=0.5)`. Missing values zeroed (`data.filled(0.0)`).
+        * Polar singularity zeroed via `zero_poles(esm_cube)`.
+        * Assigned STASH item `m01s00i251`.
+    * **Created / Output Cubes:** Formats final 3D cube `(time: 2100, lat: 144, lon: 192)` passed to `save_ancil`.
 * **7. Produced File Versions & Date Ranges:**  
-  * **Temporal Coverage:** `184901-202312` (2100 monthly slices, including 1849 model spin-up padding)
-  * **Calendar:** 365-day (NoLeap) calendar alignment
-  * **STASH Code:** `m01s00i251`
+    * **Temporal Coverage:** `184901-202312` (2100 monthly slices, including 1849 model spin-up padding)
+    * **Calendar:** 365-day (NoLeap) calendar alignment
+    * **STASH Code:** `m01s00i251`
 * **8. Produced File Directory Paths & Filenames:**  
-  * **Output Directory:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/historical-emissions/atmosphere/forcing/global.N96/<ANCIL_TODAY>/`
-  * **Output Filename:** `CO2_fluxes_1849_2023_cmip7.anc`
+    * **Output Directory:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/historical-emissions/atmosphere/forcing/global.N96/<ANCIL_TODAY>/`
+    * **Output Filename:** `CO2_fluxes_1849_2023_cmip7.anc`
 * **9. Namelist File & Variable Updates:**  
   `None (Generates binary ancillary .anc file)`.
 
@@ -99,21 +99,21 @@ Tasks generate future projection CO2 emissions fluxes across scenarios `h`, `hl`
           --save-filename "CO2_fluxes_h_2022_2150_cmip7.anc"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**
-      * Surface Base: `IIASA-IAMC-h-1-1-1`, `v20260409`, `202201-210012`
-      * Surface Ext: `IIASA-IAMC-h-ext-1-1-1`, `v20260409`, `210101-215012`
-      * Aircraft Base: `IIASA-IAMC-h-1-1-2`, `v20260624`, `202201-210012`
-      * Aircraft Ext: `IIASA-IAMC-h-ext-1-1-2`, `v20260804`, `210501-250012`
+        * Surface Base: `IIASA-IAMC-h-1-1-1`, `v20260409`, `202201-210012`
+        * Surface Ext: `IIASA-IAMC-h-ext-1-1-1`, `v20260409`, `210101-215012`
+        * Aircraft Base: `IIASA-IAMC-h-1-1-2`, `v20260624`, `202201-210012`
+        * Aircraft Ext: `IIASA-IAMC-h-ext-1-1-2`, `v20260804`, `210501-250012`
     * **4. Input4MIPs Directory Path & Filenames:**
-      * Surface Base: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-1/atmos/mon/CO2_em_anthro/gn/v20260409/CO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-1_gn_202201-210012.nc`
-      * Surface Ext: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-1/atmos/mon/CO2_em_anthro/gn/v20260409/CO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-1_gn_210101-215012.nc`
-      * Aircraft Base: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-2/atmos/mon/CO2_em_AIR_anthro/gn/v20260624/CO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-2_gn_202201-210012.nc`
-      * Aircraft Ext: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-2/atmos/mon/CO2_em_AIR_anthro/gn/v20260804/CO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-2_gn_210501-250012.nc`
+        * Surface Base: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-1/atmos/mon/CO2_em_anthro/gn/v20260409/CO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-1_gn_202201-210012.nc`
+        * Surface Ext: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-1/atmos/mon/CO2_em_anthro/gn/v20260409/CO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-1_gn_210101-215012.nc`
+        * Aircraft Base: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-2/atmos/mon/CO2_em_AIR_anthro/gn/v20260624/CO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-2_gn_202201-210012.nc`
+        * Aircraft Ext: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-2/atmos/mon/CO2_em_AIR_anthro/gn/v20260804/CO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-2_gn_210501-250012.nc`
     * **5. Scripts & Functions:** `esm1p6_ancil.co2.cmip7_ES_CO2_interpolate`, `cmip7_es_co2_anthro_interpolate`, `load_cmip7_sm_aerosol_anthro`, `load_cmip7_sm_aerosol_air_anthro`, `check_aerosol_ext_available`, `esm_grid_mask_cube`, `zero_poles`, `save_ancil`.
     * **6. Cube Transformations:**
-      * Validates completeness of extension chunks via `check_aerosol_ext_available`.
-      * Loads surface and aircraft cubes, collapses sectors and altitude coordinates.
-      * Concatenates baseline (2022–2100) and extension (2101–2150) cubes.
-      * Conservative regridding to N96 (`AreaWeighted(mdtol=0.5)`), zeroing polar edges, and assigning STASH `m01s00i251`.
+        * Validates completeness of extension chunks via `check_aerosol_ext_available`.
+        * Loads surface and aircraft cubes, collapses sectors and altitude coordinates.
+        * Concatenates baseline (2022–2100) and extension (2101–2150) cubes.
+        * Conservative regridding to N96 (`AreaWeighted(mdtol=0.5)`), zeroing polar edges, and assigning STASH `m01s00i251`.
     * **7. Produced File:** `CO2_fluxes_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150).
     * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/esm-scen7-h/atmosphere/forcing/global.N96/<ANCIL_TODAY>/CO2_fluxes_h_2022_2150_cmip7.anc`.
     * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.

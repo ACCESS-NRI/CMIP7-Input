@@ -20,4 +20,9 @@ def on_files(files, config):
 
 @event_priority(-100)
 def on_page_markdown(markdown, *, page, config, files):
-    page.canonical_url = (config.site_url or "") + page.file.url
+    if config.site_url:
+        page.canonical_url = (
+            config.site_url.rstrip("/") + "/" + page.file.url.lstrip("/")
+        )
+    else:
+        page.canonical_url = None

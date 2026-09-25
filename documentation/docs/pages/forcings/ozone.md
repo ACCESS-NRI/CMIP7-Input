@@ -8,11 +8,10 @@ The Ozone forcing pipeline ingests CMIP7 3D zonal-mean monthly atmospheric ozone
 
 * **Target Variable:** Mass mixing ratio of ozone in air (`mmro3`). Target STASH item: `m01s00i060` (OZONE TRACER).
 * **Two-Stage Workflow Architecture:**
-  1. **UKESM Regridding Stage (`*_ukesm_ancil_ozone`):** Executes upstream Python scripts ported from `ancillary-file-science` (`3-port-cmip7-ozone-code-for-esm16`) to interpolate raw CMIP7 zonal-mean files (`atmos/mon/zmta`) in vertical pressure coordinates to the 85 UM model hybrid-height levels on the N96 horizontal grid. Outputs intermediate NetCDF files in `${ROSE_DATA}/ozone/`.
-  2. **UM Ancillary Generation Stage (`*_ancil_ozone`):** Reads the intermediate NetCDF file, resolves coordinate bounds and iris datum conventions (`iris.FUTURE.datum_support = True`), handles boundary padding years, tiles extended timelines if `--ext` is specified, and writes binary `.anc` files via Mule.
+    1. **UKESM Regridding Stage (`*_ukesm_ancil_ozone`):** Executes upstream Python scripts ported from `ancillary-file-science` (`3-port-cmip7-ozone-code-for-esm16`) to interpolate raw CMIP7 zonal-mean files (`atmos/mon/zmta`) in vertical pressure coordinates to the 85 UM model hybrid-height levels on the N96 horizontal grid. Outputs intermediate NetCDF files in `${ROSE_DATA}/ozone/`.
+    2. **UM Ancillary Generation Stage (`*_ancil_ozone`):** Reads the intermediate NetCDF file, resolves coordinate bounds and iris datum conventions (`iris.FUTURE.datum_support = True`), handles boundary padding years, tiles extended timelines if `--ext` is specified, and writes binary `.anc` files via Mule.
 * **Vertical Structure:** 85 terrain-following hybrid-height levels spanning the troposphere and stratosphere up to $\sim 85\text{ km}$.
-* **Padding & Extension Rules:**
-  UKESM intermediate ozone files include 1 padding year at each boundary (e.g. 1849 and 2023 for Historical; 2021 and 2101 for ScenarioMIP). In ScenarioMIP extension mode (`--ext`), `tile_constant_years` tiles constant year 2100 ozone to $2150 + 1$ (2151) to preserve model end-padding while eliminating concatenate overlaps.
+* **Padding & Extension Rules:** UKESM intermediate ozone files include 1 padding year at each boundary (e.g. 1849 and 2023 for Historical; 2021 and 2101 for ScenarioMIP). In ScenarioMIP extension mode (`--ext`), `tile_constant_years` tiles constant year 2100 ozone to $2150 + 1$ (2151) to preserve model end-padding while eliminating concatenate overlaps.
 
 ---
 
@@ -95,26 +94,26 @@ Processes future projection ozone across pathways `h`, `hl`, `m`, and `vl`. When
 === "Scenario h (High)"
     * **1. Description & Purpose:** Generates future projection 3D ozone concentrations for ScenarioMIP scenario `h`. Stage 1 produces intermediate NetCDF; Stage 2 applies `tile_constant_years` from 2100 to 2151 when `--ext` is active, outputting `ozone_h_2022_2150_cmip7.anc`.
     * **2. CLI Arguments (Stage 2):**
-      ```bash
-      python -m esm1p6_ancil.ozone.cmip7_SM_ozone_generate \
-          --scenario h \
-          --ancil-target-dirname <ANCIL_TARGET_PATH> \
-          --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-          --esm-grid-rel-dirname "global.N96" \
-          --esm15-grid-version "2020.05.19" \
-          --ukesm-ancil-dirpath "${ROSE_DATA}/ozone" \
-          --ukesm-netcdf-filename "mmro3_monthly_CMIP7_zonalmn_2022_2100_ants.nc" \
-          --ext \
-          --save-filename "ozone_h_2022_2150_cmip7.anc"
-      ```
+        ```bash
+        python -m esm1p6_ancil.ozone.cmip7_SM_ozone_generate \
+            --scenario h \
+            --ancil-target-dirname <ANCIL_TARGET_PATH> \
+            --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
+            --esm-grid-rel-dirname "global.N96" \
+            --esm15-grid-version "2020.05.19" \
+            --ukesm-ancil-dirpath "${ROSE_DATA}/ozone" \
+            --ukesm-netcdf-filename "mmro3_monthly_CMIP7_zonalmn_2022_2100_ants.nc" \
+            --ext \
+            --save-filename "ozone_h_2022_2150_cmip7.anc"
+        ```
     * **3. Input4MIPs Versions & Temporal Metadata:**  
-      * Base Dataset: `FZJ-CMIP-ozone-h-1-0`, `v20260409`, Range: `202201-210012` (split into `202201-205912` and `206001-210012`).
-      * Model Target Range: `2022-2150` (1548 monthly slices).
+        * Base Dataset: `FZJ-CMIP-ozone-h-1-0`, `v20260409`, Range: `202201-210012` (split into `202201-205912` and `206001-210012`).
+        * Model Target Range: `2022-2150` (1548 monthly slices).
     * **5. Scripts & Functions:** `esm1p6_ancil.ozone.cmip7_SM_ozone_generate`, `load_cmip7_ozone`, `fix_cmip7_ozone`, `tile_constant_years`, `save_ancil`.
     * **6. Cube Transformations:**
-      * Intermediate NetCDF contains 1 padding year (2021 and 2101).
-      * When `--ext` is enabled, `tile_constant_years(esm_cube, 2100, 2151)` tiles the 2100 climatology through to 2151, preserving the upper model padding year while preventing coordinate overlap warnings.
-      * Saves ancillary file with `replace_bounds=True` to enforce monotonicity in time and hybrid-height dimension bounds.
+        * Intermediate NetCDF contains 1 padding year (2021 and 2101).
+        * When `--ext` is enabled, `tile_constant_years(esm_cube, 2100, 2151)` tiles the 2100 climatology through to 2151, preserving the upper model padding year while preventing coordinate overlap warnings.
+        * Saves ancillary file with `replace_bounds=True` to enforce monotonicity in time and hybrid-height dimension bounds.
     * **7. Produced Ancillary:** `ozone_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150). File size: $\sim 266\text{ MB}$.
     * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/forcing/global.N96/<DATE>/ozone_h_2022_2150_cmip7.anc`.
     * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.

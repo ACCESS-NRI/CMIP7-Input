@@ -7,6 +7,7 @@ The Atmospheric Model Intercomparison Project (`AMIP` or `AM`) configures atmosp
 ## Physical Forcing Rationale & Setup
 
 In coupled climate simulations (like `HI` and `PI`), the atmosphere exchanges heat and moisture interactively with the dynamic ocean model (MOM5) and sea ice model (CICE4). In AMIP simulations:
+
 * **Ocean Dynamics Disabled:** The ocean is replaced by prescribed, observed monthly boundary condition ancillary files.
 * **Prescribed SST:** Monthly sea surface skin temperature (Kelvin) driving lower boundary atmospheric fluxes (STASH `m01s00i024`).
 * **Prescribed Sea Ice:** Monthly sea-ice fractional area coverage and ice surface properties (STASH `m01s00i031` / `m01s00i032`).
@@ -33,6 +34,7 @@ The following **7 Cylc workflow tasks** execute the AMIP boundary generation pip
 ## Downstream Configuration Integration
 
 Artifacts feed into the `amip` configuration branch in `access-esm1.6-configs`:
+
 * **Installation Directory:**  
   `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/amip/atmosphere/boundary_conditions/global.N96/<ANCIL_TODAY>/`
 * **Model Namelist References:**  

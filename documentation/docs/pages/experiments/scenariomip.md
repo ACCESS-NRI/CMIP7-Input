@@ -58,6 +58,7 @@ The workflow orchestrates **46 tasks** supporting ScenarioMIP across the 4 pathw
 ## Downstream Configuration Integration
 
 Each ScenarioMIP pathway targets a dedicated configuration branch in `access-esm1.6-configs`:
+
 * **Branch Names:** `pl-scen7-h`, `pl-scen7-hl`, `pl-scen7-m`, `pl-scen7-vl`.
 * **Namelists Patched:** `atmosphere/namelists` updated with 129 annual points (2022–2150) in `&clmchfcg`.
 * **Output Directories:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<DATE>/modern/scen7-<SCEN>/`.
@@ -69,17 +70,17 @@ Each ScenarioMIP pathway targets a dedicated configuration branch in `access-esm
 ```mermaid
 graph TD
     subgraph SharedSetup["Shared Infrastructure"]
-        O3Tool["git_clone_ozone_scripts => install_ozone_scripts"]
+        O3Clone["git_clone_ozone_scripts"] --> O3Install["install_ozone_scripts"]
     end
 
     subgraph PerScenario["Per-Scenario DAG (Parallel for h, hl, m, vl)"]
-        Clone["SM_<SCEN>_git_clone_checkout"] --> GHG["SM_<SCEN>_ancil_ghg"] --> Commit["SM_<SCEN>_git_commit_push"]
-        BC["SM_<SCEN>_ancil_aerosol_BC"]
-        Bio["SM_<SCEN>_ancil_aerosol_Bio"]
-        OC["SM_<SCEN>_ancil_aerosol_OC"]
-        SO2["SM_<SCEN>_ancil_aerosol_SO2"]
-        Ndep["SM_<SCEN>_ancil_nitrogen"]
-        O3_1["SM_<SCEN>_ukesm_ancil_ozone"] --> O3_2["SM_<SCEN>_ancil_ozone"]
+        Clone["SM_[SCEN]_git_clone_checkout"] --> GHG["SM_[SCEN]_ancil_ghg"] --> Commit["SM_[SCEN]_git_commit_push"]
+        BC["SM_[SCEN]_ancil_aerosol_BC"]
+        Bio["SM_[SCEN]_ancil_aerosol_Bio"]
+        OC["SM_[SCEN]_ancil_aerosol_OC"]
+        SO2["SM_[SCEN]_ancil_aerosol_SO2"]
+        Ndep["SM_[SCEN]_ancil_nitrogen"]
+        O3_1["SM_[SCEN]_ukesm_ancil_ozone"] --> O3_2["SM_[SCEN]_ancil_ozone"]
     end
 
     subgraph SharedForcing["Shared Natural Forcings"]
@@ -87,5 +88,5 @@ graph TD
         Volc["SM_ancil_volcanic"]
     end
 
-    O3Tool --> O3_1
+    O3Install --> O3_1
 ```

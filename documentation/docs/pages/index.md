@@ -10,15 +10,15 @@ The `CMIP7-Input` suite automates the ingestion, regridding, temporal interpolat
 
 ```mermaid
 graph TD
-    RawMIP["Input4MIPs NetCDF Replicas<br><code>/g/data/qv56/replicas/input4MIPs/CMIP7/</code>"] --> Ingest["Ingestion & Validation<br><code>esm1p6_ancil</code> Python Libraries"]
-    Ingest --> CylcSuite["Cylc 8 Suite Orchestration<br><code>flow.cylc</code> & <code>rose-suite.conf</code>"]
-    CylcSuite --> ForcingGen["Forcing & Ancillary Engines<br>(Iris, Ants, Mule, NetCDF4)"]
+    RawMIP["Input4MIPs NetCDF Replicas<br>/g/data/qv56/replicas/input4MIPs/CMIP7/"] --> Ingest["Ingestion and Validation<br>esm1p6_ancil Python Libraries"]
+    Ingest --> CylcSuite["Cylc 8 Suite Orchestration<br>flow.cylc and rose-suite.conf"]
+    CylcSuite --> ForcingGen["Forcing and Ancillary Engines<br>(Iris, Ants, Mule, NetCDF4)"]
     
-    ForcingGen --> AncilFiles["Binary Ancillary Files (<code>.anc</code>)<br>Aerosols, Ozone, Nitrogen, CO2, AMIP SST/SeaIce"]
-    ForcingGen --> AsciiFiles["ASCII Forcing Files (<code>.dat</code>)<br>Volcanic SAOD, Solar TSI"]
-    ForcingGen --> NmlPatches["Model Namelist Patches<br><code>&clmchfcg</code>, <code>&coupling</code>, <code>&RUN_Radiation</code>"]
+    ForcingGen --> AncilFiles["Binary Ancillary Files (.anc)<br>Aerosols, Ozone, Nitrogen, CO2, AMIP SST/SeaIce"]
+    ForcingGen --> AsciiFiles["ASCII Forcing Files (.dat)<br>Volcanic SAOD, Solar TSI"]
+    ForcingGen --> NmlPatches["Model Namelist Patches<br>&amp;clmchfcg, &amp;coupling, &amp;RUN_Radiation"]
     
-    AncilFiles --> DownstreamConfig["Downstream Model Configuration<br><code>ACCESS-NRI/access-esm1.6-configs</code>"]
+    AncilFiles --> DownstreamConfig["Downstream Model Configuration<br>ACCESS-NRI/access-esm1.6-configs"]
     AsciiFiles --> DownstreamConfig
     NmlPatches --> DownstreamConfig
 ```
@@ -30,7 +30,9 @@ graph TD
 This documentation is organized into two complementary perspectives to support both domain scientists focused on specific physical forcings and model operators configuring experiments:
 
 ### 1. [Forcing Specifications](forcings/overview.md)
+
 Detailed 9-dimension technical specifications for all workflow tasks, grouped by physical forcing domain and sub-grouped by experiment:
+
 * **[Greenhouse Gases (GHG)](forcings/ghg.md):** Annual global-mean surface concentrations and `&clmchfcg` namelist patching.
 * **[Aerosol Emissions](forcings/aerosols.md):** Anthropogenic surface, aircraft, biomass burning, and background DMS emissions (`BC`, `Bio`, `OC`, `SO2`).
 * **[Carbon Dioxide Fluxes](forcings/co2.md):** Spatially distributed monthly surface CO2 emissions for carbon-cycle experiments.
@@ -42,7 +44,9 @@ Detailed 9-dimension technical specifications for all workflow tasks, grouped by
 * **[Configuration Git Synchronization](forcings/config_sync.md):** Automated cloning, branching, namelist injection, and git synchronisation for `access-esm1.6-configs`.
 
 ### 2. [Experiment Task Summaries](experiments/overview.md)
+
 Comprehensive summary pages outlining all tasks, execution flows, and configuration parameters needed for each supported climate experiment:
+
 * **[Pre-Industrial Control (PI)](experiments/pre_industrial.md):** Perpetual 1850 climatological forcing suite (12 tasks).
 * **[Historical (HI)](experiments/historical.md):** Time-evolving 1850–2023 historical transient forcing suite (12 tasks).
 * **[ScenarioMIP (SM)](experiments/scenariomip.md):** Future projections across pathways `h`, `hl`, `m`, and `vl`, supporting both standard (to 2100) and extended (to 2150) timelines (46 tasks).
@@ -55,6 +59,7 @@ Comprehensive summary pages outlining all tasks, execution flows, and configurat
 ## The 9 Technical Dimensions
 
 Every task specification in this documentation provides exhaustive coverage across 9 technical dimensions:
+
 1. **Description & Purpose:** Physical domain scope and role in the workflow.
 2. **CLI Arguments Passed:** Complete command-line arguments and flags.
 3. **Input4MIPs Versions & Temporal Coverage:** Dataset versions, `vdate` timestamps, and date ranges.

@@ -41,34 +41,34 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
       --save-filename "Ndep_1850_cmip7.anc"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-  * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`
-  * **Version Date (`vdate`):** `v20251025`
-  * **Input Date Range:** `185001-185012` (12 monthly slices)
+    * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`
+    * **Version Date (`vdate`):** `v20251025`
+    * **Input Date Range:** `185001-185012` (12 monthly slices)
 * **4. Input4MIPs Directory Path & Filenames:**  
-  * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
-  * **Filenames (4 species):** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-185012.nc`
+    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
+    * **Filenames (4 species):** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-185012.nc`
 * **5. Python Scripts & Functions:**  
-  * **Main Script / Entrypoint:** `esm1p6_ancil.nitrogen.cmip7_PI_nitrogen_generate`
-  * **Key Functions Called:** `load_cmip7_nitrogen`, `regrid_cmip7_nitrogen`, `save_cmip7_nitrogen`, `fix_coords`, `esm_grid_mask_cube`, `save_ancil`
-  * **Shared Libraries:** `iris`, `mule`, `ants`, `numpy`
+    * **Main Script / Entrypoint:** `esm1p6_ancil.nitrogen.cmip7_PI_nitrogen_generate`
+    * **Key Functions Called:** `load_cmip7_nitrogen`, `regrid_cmip7_nitrogen`, `save_cmip7_nitrogen`, `fix_coords`, `esm_grid_mask_cube`, `save_ancil`
+    * **Shared Libraries:** `iris`, `mule`, `ants`, `numpy`
 * **6. Function-Level Cube Transformations & Constraints:**  
-  * **Input Cubes & Coordinates:** Four 3D NetCDF cubes loaded into an `iris.cube.CubeList` representing `drynhx`, `drynoy`, `wetnhx`, and `wetnoy` on monthly time points.
-  * **Constraints Applied:** Name constraints corresponding to standard CF names for nitrogen fluxes; attributes equalized via `equalise_attributes(nitrogen_cubes)`.
-  * **Coordinate Bounds & Manipulation:**
-    * Cubes summed elementwise into a total flux cube.
-    * Units converted from `kg m-2 s-1` to `g m-2 day-1` via `cube_tot.convert_units("g m-2 day-1")`.
-    * Coordinates standardized via `fix_coords(args, cube)`.
-    * Regridded to `global.N96` using `AreaWeighted(mdtol=0.5)` against `esm_grid_mask_cube(args)`.
-    * Missing values masked and zeroed (`data.filled(0.0)`).
-    * STASH attribute assigned: `m01s00i884`.
-  * **Created / Output Cubes:** Formats final 3D cube `(time: 12, lat: 144, lon: 192)` passed to `save_ancil`.
+    * **Input Cubes & Coordinates:** Four 3D NetCDF cubes loaded into an `iris.cube.CubeList` representing `drynhx`, `drynoy`, `wetnhx`, and `wetnoy` on monthly time points.
+    * **Constraints Applied:** Name constraints corresponding to standard CF names for nitrogen fluxes; attributes equalized via `equalise_attributes(nitrogen_cubes)`.
+    * **Coordinate Bounds & Manipulation:**
+        * Cubes summed elementwise into a total flux cube.
+        * Units converted from `kg m-2 s-1` to `g m-2 day-1` via `cube_tot.convert_units("g m-2 day-1")`.
+        * Coordinates standardized via `fix_coords(args, cube)`.
+        * Regridded to `global.N96` using `AreaWeighted(mdtol=0.5)` against `esm_grid_mask_cube(args)`.
+        * Missing values masked and zeroed (`data.filled(0.0)`).
+        * STASH attribute assigned: `m01s00i884`.
+    * **Created / Output Cubes:** Formats final 3D cube `(time: 12, lat: 144, lon: 192)` passed to `save_ancil`.
 * **7. Produced File Versions & Date Ranges:**  
-  * **Temporal Coverage:** `185001-185012` (12 monthly slices)
-  * **Calendar:** 365-day (NoLeap) calendar alignment
-  * **STASH Code:** `m01s00i884`
+    * **Temporal Coverage:** `185001-185012` (12 monthly slices)
+    * **Calendar:** 365-day (NoLeap) calendar alignment
+    * **STASH Code:** `m01s00i884`
 * **8. Produced File Directory Paths & Filenames:**  
-  * **Output Directory:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/pre-industrial/atmosphere/nitrogen/global.N96/<ANCIL_TODAY>/`
-  * **Output Filename:** `Ndep_1850_cmip7.anc`
+    * **Output Directory:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/pre-industrial/atmosphere/nitrogen/global.N96/<ANCIL_TODAY>/`
+    * **Output Filename:** `Ndep_1850_cmip7.anc`
 * **9. Namelist File & Variable Updates:**  
   `None (Generates binary ancillary .anc file)`.
 
@@ -94,16 +94,16 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
       --save-filename "Ndep_1849_2023_cmip7.anc"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-  * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`, `v20251025`, Range: `185001-202212`.
-  * **Processed Model Timeline:** `184901-202312` (175 years, 2100 monthly slices).
+    * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`, `v20251025`, Range: `185001-202212`.
+    * **Processed Model Timeline:** `184901-202312` (175 years, 2100 monthly slices).
 * **4. Input4MIPs Directory Path & Filenames:**  
-  * **Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
-  * **Filenames:** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-202212.nc`
+    * **Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
+    * **Filenames:** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-202212.nc`
 * **5. Python Scripts & Functions:** `esm1p6_ancil.nitrogen.cmip7_HI_nitrogen_generate`, `load_cmip7_nitrogen`, `regrid_cmip7_nitrogen`, `extend_years`, `save_cmip7_nitrogen`.
 * **6. Cube Transformations:**
-  * Aggregates 4 species, converts units to `g m-2 day-1`.
-  * Prepends 1849 (repeating 1850) and appends 2023 (repeating 2022) via `extend_years` to satisfy UM padding requirements.
-  * Regrids to N96 (`AreaWeighted(mdtol=0.5)`) and sets STASH `m01s00i884`.
+    * Aggregates 4 species, converts units to `g m-2 day-1`.
+    * Prepends 1849 (repeating 1850) and appends 2023 (repeating 2022) via `extend_years` to satisfy UM padding requirements.
+    * Regrids to N96 (`AreaWeighted(mdtol=0.5)`) and sets STASH `m01s00i884`.
 * **7. Produced File:** `Ndep_1849_2023_cmip7.anc` (2100 monthly slices, 1849–2023).
 * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/historical/atmosphere/nitrogen/global.N96/<DATE>/Ndep_1849_2023_cmip7.anc`.
 * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
@@ -132,10 +132,10 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
           --save-filename "Ndep_h_2022_2150_cmip7.anc"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**  
-      * Version: `FZJ-CMIP-nitrogen-h-1-0`, `v20260409`, Range: `202201-210012`.
-      * Target Coverage: `2022-2150` (1548 monthly slices).
+        * Version: `FZJ-CMIP-nitrogen-h-1-0`, `v20260409`, Range: `202201-210012`.
+        * Target Coverage: `2022-2150` (1548 monthly slices).
     * **4. Input4MIPs Directory Path & Filenames:**  
-      * `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/FZJ/FZJ-CMIP-nitrogen-h-1-0/atmos/mon/{species}/gn/v20260409/{species}_input4MIPs_surfaceFluxes_ScenarioMIP_FZJ-CMIP-nitrogen-h-1-0_gn_202201-210012.nc`
+        * `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/FZJ/FZJ-CMIP-nitrogen-h-1-0/atmos/mon/{species}/gn/v20260409/{species}_input4MIPs_surfaceFluxes_ScenarioMIP_FZJ-CMIP-nitrogen-h-1-0_gn_202201-210012.nc`
     * **5. Scripts & Functions:** `esm1p6_ancil.nitrogen.cmip7_SM_nitrogen_generate`, `load_cmip7_sm_nitrogen`, `regrid_cmip7_nitrogen`, `extend_years`, `save_cmip7_nitrogen`.
     * **6. Cube Transformations:** Aggregates 4 nitrogen species, converts units, extends time axis to 2150 via `extend_years`, regrids conservatively to N96, and attaches STASH item 884.
     * **7. Produced File:** `Ndep_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150).

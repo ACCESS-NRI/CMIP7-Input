@@ -7,10 +7,10 @@ The aerosol forcing suite processes CMIP7 monthly anthropogenic, aircraft, and b
 ## Physical Domain & Scientific Scope
 
 * **Species & Output Ancillaries:**
-  * **Black Carbon (`BC`):** Surface anthropogenic and aircraft black carbon emissions. Target STASH item: `m01s00i057`. Filename: `BC_<range>_cmip7.anc`.
-  * **Organic Carbon (`OC`):** Fossil fuel and anthropogenic organic carbon emissions. Target STASH item: `m01s00i059`. Filename: `OCFF_<range>_cmip7.anc`.
-  * **Biomass Burning (`Bio`):** Total particulate emissions from wildland fires, agricultural burning, and deforestation. Target STASH item: `m01s00i086`. Filename: `Bio_<range>_cmip7.anc`.
-  * **Sulfur Cycle (`SO2` / `scycl`):** Multi-level sulfur dioxide emissions partitioned into low-level surface emissions (STASH item 58), high-level industrial/stack emissions (STASH item 126), and marine dimethyl sulfide (DMS). Filename: `scycl_<range>_cmip7.anc`.
+    * **Black Carbon (`BC`):** Surface anthropogenic and aircraft black carbon emissions. Target STASH item: `m01s00i057`. Filename: `BC_<range>_cmip7.anc`.
+    * **Organic Carbon (`OC`):** Fossil fuel and anthropogenic organic carbon emissions. Target STASH item: `m01s00i059`. Filename: `OCFF_<range>_cmip7.anc`.
+    * **Biomass Burning (`Bio`):** Total particulate emissions from wildland fires, agricultural burning, and deforestation. Target STASH item: `m01s00i086`. Filename: `Bio_<range>_cmip7.anc`.
+    * **Sulfur Cycle (`SO2` / `scycl`):** Multi-level sulfur dioxide emissions partitioned into low-level surface emissions (STASH item 58), high-level industrial/stack emissions (STASH item 126), and marine dimethyl sulfide (DMS). Filename: `scycl_<range>_cmip7.anc`.
 * **Spatial Regridding & Masking:**
   All species are regridded from native CMIP7 resolution ($0.5^\circ \times 0.5^\circ$) to the target atmospheric grid (`global.N96`, $1.875^\circ \times 1.25^\circ$) using conservative area-weighted regridding:
   $$\text{INTERPOLATION\_SCHEME} = \text{iris.analysis.AreaWeighted}(\text{mdtol}=0.5)$$
@@ -93,12 +93,12 @@ The historical aerosol suite produces continuous transient monthly ancillary fil
       --save-filename "scycl_1849_2023_cmip7.anc"
   ```
 * **6. Cube Transformations:**
-  * Uses `netCDF4.Dataset` to extract sector indices for `Energy` and `Industrial`.
-  * Computes high-level emissions: `cmip7_so2[:, Energy] + 0.5 * cmip7_so2[:, Industrial]`.
-  * Computes low-level emissions: `cmip7_so2.collapsed(["sector"], SUM) - cmip7_so2_high`.
-  * Scales by 0.5 to convert molecular SO2 to mass of elemental Sulfur ($S$).
-  * Regrids via `AreaWeighted(mdtol=0.5)` to N96 grid, fills missing values with 0.0, and zeroes poles.
-  * Climatological DMS is read from `dms_1850.anc`, date-converted from 360-day to Gregorian calendar via `fix_esm15_pi_ancil_date`, tiled across 175 years using `tile_yearly_data`, and packaged into a matching 3D Cube.
+    * Uses `netCDF4.Dataset` to extract sector indices for `Energy` and `Industrial`.
+    * Computes high-level emissions: `cmip7_so2[:, Energy] + 0.5 * cmip7_so2[:, Industrial]`.
+    * Computes low-level emissions: `cmip7_so2.collapsed(["sector"], SUM) - cmip7_so2_high`.
+    * Scales by 0.5 to convert molecular SO2 to mass of elemental Sulfur ($S$).
+    * Regrids via `AreaWeighted(mdtol=0.5)` to N96 grid, fills missing values with 0.0, and zeroes poles.
+    * Climatological DMS is read from `dms_1850.anc`, date-converted from 360-day to Gregorian calendar via `fix_esm15_pi_ancil_date`, tiled across 175 years using `tile_yearly_data`, and packaged into a matching 3D Cube.
 * **7. Produced Coverage:** 1849–2023 (2100 monthly slices). STASH items 58, 126, and DMS.
 
 ---
@@ -131,21 +131,21 @@ The ScenarioMIP aerosol suite manufactures future projection ancillaries across 
           --save-filename "scycl_h_2022_2150_cmip7.anc"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**
-      * Surface Anthro: `IIASA-IAMC-h-1-1-1`, `v20260409`, `202201-210012`
-      * Aircraft Anthro: `IIASA-IAMC-h-1-1-2`, `v20260624`, `202201-210012`
-      * Extension Anthro: `IIASA-IAMC-h-ext-1-1-1`, `v20260409`, `210101-215012`
-      * Baseline DMS: `2020.05.19` (`dms_1850.anc`)
+        * Surface Anthro: `IIASA-IAMC-h-1-1-1`, `v20260409`, `202201-210012`
+        * Aircraft Anthro: `IIASA-IAMC-h-1-1-2`, `v20260624`, `202201-210012`
+        * Extension Anthro: `IIASA-IAMC-h-ext-1-1-1`, `v20260409`, `210101-215012`
+        * Baseline DMS: `2020.05.19` (`dms_1850.anc`)
     * **4. Input4MIPs Directory Path & Filenames:**
-      * Surface: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-1_gn_202201-210012.nc`
-      * Aircraft: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-2/atmos/mon/SO2_em_AIR_anthro/gn/v20260624/SO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-2_gn_202201-210012.nc`
-      * Extension: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-1_gn_210101-215012.nc`
+        * Surface: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-1_gn_202201-210012.nc`
+        * Aircraft: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-2/atmos/mon/SO2_em_AIR_anthro/gn/v20260624/SO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-2_gn_202201-210012.nc`
+        * Extension: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-1_gn_210101-215012.nc`
     * **5. Scripts & Functions:** `esm1p6_ancil.aerosol.cmip7_SM_SO2_interpolate`, `load_cmip7_sm_so2_aerosol_anthro`, `load_cmip7_sm_aerosol_anthro`, `load_sm_dms`, `load_dms`, `save_cmip7_so2_aerosol_anthro`, `tile_yearly_data`, `zero_poles`, `esm_grid_mask_cube`, `save_ancil`.
     * **6. Cube Transformations:**
-      * Base cube (2022–2100) constrained by `cmip7_date_constraint_from_years(2022, 2100)`.
-      * Extension cube (2101–2150) constrained by `cmip7_date_constraint_from_years(2101, 2150)`.
-      * Concatenated via `CubeList.concatenate_cube()` after attribute equalization.
-      * High and low components separated via sector indices, scaled by 0.5, regridded to N96, and zeroed at poles.
-      * DMS cube constructed by tiling 12-month climatology across 129 years.
+        * Base cube (2022–2100) constrained by `cmip7_date_constraint_from_years(2022, 2100)`.
+        * Extension cube (2101–2150) constrained by `cmip7_date_constraint_from_years(2101, 2150)`.
+        * Concatenated via `CubeList.concatenate_cube()` after attribute equalization.
+        * High and low components separated via sector indices, scaled by 0.5, regridded to N96, and zeroed at poles.
+        * DMS cube constructed by tiling 12-month climatology across 129 years.
     * **7. Produced File:** `scycl_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150).
     * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/aerosol/global.N96/<DATE>/scycl_h_2022_2150_cmip7.anc`.
     * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
