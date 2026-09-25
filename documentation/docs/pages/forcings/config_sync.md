@@ -18,12 +18,12 @@ sequenceDiagram
     participant Script as Python Ancil / Namelist Generator
 
     Cylc->>GitHub: 1. git clone base configuration branch
-    Cylc->>Workspace: 2. git checkout -b gen-<experiment>-<UUID>
+    Cylc->>Workspace: 2. git checkout -b gen-[experiment]-[UUID]
     Cylc->>Script: 3. Run namelist generator (e.g. HI_ancil_ghg)
-    Script->>Workspace: 4. Patch atmosphere/namelists & atmosphere/input_atm.nml
-    Cylc->>Workspace: 5. git add & git commit -m "Update CMIP7 namelists"
+    Script->>Workspace: 4. Patch atmosphere/namelists and atmosphere/input_atm.nml
+    Cylc->>Workspace: 5. git add and git commit -m "Update CMIP7 namelists"
     alt GIT_CONFIG_BRANCH_PUSH is True
-        Cylc->>GitHub: 6. git push origin gen-<experiment>-<UUID>
+        Cylc->>GitHub: 6. git push origin gen-[experiment]-[UUID]
     end
 ```
 
@@ -101,5 +101,6 @@ The workflow manages independent Git branches for each future projection scenari
 ## Suite Concurrency & Dependency Graph
 
 To prevent simultaneous file writes and Git index collisions, `flow.cylc` enforces explicit sequential barriers:
+
 * **Race Condition Prevention:** `PI_ancil_solar => PI_ancil_volcanic` ensures both tasks cleanly patch `atmosphere/input_atm.nml` without clobbering.
 * **Git Commit Sequencing:** `*_git_clone_checkout => *_ancil_ghg => *_git_commit_push` ensures all namelist patching finishes before committing.

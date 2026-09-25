@@ -10,8 +10,8 @@ The Emission-Driven experiments evaluate Earth System feedbacks by driving ACCES
 * **Target STASH Item:** `m01s00i251` (SURFACE CO2 EMISSIONS FLUX).
 * **Emissions Components Combined:** Total gridded surface emissions from energy, industrial, residential, transport, and agricultural sectors plus vertically integrated aircraft emissions.
 * **Timeline Coverage:**
-  * `EH`: 1849 to 2023 (including 1849 spin-up padding).
-  * `ES`: 2022 to 2100 (standard) or 2022 to 2150 (extended).
+    * `EH`: 1849 to 2023 (including 1849 spin-up padding).
+    * `ES`: 2022 to 2100 (standard) or 2022 to 2150 (extended).
 
 ---
 
@@ -32,7 +32,8 @@ The following **5 Cylc workflow tasks** produce the required CO2 flux ancillary 
 ## Downstream Configuration Integration
 
 Artifacts feed into the carbon-cycle configuration branches in `access-esm1.6-configs`:
-* **Historical Emissions Branch (`esm-historical`):**
+
+* **Historical Emissions Branch (`esm-historical`):**  
   Files installed to `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<DATE>/modern/historical-emissions/atmosphere/forcing/global.N96/<DATE>/CO2_fluxes_1849_2023_cmip7.anc`.
-* **ScenarioMIP Emissions Branches (`esm-scen7-<SCEN>`):**
+* **ScenarioMIP Emissions Branches (`esm-scen7-<SCEN>`):**  
   Files installed to `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<DATE>/modern/esm-scen7-<SCEN>/atmosphere/forcing/global.N96/<DATE>/CO2_fluxes_<SCEN>_2022_2150_cmip7.anc`.

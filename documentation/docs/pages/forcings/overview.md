@@ -14,28 +14,28 @@ mindmap
     Atmospheric Chemistry
       Greenhouse Gases (GHG)
         Concentrations (9 species)
-        &clmchfcg namelist
+        clmchfcg namelist
       Ozone (O3)
         UKESM1 Zonal Mean Regridding
         3D Monthly Ancillaries
-    Aerosol & Particulate
+    Aerosol and Particulate
       Aerosol Emissions
         Black Carbon (BC)
         Organic Carbon (OC)
         Sulfur Dioxide (SO2)
         Biomass Burning (Bio)
       Nitrogen Deposition
-        Dry & Wet Deposition
-    Radiative & Energy
+        Dry and Wet Deposition
+    Radiative and Energy
       Solar Irradiance (TSI)
         Solar Constant (PI)
         Annual Timeseries (HI, SM)
       Volcanic Aerosols (SAOD)
         Background SAOD (PI)
         4-Band Timeseries (HI, SM)
-    Ocean & Carbon
+    Ocean and Carbon
       AMIP Sea Surface
-        SST & Sea Ice Concentration
+        SST and Sea Ice Concentration
       CO2 Emissions Fluxes
         Gridded Surface Fluxes
 ```
@@ -45,13 +45,14 @@ mindmap
 ## Technical Specifications Hierarchy
 
 Within each forcing domain, technical specifications are organized hierarchically:
+
 1. **Physical Overview:** Description of scientific inputs, units, target grids, and UM STASH codes.
 2. **Experiment Breakdown:** Detailed task profiles sub-grouped by experiment:
-   - **Pre-Industrial (`PI`):** Climatological or perpetual 1850 conditions.
-   - **Historical (`HI`):** Continuous 1850–2023 transient historical forcings.
-   - **ScenarioMIP (`SM`):** Future projection pathways (`h`, `hl`, `m`, `vl`), supporting standard 2022–2100 timelines and extended 2022–2150 timelines.
-   - **Emission-Driven (`EH`, `ES`):** Carbon-cycle interactive flux forcings.
-   - **AMIP (`AM`):** Prescribed boundary condition experiments.
+    - **Pre-Industrial (`PI`):** Climatological or perpetual 1850 conditions.
+    - **Historical (`HI`):** Continuous 1850–2023 transient historical forcings.
+    - **ScenarioMIP (`SM`):** Future projection pathways (`h`, `hl`, `m`, `vl`), supporting standard 2022–2100 timelines and extended 2022–2150 timelines.
+    - **Emission-Driven (`EH`, `ES`):** Carbon-cycle interactive flux forcings.
+    - **AMIP (`AM`):** Prescribed boundary condition experiments.
 
 Each task specification provides exhaustive coverage across the **9 technical dimensions**, detailing CLI invocations, exact input4MIPs file locations on NCI Gadi, Python library call chains, Iris cube transformations and coordinate constraints, produced file paths, and downstream namelist mutations.
 

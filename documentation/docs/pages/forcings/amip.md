@@ -63,9 +63,9 @@ The AMIP (Atmospheric Model Intercomparison Project) forcing pipeline ingests ob
   ```
 * **5. Scripts & Functions:** `esm1p6_ancil.amip.cmip7_AM_amip_generate`, `load_cmip7_ukesm`, `fix_cmip7_ukesm`, `save_cmip7_am_amip`, `save_ancil`.
 * **6. Cube Transformations:**
-  * Loads 3D sea-ice cube `(time, lat, lon)` spanning 1870–2022.
-  * Adjusts latitude and longitude coordinate metadata via `fix_cmip7_ukesm(args, ukesm_cube, fill=False)`.
-  * Passes cube to `save_ancil` with `gregorian=False` to preserve standard 360-day or Proleptic Gregorian time headers.
+    * Loads 3D sea-ice cube `(time, lat, lon)` spanning 1870–2022.
+    * Adjusts latitude and longitude coordinate metadata via `fix_cmip7_ukesm(args, ukesm_cube, fill=False)`.
+    * Passes cube to `save_ancil` with `gregorian=False` to preserve standard 360-day or Proleptic Gregorian time headers.
 * **7. Produced Ancillary:** `seaice_amip_n96_gregorian.anc` (1836 monthly slices, 1870–2022).
 * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/amip/atmosphere/boundary_conditions/global.N96/<DATE>/seaice_amip_n96_gregorian.anc`.
 * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.

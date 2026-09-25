@@ -7,6 +7,7 @@ The Historical (`HI` or `historical`) experiment simulates the continuous transi
 ## Physical Forcing Rationale & Setup
 
 The historical forcing suite provides transient, continuous boundary conditions across the 175-year timeline:
+
 * **Greenhouse Gases:** Annual global-mean surface concentrations for 9 species from 1850 to 2024 interpolated to January 1 and injected into `&clmchfcg`.
 * **Total Solar Irradiance:** Transient annual solar variability from SOLARIS-HEPPA padded from 1700 to 2300 in `TSI_CMIP7_ESM`.
 * **Volcanic Optical Depth:** Monthly 4-band stratospheric aerosol optical depth (SAOD) from UOEXETER capturing major historical eruptions (Krakatoa, Mount Pinatubo, El Chichón) in `volcts_cmip7.dat`.
@@ -41,13 +42,14 @@ The following **12 Cylc workflow tasks** generate all necessary ancillaries and 
 ## Downstream Configuration Integration
 
 Artifacts feed directly into the `dev-historical` configuration branch in `access-esm1.6-configs`:
+
 * **Namelist Updates:**
-  * `atmosphere/namelists`: Populates `&clmchfcg` with 175 annual points (1850–2024) of mass mixing ratios for the 11 greenhouse gas species.
+    * `atmosphere/namelists`: Populates `&clmchfcg` with 175 annual points (1850–2024) of mass mixing ratios for the 11 greenhouse gas species.
 * **Ancillary Installation:**
-  Files installed into `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<DATE>/modern/historical/`:
-  * `atmosphere/aerosol/global.N96/<DATE>/` (`BC_1849_2023_cmip7.anc`, `Bio_1849_2023_cmip7.anc`, `OCFF_1849_2023_cmip7.anc`, `scycl_1849_2023_cmip7.anc`)
-  * `atmosphere/nitrogen/global.N96/<DATE>/` (`Ndep_1849_2023_cmip7.anc`)
-  * `atmosphere/forcing/global.N96/<DATE>/` (`ozone_1849_2023_cmip7.anc`, `TSI_CMIP7_ESM`, `volcts_cmip7.dat`)
+    Files installed into `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<DATE>/modern/historical/`:
+    * `atmosphere/aerosol/global.N96/<DATE>/` (`BC_1849_2023_cmip7.anc`, `Bio_1849_2023_cmip7.anc`, `OCFF_1849_2023_cmip7.anc`, `scycl_1849_2023_cmip7.anc`)
+    * `atmosphere/nitrogen/global.N96/<DATE>/` (`Ndep_1849_2023_cmip7.anc`)
+    * `atmosphere/forcing/global.N96/<DATE>/` (`ozone_1849_2023_cmip7.anc`, `TSI_CMIP7_ESM`, `volcts_cmip7.dat`)
 
 ---
 
@@ -56,16 +58,16 @@ Artifacts feed directly into the `dev-historical` configuration branch in `acces
 ```mermaid
 graph TD
     subgraph PreReqs["Prerequisites"]
-        OzoneSetup["git_clone_ozone_scripts => install_ozone_scripts"]
+        O3Clone["git_clone_ozone_scripts"] --> O3Install["install_ozone_scripts"]
     end
 
-    subgraph ParallelTasks["Concurrent Ancillary & Forcing Tasks"]
+    subgraph ParallelTasks["Concurrent Ancillary and Forcing Tasks"]
         BC["HI_ancil_aerosol_BC"]
         Bio["HI_ancil_aerosol_Bio"]
         OC["HI_ancil_aerosol_OC"]
         SO2["HI_ancil_aerosol_SO2"]
         Ndep["HI_ancil_nitrogen"]
-        O3["HI_ukesm_ancil_ozone => HI_ancil_ozone"]
+        O3Stage1["HI_ukesm_ancil_ozone"] --> O3Stage2["HI_ancil_ozone"]
         Solar["HI_ancil_solar"]
         Volc["HI_ancil_volcanic"]
     end
@@ -75,5 +77,5 @@ graph TD
         GHG --> Commit["HI_git_commit_push"]
     end
 
-    OzoneSetup --> O3
+    O3Install --> O3Stage1
 ```
