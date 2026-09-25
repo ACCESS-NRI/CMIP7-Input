@@ -4,6 +4,8 @@ from pathlib import Path
 import iris
 from cmip7_ancil_common import fix_coords
 
+iris.FUTURE.datum_support = True
+
 
 def ozone_parser():
     parser = ArgumentParser(add_help=False)

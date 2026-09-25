@@ -16,6 +16,7 @@ from aerosol.cmip7_SO2_interpolate import (
 from cmip7_ancil_argparse import (
     common_parser,
     dms_filename_parser,
+    ext_parser,
 )
 from cmip7_PI import fix_esm15_pi_ancil_date
 
@@ -28,6 +29,7 @@ def parse_args():
         ),
         parents=[
             common_parser(),
+            ext_parser(),
             dms_filename_parser(dms_ancil_filename=PI_DMS_ANCIL_FILENAME),
         ],
     )
