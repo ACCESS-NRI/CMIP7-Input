@@ -237,6 +237,8 @@
 {% endset %}
 
     [[GIT]]
+        [[[environment]]]
+            GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=accept-new"
 {% macro GIT_REPO_URL(repo) %}{{GIT_ORG_URL}}/{{repo}}.git{% endmacro %}
 
     [[GIT_SCRIPTS]]
@@ -257,7 +259,7 @@
 
           script = """
               set -e
-              git -c credential.helper="" clone {{GIT_REPO_URL(GIT_AMIP_SCRIPTS_REPO)}} --branch {{GIT_AMIP_SCRIPTS_BRANCH}} ${GIT_AMIP_SCRIPTS_CLONE_DIR}
+              git clone {{GIT_REPO_URL(GIT_AMIP_SCRIPTS_REPO)}} --branch {{GIT_AMIP_SCRIPTS_BRANCH}} ${GIT_AMIP_SCRIPTS_CLONE_DIR}
               """
 
       [[install_amip]]
@@ -399,7 +401,7 @@
 
           script = """
               set -e
-              git -c credential.helper="" clone {{GIT_REPO_URL(GIT_OZONE_SCRIPTS_REPO)}} --branch {{GIT_OZONE_SCRIPTS_BRANCH}} ${GIT_OZONE_SCRIPTS_CLONE_DIR}
+              git clone {{GIT_REPO_URL(GIT_OZONE_SCRIPTS_REPO)}} --branch {{GIT_OZONE_SCRIPTS_BRANCH}} ${GIT_OZONE_SCRIPTS_CLONE_DIR}
               """
 
       [[install_ozone_scripts]]
