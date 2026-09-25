@@ -4,12 +4,12 @@
 site_name: CMIP7-Input
 
 # Site URL
-site_url: !ENV [SITE_URL]
+site_url: !ENV [READTHEDOCS_CANONICAL_URL, ""]
 
 # Git repository (Adds a link to the GitHub repository at the top)
 repo_url: https://github.com/ACCESS-NRI/cmip7-input
 repo_name: ACCESS-NRI/cmip7-input
-edit_uri: blob/main/documentation/docs/ #hopefully will fix the edit button from 404'ing, https://github.com/mkdocs/mkdocs/issues/2416
+edit_uri: edit/main/documentation/docs/
 
 # Navigation
 nav:
