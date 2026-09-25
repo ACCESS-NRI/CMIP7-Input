@@ -13,7 +13,26 @@ edit_uri: blob/main/documentation/docs/ #hopefully will fix the edit button from
 
 # Navigation
 nav:
-  - Home:                            pages/index.md
+  - Home: pages/index.md
+  - Forcing Specifications:
+      - Overview: pages/forcings/overview.md
+      - Greenhouse Gases (GHG): pages/forcings/ghg.md
+      - Aerosols: pages/forcings/aerosols.md
+      - Carbon Dioxide (CO2) Fluxes: pages/forcings/co2.md
+      - Nitrogen Deposition: pages/forcings/nitrogen.md
+      - Ozone Pipeline: pages/forcings/ozone.md
+      - Solar Irradiance (TSI): pages/forcings/solar.md
+      - Volcanic Optical Depth (SAOD): pages/forcings/volcanic.md
+      - AMIP (SST & Sea Ice): pages/forcings/amip.md
+      - Configuration Git Sync: pages/forcings/config_sync.md
+  - Experiment Task Summaries:
+      - Overview: pages/experiments/overview.md
+      - Pre-Industrial Control (PI): pages/experiments/pre_industrial.md
+      - Historical (HI): pages/experiments/historical.md
+      - ScenarioMIP (SM): pages/experiments/scenariomip.md
+      - AMIP (AM): pages/experiments/amip.md
+      - Emission-Driven (EH & ES): pages/experiments/emission_driven.md
+      - Paleoclimate / PMIP (PM): pages/experiments/pmip.md
 
 # Theme
 theme:
