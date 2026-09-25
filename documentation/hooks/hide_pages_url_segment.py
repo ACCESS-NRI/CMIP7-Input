@@ -1,4 +1,5 @@
 import os
+
 from mkdocs.plugins import event_priority
 
 
@@ -11,7 +12,9 @@ def on_files(files, config):
             file.url = file.url.removeprefix("pages/")
             if not file.url:
                 file.url = "./"
-            file.abs_dest_path = os.path.normpath(os.path.join(file.dest_dir, file.dest_uri))
+            file.abs_dest_path = os.path.normpath(
+                os.path.join(file.dest_dir, file.dest_uri)
+            )
     return files
 
 
