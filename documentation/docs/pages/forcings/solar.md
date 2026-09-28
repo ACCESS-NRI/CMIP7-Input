@@ -15,6 +15,21 @@ The solar irradiance pipeline extracts and calculates Total Solar Irradiance (TS
 
 ---
 
+## Controlling Suite Switches
+
+The execution, experiment inclusion, and downstream configuration synchronization for solar irradiance are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Master Activation Switch:** `ANCIL_CREATE_SOLAR = true`  
+  When set to `false`, all solar irradiance processing tasks are excluded from the execution graph.
+* **Experiment Activation:** Governed by `USE_EXP['PI']`, `USE_EXP['HI']`, and `USE_EXP['SM']`.
+* **Scenario Extension Controls (`EXTEND_SM_SOLAR`):** `True`  
+  Scalar boolean toggle; because SOLARIS-HEPPA ScenarioMIP data natively extends through 2299, ScenarioMIP uses a single common forcing table.
+* **Downstream Configuration Branching:**  
+  For `PI`, `PI_ancil_solar` directly patches variable `SC` in `${GIT_PI_CONFIG_DIR}/atmosphere/input_atm.nml`. Downstream git branch cloning is managed by `GIT_CONFIG_BRANCH_PRE['PI']` (`dev`) and `GIT_CONFIG_BRANCH_SUF['PI']` (`piControl`), and pushing is gated by `GIT_CONFIG_BRANCH_PUSH = false`. For `HI` and `SM`, tasks produce ASCII table files in the filesystem.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## 1. Pre-Industrial Experiment (PI)
 
 ### `PI_ancil_solar`
@@ -24,21 +39,29 @@ The solar irradiance pipeline extracts and calculates Total Solar Irradiance (TS
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.solar.cmip7_PI_solar_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "SOLARIS-HEPPA-CMIP-4-6" \
-      --dataset-vdate "v20250219"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_SOLAR_VERSION}" \
+      # Current: "SOLARIS-HEPPA-CMIP-4-6"
+      --dataset-vdate "${CMIP7_SOLAR_VDATE}"
+      # Current: "v20250219"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `SOLARIS-HEPPA-CMIP-4-6`
-    * **Version Date (`vdate`):** `v20250219`
+    * **Dataset Version:** `${CMIP7_SOLAR_VERSION}` (`SOLARIS-HEPPA-CMIP-4-6`)
+    * **Version Date (`vdate`):** `${CMIP7_SOLAR_VDATE}` (`v20250219`)
     * **Frequency:** `fx` (time-invariant)
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/SOLARIS-HEPPA/SOLARIS-HEPPA-CMIP-4-6/atmos/fx/multiple/gn/v20250219/`
-    * **Filename:** `multiple_input4MIPs_solar_CMIP_SOLARIS-HEPPA-CMIP-4-6_gn.nc`
+    * **Directory Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/SOLARIS-HEPPA/${CMIP7_SOLAR_VERSION}/atmos/fx/multiple/gn/${CMIP7_SOLAR_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/SOLARIS-HEPPA/SOLARIS-HEPPA-CMIP-4-6/atmos/fx/multiple/gn/v20250219/`)*
+    * **Filename:** `multiple_input4MIPs_solar_CMIP_${CMIP7_SOLAR_VERSION}_gn.nc`
 * **5. Python Scripts & Functions:**  
     * **Main Script / Entrypoint:** `esm1p6_ancil.solar.cmip7_PI_solar_generate`
     * **Key Functions Called:** `load_cmip7_solar_cube`, `cmip7_solar_dirpath`, `cmip7_pi_solar_patch`, `f90nml.Parser`
@@ -64,29 +87,38 @@ The solar irradiance pipeline extracts and calculates Total Solar Irradiance (TS
 ### `HI_ancil_solar`
 
 * **1. Description & Purpose:**  
-  Ingests monthly historical solar irradiance fields (1850–2023), computes annual means, pads timeline from 1700 to 2300, and writes ASCII table file `TSI_CMIP7_ESM`.
+  Ingests monthly historical solar irradiance fields (1850–2023), computes annual means, pads timeline from 1700 to 2300, and writes ASCII table file `${ESM_HI_SOLAR_SAVE_FILENAME}` (`TSI_CMIP7_ESM`).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.solar.cmip7_HI_solar_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "SOLARIS-HEPPA-CMIP-4-6" \
-      --dataset-vdate "v20250219" \
-      --dataset-date-range "185001-202312" \
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_SOLAR_VERSION}" \
+      # Current: "SOLARIS-HEPPA-CMIP-4-6"
+      --dataset-vdate "${CMIP7_SOLAR_VDATE}" \
+      # Current: "v20250219"
+      --dataset-date-range "${CMIP7_HI_SOLAR_DATE_RANGE}" \
+      # Current: "185001-202312"
       --pad \
-      --save-filename "TSI_CMIP7_ESM"
+      --save-filename "${ESM_HI_SOLAR_SAVE_FILENAME}"
+      # Current: "TSI_CMIP7_ESM"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * Version: `SOLARIS-HEPPA-CMIP-4-6`, `v20250219`, Date Range: `185001-202312`.
+    * Version: `${CMIP7_SOLAR_VERSION}` (`SOLARIS-HEPPA-CMIP-4-6`), `${CMIP7_SOLAR_VDATE}` (`v20250219`), Date Range: `${CMIP7_HI_SOLAR_DATE_RANGE}` (`185001-202312`).
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/SOLARIS-HEPPA/SOLARIS-HEPPA-CMIP-4-6/atmos/mon/multiple/gn/v20250219/multiple_input4MIPs_solar_CMIP_SOLARIS-HEPPA-CMIP-4-6_gn_185001-202312.nc`
+    * `${VAR.CMIP7_SOURCE_PATH}/CMIP/SOLARIS-HEPPA/${CMIP7_SOLAR_VERSION}/atmos/mon/multiple/gn/${CMIP7_SOLAR_VDATE}/multiple_input4MIPs_solar_CMIP_${CMIP7_SOLAR_VERSION}_gn_${CMIP7_HI_SOLAR_DATE_RANGE}.nc`
 * **5. Python Scripts & Functions:** `esm1p6_ancil.solar.cmip7_HI_solar_generate`, `load_cmip7_solar_cube`, `cmip7_solar_year_mean`, `cmip7_solar_save`.
 * **6. Cube Transformations:** Extracts `solar_irradiance` cube, collapses monthly slices by year (`year_cube.collapsed("time", iris.analysis.MEAN)`), pads years 1700–1849 with 1850 value, and fills years 2024–2300 with `-32768.0`.
-* **7. Produced File:** `TSI_CMIP7_ESM` (ASCII table, 601 rows for years 1700–2300).
-* **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/historical/atmosphere/forcing/global.N96/<DATE>/TSI_CMIP7_ESM`.
+* **7. Produced File:** `${ESM_HI_SOLAR_SAVE_FILENAME}` (`TSI_CMIP7_ESM`, ASCII table, 601 rows for years 1700–2300).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/historical/atmosphere/forcing/${ESM_GRID_DIRNAME}/<DATE>/${ESM_HI_SOLAR_SAVE_FILENAME}`.
 * **9. Namelist Updates:** `None (Produces ASCII forcing table)`.
 
 ---
@@ -96,23 +128,32 @@ The solar irradiance pipeline extracts and calculates Total Solar Irradiance (TS
 ### `SM_ancil_solar`
 
 * **1. Description & Purpose:**  
-  Generates projection solar irradiance table `TSI_CMIP7_ESM` for ScenarioMIP simulations spanning 2022 to 2299.
+  Generates projection solar irradiance table `${ESM_SM_SOLAR_SAVE_FILENAME}` (`TSI_CMIP7_ESM`) for ScenarioMIP simulations spanning 2022 to 2299.
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.solar.cmip7_SM_solar_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "SOLARIS-HEPPA-ScenarioMIP-4-6" \
-      --dataset-vdate "v20260115" \
-      --dataset-date-range "202201-229912" \
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_SM_SOLAR_VERSION}" \
+      # Current: "SOLARIS-HEPPA-ScenarioMIP-4-6"
+      --dataset-vdate "${CMIP7_SM_SOLAR_VDATE}" \
+      # Current: "v20260115"
+      --dataset-date-range "${CMIP7_SM_SOLAR_DATE_RANGE}" \
+      # Current: "202201-229912"
       --pad \
-      --save-filename "TSI_CMIP7_ESM"
+      --save-filename "${ESM_SM_SOLAR_SAVE_FILENAME}"
+      # Current: "TSI_CMIP7_ESM"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * Version: `SOLARIS-HEPPA-ScenarioMIP-4-6`, `v20260115`, Date Range: `202201-229912`.
-* **7. Produced File:** `TSI_CMIP7_ESM` (ASCII table, 1700–2300).
-* **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/forcing/global.N96/<DATE>/TSI_CMIP7_ESM`.
+    * Version: `${CMIP7_SM_SOLAR_VERSION}` (`SOLARIS-HEPPA-ScenarioMIP-4-6`), `${CMIP7_SM_SOLAR_VDATE}` (`v20260115`), Date Range: `${CMIP7_SM_SOLAR_DATE_RANGE}` (`202201-229912`).
+* **7. Produced File:** `${ESM_SM_SOLAR_SAVE_FILENAME}` (`TSI_CMIP7_ESM`, ASCII table, 1700–2300).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/scen7-h/atmosphere/forcing/${ESM_GRID_DIRNAME}/<DATE>/${ESM_SM_SOLAR_SAVE_FILENAME}`.
 * **9. Namelist Updates:** `None (Produces ASCII forcing table)`.

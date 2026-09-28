@@ -20,6 +20,33 @@ Under the extended workflow mode (`EXTEND_SM_* = True` or CLI flag `--ext`), the
 
 ---
 
+## Workflow Switches & Selectors
+
+The execution, pathway selection, and temporal extension for ScenarioMIP are controlled centrally in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Experiment Activation Switch:** `USE_EXP['SM'] = True`  
+  `SM` is registered in `MAIN_EXPS = ['HI', 'PI', 'SM']`. When set to `False`, all ScenarioMIP tasks across all pathways are removed from the Cylc task DAG.
+* **Pathway Selectors (`SCENARIOS` & `USE_SCEN`):**  
+  Active pathways are enumerated in `SCENARIOS = ['h', 'hl', 'm', 'vl']` and toggled individually via:
+    * `USE_SCEN['h'] = True` (High)
+    * `USE_SCEN['hl'] = True` (High-Low)
+    * `USE_SCEN['m'] = True` (Medium)
+    * `USE_SCEN['vl'] = True` (Very Low)
+* **2150 Extension Dictionaries (`EXTEND_SM_*`):**  
+  Controls whether `--ext` is appended to extend the simulation timeline from 2100 to 2150:
+    * `EXTEND_SM_AEROSOL`: `{'h': True, 'hl': False, 'm': False, 'vl': True}`
+    * `EXTEND_SM_CO2`: `{'h': True, 'hl': False, 'm': False, 'vl': True}`
+    * `EXTEND_SM_GHG`: `{'h': True, 'hl': False, 'm': False, 'vl': True}`
+    * `EXTEND_SM_NITROGEN`: `{'h': True, 'hl': True, 'm': True, 'vl': True}`
+    * `EXTEND_SM_OZONE`: `{'h': True, 'hl': True, 'm': True, 'vl': True}`
+    * `EXTEND_SM_SOLAR`: `True`
+    * `EXTEND_SM_VOLCANIC`: `True`
+* **Downstream Branch Mapping:**  
+  Clones base branch `${GIT_CONFIG_BRANCH_PRE['SM']}-${GIT_SM_CONFIG_BRANCH_SUF[SCEN]}` (e.g. `pl-scen7-h`, `pl-scen7-hl`, `pl-scen7-m`, `pl-scen7-vl`) from `${GIT_ORG_URL}/${GIT_CONFIG_REPO}.git` into `${CYLC_WORKFLOW_SHARE_DIR}/SM_${SCEN}_${GIT_CONFIG_REPO}`. Commits patched namelists to `gen-${GIT_SM_CONFIG_BRANCH_SUF[SCEN]}-${UNIQUE_NAME}` (`gen-scen7-<scen>-<UUID>`), and conditionally pushes if `GIT_CONFIG_BRANCH_PUSH = true`.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## Complete Task Roster for ScenarioMIP
 
 The workflow orchestrates **46 tasks** supporting ScenarioMIP across the 4 pathways:

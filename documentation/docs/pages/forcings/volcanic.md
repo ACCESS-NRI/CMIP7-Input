@@ -17,6 +17,21 @@ The volcanic optical depth pipeline extracts and integrates stratospheric aeroso
 
 ---
 
+## Controlling Suite Switches
+
+The execution, experiment inclusion, and downstream configuration synchronization for volcanic optical depth are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Master Activation Switch:** `ANCIL_CREATE_VOLCANIC = true`  
+  When set to `false`, all volcanic optical depth processing tasks are excluded from the execution graph.
+* **Experiment Activation:** Governed by `USE_EXP['PI']`, `USE_EXP['HI']`, and `USE_EXP['SM']`.
+* **Scenario Extension Controls (`EXTEND_SM_VOLCANIC`):** `True`  
+  Scalar boolean toggle; because UOEXETER ScenarioMIP volcanic data is padded to 2300, a single common table is generated across ScenarioMIP pathways.
+* **Downstream Configuration Branching:**  
+  For `PI`, `PI_ancil_volcanic` directly patches variable `VOLCTS_val` in `${GIT_PI_CONFIG_DIR}/atmosphere/input_atm.nml`. Downstream git branch cloning is managed by `GIT_CONFIG_BRANCH_PRE['PI']` (`dev`) and `GIT_CONFIG_BRANCH_SUF['PI']` (`piControl`), and pushing is gated by `GIT_CONFIG_BRANCH_PUSH = false`. For `HI` and `SM`, tasks produce ASCII table files in the filesystem.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## 1. Pre-Industrial Experiment (PI)
 
 ### `PI_ancil_volcanic`
@@ -26,20 +41,27 @@ The volcanic optical depth pipeline extracts and integrates stratospheric aeroso
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.volcanic.cmip7_PI_volcanic_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --dataset-version "UOEXETER-CMIP-2-2-1" \
-      --dataset-vdate "v20250521" \
-      --dataset-date-range "185001-202112"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --dataset-version "${CMIP7_VOLCANIC_VERSION}" \
+      # Current: "UOEXETER-CMIP-2-2-1"
+      --dataset-vdate "${CMIP7_VOLCANIC_VDATE}" \
+      # Current: "v20250521"
+      --dataset-date-range "${CMIP7_PI_VOLCANIC_DATE_RANGE}"
+      # Current: "185001-202112"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `UOEXETER-CMIP-2-2-1`
-    * **Version Date (`vdate`):** `v20250521`
-    * **Date Range:** `185001-202112` (`-clim.nc` climatology)
+    * **Dataset Version:** `${CMIP7_VOLCANIC_VERSION}` (`UOEXETER-CMIP-2-2-1`)
+    * **Version Date (`vdate`):** `${CMIP7_VOLCANIC_VDATE}` (`v20250521`)
+    * **Date Range:** `${CMIP7_PI_VOLCANIC_DATE_RANGE}` (`185001-202112`, `-clim.nc` climatology)
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/uoexeter/UOEXETER-CMIP-2-2-1/atmos/monC/ext/gnz/v20250521/`
-    * **Filename:** `ext_input4MIPs_aerosolProperties_CMIP_UOEXETER-CMIP-2-2-1_gnz_185001-202112-clim.nc`
+    * **Directory Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/uoexeter/${CMIP7_VOLCANIC_VERSION}/atmos/monC/ext/gnz/${CMIP7_VOLCANIC_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/uoexeter/UOEXETER-CMIP-2-2-1/atmos/monC/ext/gnz/v20250521/`)*
+    * **Filename:** `ext_input4MIPs_aerosolProperties_CMIP_${CMIP7_VOLCANIC_VERSION}_gnz_${CMIP7_PI_VOLCANIC_DATE_RANGE}-clim.nc`
 * **5. Python Scripts & Functions:**  
     * **Main Script / Entrypoint:** `esm1p6_ancil.volcanic.cmip7_PI_volcanic_generate`
     * **Key Functions Called:** `average_stratospheric_aerosol_optical_depth`, `cmip7_volcanic_dirpath`, `constrain_to_wavelength`, `mean_over_pi_months`, `mean_over_latitudes`, `sum_over_height_layers`, `cmip7_pi_volcanic_patch`, `f90nml.Parser`
@@ -70,32 +92,40 @@ The volcanic optical depth pipeline extracts and integrates stratospheric aeroso
 ### `HI_ancil_volcanic`
 
 * **1. Description & Purpose:**  
-  Integrates historical monthly stratospheric extinction fields (1850–2023) across 550nm wavelength and stratospheric height, averages into 4 latitude bands, scales by 10000, and writes `volcts_cmip7.dat`.
+  Integrates historical monthly stratospheric extinction fields (1850–2023) across 550nm wavelength and stratospheric height, averages into 4 latitude bands, scales by 10000, and writes `${ESM_HI_VOLCANIC_SAVE_FILENAME}` (`volcts_cmip7.dat`).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.volcanic.cmip7_HI_volcanic_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --dataset-version "UOEXETER-CMIP-2-2-1" \
-      --dataset-vdate "v20250521" \
-      --dataset-date-range "175001-202312" \
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --dataset-version "${CMIP7_VOLCANIC_VERSION}" \
+      # Current: "UOEXETER-CMIP-2-2-1"
+      --dataset-vdate "${CMIP7_VOLCANIC_VDATE}" \
+      # Current: "v20250521"
+      --dataset-date-range "${CMIP7_HI_VOLCANIC_DATE_RANGE}" \
+      # Current: "175001-202312"
       --pad \
-      --save-filename "volcts_cmip7.dat"
+      --save-filename "${ESM_HI_VOLCANIC_SAVE_FILENAME}"
+      # Current: "volcts_cmip7.dat"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * Version: `UOEXETER-CMIP-2-2-1`, `v20250521`, Date Range: `175001-202312`.
+    * Version: `${CMIP7_VOLCANIC_VERSION}` (`UOEXETER-CMIP-2-2-1`), `${CMIP7_VOLCANIC_VDATE}` (`v20250521`), Date Range: `${CMIP7_HI_VOLCANIC_DATE_RANGE}` (`175001-202312`).
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * Path: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/uoexeter/UOEXETER-CMIP-2-2-1/atmos/mon/ext/gnz/v20250521/`
-    * Filename: `ext_input4MIPs_aerosolProperties_CMIP_UOEXETER-CMIP-2-2-1_gnz_175001-202312.nc`
+    * Path: `${VAR.CMIP7_SOURCE_PATH}/CMIP/uoexeter/${CMIP7_VOLCANIC_VERSION}/atmos/mon/ext/gnz/${CMIP7_VOLCANIC_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/uoexeter/UOEXETER-CMIP-2-2-1/atmos/mon/ext/gnz/v20250521/`)*
+    * Filename: `ext_input4MIPs_aerosolProperties_CMIP_${CMIP7_VOLCANIC_VERSION}_gnz_${CMIP7_HI_VOLCANIC_DATE_RANGE}.nc`
 * **5. Scripts & Functions:** `esm1p6_ancil.volcanic.cmip7_HI_volcanic_generate`, `save_stratospheric_aerosol_optical_depth`, `constrain_to_wavelength`, `sum_over_height_layers`.
 * **6. Cube Transformations:**
     * Constrained to 550nm wavelength.
     * Stratospheric layer height integration for each month.
     * Latitude averaging across 4 discrete bands (`90°S–20°S`, `20°S–0°`, `0°–20°N`, `20°N–90°N`).
     * Scaled by 10000.0. Pre-1850 years filled with pre-industrial mean via `print_early_saod`. Post-2023 years tapered or padded.
-* **7. Produced File:** `volcts_cmip7.dat` (ASCII table, columns: `year month band1 band2 band3 band4`).
-* **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/historical/atmosphere/forcing/global.N96/<DATE>/volcts_cmip7.dat`.
+* **7. Produced File:** `${ESM_HI_VOLCANIC_SAVE_FILENAME}` (`volcts_cmip7.dat`, ASCII table, columns: `year month band1 band2 band3 band4`).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/historical/atmosphere/forcing/${ESM_GRID_DIRNAME}/<DATE>/${ESM_HI_VOLCANIC_SAVE_FILENAME}`.
 * **9. Namelist Updates:** `None (Produces ASCII forcing table)`.
 
 ---
@@ -105,21 +135,28 @@ The volcanic optical depth pipeline extracts and integrates stratospheric aeroso
 ### `SM_ancil_volcanic`
 
 * **1. Description & Purpose:**  
-  Generates projection 4-band volcanic SAOD table `volcts_cmip7.dat` for ScenarioMIP simulations spanning 2022 to 2100 (tapering/holding constant to 2300).
+  Generates projection 4-band volcanic SAOD table `${ESM_SM_VOLCANIC_SAVE_FILENAME}` (`volcts_cmip7.dat`) for ScenarioMIP simulations spanning 2022 to 2100 (tapering/holding constant to 2300).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.volcanic.cmip7_SM_volcanic_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --dataset-version "UOEXETER-ScenarioMIP-2-2-2" \
-      --dataset-vdate "v20251219" \
-      --dataset-date-range "202201-210012" \
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --dataset-version "${CMIP7_SM_VOLCANIC_VERSION}" \
+      # Current: "UOEXETER-ScenarioMIP-2-2-2"
+      --dataset-vdate "${CMIP7_SM_VOLCANIC_VDATE}" \
+      # Current: "v20251219"
+      --dataset-date-range "${CMIP7_SM_VOLCANIC_DATE_RANGE}" \
+      # Current: "202201-210012"
       --pad \
-      --save-filename "volcts_cmip7.dat"
+      --save-filename "${ESM_SM_VOLCANIC_SAVE_FILENAME}"
+      # Current: "volcts_cmip7.dat"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * Version: `UOEXETER-ScenarioMIP-2-2-2`, `v20251219`, Date Range: `202201-210012`.
-* **7. Produced File:** `volcts_cmip7.dat` (ASCII table, 1850–2300).
-* **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/forcing/global.N96/<DATE>/volcts_cmip7.dat`.
+    * Version: `${CMIP7_SM_VOLCANIC_VERSION}` (`UOEXETER-ScenarioMIP-2-2-2`), `${CMIP7_SM_VOLCANIC_VDATE}` (`v20251219`), Date Range: `${CMIP7_SM_VOLCANIC_DATE_RANGE}` (`202201-210012`).
+* **7. Produced File:** `${ESM_SM_VOLCANIC_SAVE_FILENAME}` (`volcts_cmip7.dat`, ASCII table, 1850–2300).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/scen7-h/atmosphere/forcing/${ESM_GRID_DIRNAME}/<DATE>/${ESM_SM_VOLCANIC_SAVE_FILENAME}`.
 * **9. Namelist Updates:** `None (Produces ASCII forcing table)`.

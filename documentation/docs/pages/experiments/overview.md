@@ -32,6 +32,26 @@ Each experiment summary page provides:
 3. **Downstream Configuration Integration:** Target directories, modified namelist groups, and Git branching rules in `ACCESS-NRI/access-esm1.6-configs`.
 4. **Execution Flow:** Cylc dependency graph (DAG) illustrating prerequisite relationships.
 
+---
+
+## Experiment Execution Switches & Selectors
+
+The activation, scenario selection, and downstream branch mapping for all experiments are parameterized centrally in [`rose-suite.conf`](../configuration/suite_objects.md).
+
+> [!TIP]
+> For an evergreen reference describing all configuration objects, schemas, and semantics without hardcoded current values, see the [Suite Configuration & Parameters Reference](../configuration/suite_objects.md).
+
+| Experiment Suite | Suite Toggle Switch | Pathway / Scenario Selectors | 2150 Extension Controls | Downstream Git Branch |
+| :--- | :---: | :---: | :---: | :--- |
+| **[Pre-Industrial Control](pre_industrial.md)** | `USE_EXP['PI']` | N/A | N/A | `GIT_CONFIG_BRANCH_PRE['PI']`-`GIT_CONFIG_BRANCH_SUF['PI']` (`dev-piControl`) |
+| **[Historical](historical.md)** | `USE_EXP['HI']` | N/A | N/A | `GIT_CONFIG_BRANCH_PRE['HI']`-`GIT_CONFIG_BRANCH_SUF['HI']` (`dev-historical`) |
+| **[ScenarioMIP](scenariomip.md)** | `USE_EXP['SM']` | `USE_SCEN['h']`, `['hl']`, `['m']`, `['vl']` | `EXTEND_SM_AEROSOL`, `_CO2`, `_GHG`, `_NITROGEN`, `_OZONE`, `_SOLAR`, `_VOLCANIC` | `GIT_CONFIG_BRANCH_PRE['SM']`-`GIT_SM_CONFIG_BRANCH_SUF['<SCEN>']` (`pl-scen7-<scen>`) |
+| **[AMIP](amip.md)** | `USE_EXP['AM']` | N/A | N/A | Filesystem Ancillaries (`.anc`) |
+| **[Emission-Driven](emission_driven.md)** | `USE_EXP['EH']`, `USE_EXP['ES']` | `USE_SCEN` (for `ES`) | `EXTEND_SM_CO2` | Filesystem Ancillaries (`.anc`) |
+| **[Paleoclimate / PMIP](pmip.md)** | `USE_EXP['PM']` | N/A | N/A | Filesystem Ancillaries (`.anc`) |
+
+---
+
 | Experiment Summary Page | Acronym | Tasks | Description |
 | :--- | :---: | :---: | :--- |
 | **[Pre-Industrial Control](pre_industrial.md)** | `PI` | 12 | 1850 perpetual equilibrium control run |

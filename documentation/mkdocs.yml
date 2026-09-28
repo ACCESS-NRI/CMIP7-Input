@@ -14,6 +14,7 @@ edit_uri: edit/main/documentation/docs/
 # Navigation
 nav:
   - Home: pages/index.md
+  - Suite Configuration: pages/configuration/suite_objects.md
   - Forcing Specifications:
       - Overview: pages/forcings/overview.md
       - Greenhouse Gases (GHG): pages/forcings/ghg.md

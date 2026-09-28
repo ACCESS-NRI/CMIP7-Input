@@ -58,6 +58,26 @@ Each task specification provides exhaustive coverage across the **9 technical di
 
 ---
 
+## Suite Configuration & Controlling Switches
+
+The execution of individual forcing pipelines, experiment tasks, and ScenarioMIP pathway extensions is governed centrally through switches defined in [`rose-suite.conf`](../configuration/suite_objects.md) and [`site/nci-gadi/variables.cylc`](../configuration/suite_objects.md#5-site-environment-and-filesystem-roots).
+
+> [!TIP]
+> For an evergreen reference describing all suite configuration objects, types, schemas, and semantics without hardcoded current values, see the [Suite Configuration & Parameters Reference](../configuration/suite_objects.md).
+
+| Forcing Pipeline | Master Activation Switch | 2150 Extension Switch (`SM`) | Downstream Git Sync |
+| :--- | :---: | :---: | :--- |
+| **[Greenhouse Gases (GHG)](ghg.md)** | `ANCIL_CREATE_GHG` | `EXTEND_SM_GHG` | `GIT_CONFIG_BRANCH_PUSH` (Updates `&clmchfcg`) |
+| **[Aerosols](aerosols.md)** | `ANCIL_CREATE_AEROSOL` | `EXTEND_SM_AEROSOL` | Filesystem Ancillary (`.anc`) |
+| **[Carbon Dioxide Fluxes](co2.md)** | `ANCIL_CREATE_CO2` | `EXTEND_SM_CO2` | Filesystem Ancillary (`.anc`) |
+| **[Nitrogen Deposition](nitrogen.md)** | `ANCIL_CREATE_NITROGEN` | `EXTEND_SM_NITROGEN` | Filesystem Ancillary (`.anc`) |
+| **[Ozone Pipeline](ozone.md)** | `ANCIL_CREATE_OZONE` | `EXTEND_SM_OZONE` | Filesystem Ancillary (`.anc`) |
+| **[Solar Irradiance](solar.md)** | `ANCIL_CREATE_SOLAR` | `EXTEND_SM_SOLAR` | `GIT_CONFIG_BRANCH_PUSH` (PI Namelist `SC`) |
+| **[Volcanic Optical Depth](volcanic.md)** | `ANCIL_CREATE_VOLCANIC` | `EXTEND_SM_VOLCANIC` | `GIT_CONFIG_BRANCH_PUSH` (PI Namelist `VOLCTS_val`) |
+| **[AMIP (SST & Sea Ice)](amip.md)** | `ANCIL_CREATE_AMIP` | N/A | Filesystem Ancillary (`.anc`) |
+
+---
+
 ## Navigation
 
 Explore the individual forcing domain specifications below:

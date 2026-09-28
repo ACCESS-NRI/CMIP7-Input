@@ -27,9 +27,15 @@ graph TD
 
 ## Documentation Structure
 
-This documentation is organized into two complementary perspectives to support both domain scientists focused on specific physical forcings and model operators configuring experiments:
+This documentation is organized into three complementary perspectives to support workflow developers, domain scientists focused on specific physical forcings, and model operators configuring experiments:
 
-### 1. [Forcing Specifications](forcings/overview.md)
+### 1. [Suite Orchestration & Configuration](configuration/suite_objects.md)
+
+Central orchestration, environment variables, and parameterization governing the Cylc 8 workflow suite:
+
+* **[Suite Configuration & Parameters Reference](configuration/suite_objects.md):** A reference classifying suite configuration objects defined in `rose-suite.conf` and `site/nci-gadi/variables.cylc`. It documents master forcing switches (`ANCIL_CREATE_*`), experiment and scenario selectors (`USE_EXP`, `USE_SCEN`), timeline extension controls (`EXTEND_SM_*`), supercomputing site filesystem roots, input4MIPs dataset versions, target filenames, and downstream Git branch synchronization rules.
+
+### 2. [Forcing Specifications](forcings/overview.md)
 
 Detailed 9-dimension technical specifications for all workflow tasks, grouped by physical forcing domain and sub-grouped by experiment:
 
@@ -43,7 +49,7 @@ Detailed 9-dimension technical specifications for all workflow tasks, grouped by
 * **[AMIP (SST & Sea Ice)](forcings/amip.md):** UKESM-derived sea surface temperature and sea-ice concentration ancillaries.
 * **[Configuration Git Synchronization](forcings/config_sync.md):** Automated cloning, branching, namelist injection, and git synchronisation for `access-esm1.6-configs`.
 
-### 2. [Experiment Task Summaries](experiments/overview.md)
+### 3. [Experiment Task Summaries](experiments/overview.md)
 
 Comprehensive summary pages outlining all tasks, execution flows, and configuration parameters needed for each supported climate experiment:
 

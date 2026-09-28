@@ -13,6 +13,23 @@ In paleoclimate simulations where astronomical orbital parameters and ice sheet 
 
 ---
 
+## Workflow Switches & Selectors
+
+The generation of paleoclimate climatological ozone ancillaries is governed by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Experiment Activation Switch:** `USE_EXP['PM'] = True`  
+  When set to `False`, `PI_mean_ukesm_ancil_ozone` and `PI_mean_ancil_ozone` are excluded from the Cylc task DAG.
+* **Master Forcing Toggle:** `ANCIL_CREATE_OZONE = true`  
+  Must evaluate to `true` alongside `USE_EXP['PM']` to schedule the climatological ozone pipeline.
+* **Climatological Window Parameters:**  
+  * `CMIP7_PI_MEAN_OZONE_BEG_YEAR = '1850'`
+  * `CMIP7_PI_MEAN_OZONE_END_YEAR = '1870'`
+  * Intermediate NetCDF: `${UKESM_PI_MEAN_OZONE_NETCDF_FILENAME}` (`mmro3_monthly_CMIP7_zonalmn_1850_1870_ants.nc`)
+  * Final Ancillary: `${ESM_PI_MEAN_OZONE_SAVE_FILENAME}` (`ozone_1850_1870_mean_cmip7.anc`)
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## Complete Task Roster for Paleoclimate
 
 The following **2 Cylc workflow tasks** prepare the climatological ozone ancillary:

@@ -20,6 +20,23 @@ The aerosol forcing suite processes CMIP7 monthly anthropogenic, aircraft, and b
 
 ---
 
+## Controlling Suite Switches
+
+The execution and temporal extent of aerosol tasks are governed by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Master Activation Switch:** `ANCIL_CREATE_AEROSOL = true`  
+  When set to `false`, all aerosol processing tasks across all experiments are excluded from the execution graph.
+* **Experiment Activation:** Governed by `USE_EXP['PI']`, `USE_EXP['HI']`, and `USE_EXP['SM']`.
+* **Scenario Extension Controls (`EXTEND_SM_AEROSOL`):**  
+  Controls whether future pathways are generated through 2100 or extended to 2150 with `--ext`:
+    * `'h': True` (Extended to 2150 via `IIASA-IAMC-h-ext-1-1-1`)
+    * `'hl': False` (Bounded to 2100)
+    * `'m': False` (Bounded to 2100)
+    * `'vl': True` (Extended to 2150 via `IIASA-IAMC-vl-ext-1-1-1`)
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## 1. Pre-Industrial Experiment (PI)
 
 The pre-industrial aerosol suite generates cyclic 1850-representative annual ancillaries (12 monthly slices) for Black Carbon, Biomass Burning, Organic Carbon, and Sulfur Cycle emissions.
@@ -29,22 +46,32 @@ The pre-industrial aerosol suite generates cyclic 1850-representative annual anc
 * **2. CLI Arguments:**
   ```bash
   python -m esm1p6_ancil.aerosol.cmip7_PI_BC_interpolate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "CEDS-CMIP-2025-04-18" \
-      --dataset-vdate "v20250421" \
-      --dataset-date-range "185001-189912" \
-      --save-filename "BC_1850_cmip7.anc"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_AEROSOL_ANTHRO_VERSION}" \
+      # Current: "CEDS-CMIP-2025-04-18"
+      --dataset-vdate "${CMIP7_AEROSOL_ANTHRO_VDATE}" \
+      # Current: "v20250421"
+      --dataset-date-range "${CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE}" \
+      # Current: "185001-189912"
+      --save-filename "${ESM_PI_AEROSOL_SAVE_FILENAME['BC']}"
+      # Current: "BC_1850_cmip7.anc"
   ```
-* **3. Input4MIPs Metadata:** Version `CEDS-CMIP-2025-04-18`, `v20250421`, range `185001-189912`.
-* **4. Input4MIPs Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/BC_em_anthro/gn/v20250421/`
+* **3. Input4MIPs Metadata:** Version `${CMIP7_AEROSOL_ANTHRO_VERSION}` (`CEDS-CMIP-2025-04-18`), date tag `${CMIP7_AEROSOL_ANTHRO_VDATE}` (`v20250421`), range `${CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE}` (`185001-189912`).
+* **4. Input4MIPs Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/CEDS/${CMIP7_AEROSOL_ANTHRO_VERSION}/atmos/mon/BC_em_anthro/gn/${CMIP7_AEROSOL_ANTHRO_VDATE}/`  
+  *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CEDS/CEDS-CMIP-2025-04-18/atmos/mon/BC_em_anthro/gn/v20250421/`)*
 * **5. Scripts & Functions:** `esm1p6_ancil.aerosol.cmip7_PI_BC_interpolate`, `load_cmip7_pi_aerosol_anthro`, `cmip7_aerosol_anthro_interpolate`, `esm_grid_mask_cube`, `zero_poles`, `save_ancil`.
 * **6. Cube Transformations:** Loads 4D `(time, sector, lat, lon)` cube via `load_cmip7_aerosol`, collapses sectors (`collapsed(["sector"], SUM)`), regrids with `AreaWeighted(mdtol=0.5)`, zero poles, assigns STASH `m01s00i057`.
-* **7. Produced Coverage:** 12 monthly slices for year 1850, STASH `m01s00i057`.
-* **8. Output Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/pre-industrial/atmosphere/aerosol/global.N96/<DATE>/BC_1850_cmip7.anc`.
+* **7. Produced Coverage:** 12 monthly slices for year 1850, STASH `m01s00i057`. Filename: `${ESM_PI_AEROSOL_SAVE_FILENAME['BC']}` (`BC_1850_cmip7.anc`).
+* **8. Output Path:** `${VAR.ANCIL_TARGET_PATH}/modern/pre-industrial/atmosphere/aerosol/${ESM_GRID_DIRNAME}/<DATE>/${ESM_PI_AEROSOL_SAVE_FILENAME['BC']}`.
 * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
 
 ### `PI_ancil_aerosol_Bio`
@@ -77,20 +104,30 @@ The historical aerosol suite produces continuous transient monthly ancillary fil
 | `HI_ancil_aerosol_SO2`| `aerosol.cmip7_HI_SO2_interpolate`| `CEDS-CMIP` + ESM1.5 DMS | `scycl_1849_2023_cmip7.anc`| 58, 126, DMS |
 
 ### `HI_ancil_aerosol_SO2` Specification Details
-* **1. Description & Purpose:** Generates historical sulfur cycle emissions (1849–2023). Ingests chunked historical files (`180001-184912` through `200001-202312`), decomposes into low-level and high-level emissions, tiles climatological DMS across 175 years, and writes `scycl_1849_2023_cmip7.anc`.
+* **1. Description & Purpose:** Generates historical sulfur cycle emissions (1849–2023). Ingests chunked historical files (`180001-184912` through `200001-202312`), decomposes into low-level and high-level emissions, tiles climatological DMS across 175 years, and writes `${ESM_HI_AEROSOL_SAVE_FILENAME['SO2']}` (`scycl_1849_2023_cmip7.anc`).
 * **2. CLI Arguments:**
   ```bash
   python -m esm1p6_ancil.aerosol.cmip7_HI_SO2_interpolate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "CEDS-CMIP-2025-04-18" \
-      --dataset-vdate "v20250421" \
-      --dataset-date-range-list "['180001-184912','185001-189912','190001-194912','195001-199912','200001-202312']" \
-      --esm15-aerosol-version "2021.06.22" \
-      --save-filename "scycl_1849_2023_cmip7.anc"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_AEROSOL_ANTHRO_VERSION}" \
+      # Current: "CEDS-CMIP-2025-04-18"
+      --dataset-vdate "${CMIP7_AEROSOL_ANTHRO_VDATE}" \
+      # Current: "v20250421"
+      --dataset-date-range-list "${CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST}" \
+      # Current: "['180001-184912','185001-189912','190001-194912','195001-199912','200001-202312']"
+      --esm15-aerosol-version "${ESM15_AEROSOL_VERSION['HI']}" \
+      # Current: "2021.06.22"
+      --save-filename "${ESM_HI_AEROSOL_SAVE_FILENAME['SO2']}"
+      # Current: "scycl_1849_2023_cmip7.anc"
   ```
 * **6. Cube Transformations:**
     * Uses `netCDF4.Dataset` to extract sector indices for `Energy` and `Industrial`.
@@ -99,46 +136,61 @@ The historical aerosol suite produces continuous transient monthly ancillary fil
     * Scales by 0.5 to convert molecular SO2 to mass of elemental Sulfur ($S$).
     * Regrids via `AreaWeighted(mdtol=0.5)` to N96 grid, fills missing values with 0.0, and zeroes poles.
     * Climatological DMS is read from `dms_1850.anc`, date-converted from 360-day to Gregorian calendar via `fix_esm15_pi_ancil_date`, tiled across 175 years using `tile_yearly_data`, and packaged into a matching 3D Cube.
-* **7. Produced Coverage:** 1849–2023 (2100 monthly slices). STASH items 58, 126, and DMS.
+* **7. Produced Coverage:** 1849–2023 (2100 monthly slices). STASH items 58, 126, and DMS. Output file: `${ESM_HI_AEROSOL_SAVE_FILENAME['SO2']}` (`scycl_1849_2023_cmip7.anc`).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/historical/atmosphere/aerosol/${ESM_GRID_DIRNAME}/<DATE>/${ESM_HI_AEROSOL_SAVE_FILENAME['SO2']}`.
 
 ---
 
 ## 3. ScenarioMIP Experiment (SM)
 
-The ScenarioMIP aerosol suite manufactures future projection ancillaries across scenarios `h`, `hl`, `m`, and `vl`. When extension is active (`--ext`), datasets concatenate extension files to span the full timeline to 2150.
+The ScenarioMIP aerosol suite manufactures future projection ancillaries across scenarios `h`, `hl`, `m`, and `vl`. When extension is active (`EXTEND_SM_AEROSOL[SCEN] == True`, passing `--ext`), datasets concatenate extension files to span the full timeline to 2150.
 
 ### `SM_{h,hl,m,vl}_ancil_aerosol_SO2`
 
 === "Scenario h (High)"
-    * **1. Description & Purpose:** Generates sulfur cycle emissions ancillaries for ScenarioMIP scenario `h`. Combines anthropogenic surface emissions, aircraft emissions, and biomass burning emissions from CMIP7 with background dimethyl sulfide (DMS) emissions from CMIP6/ESM1.5 inputs. Interpolates monthly fields, handles extension to 2150 with constant padding if `--ext`, zeroes the poles, assigns STASH code 89, and saves the `.anc` file.
+    * **1. Description & Purpose:** Generates sulfur cycle emissions ancillaries for ScenarioMIP scenario `h`. Combines anthropogenic surface emissions, aircraft emissions, and biomass burning emissions from CMIP7 with background dimethyl sulfide (DMS) emissions from CMIP6/ESM1.5 inputs. Interpolates monthly fields, handles extension to 2150 with constant padding if `EXTEND_SM_AEROSOL['h']` is active (`--ext`), zeroes the poles, assigns STASH code 89, and saves the `.anc` file.
     * **2. CLI Arguments:**
       ```bash
       python -m esm1p6_ancil.aerosol.cmip7_SM_SO2_interpolate \
-          --scenario h \
-          --ancil-target-dirname <ANCIL_TARGET_PATH> \
-          --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-          --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-          --esm-grid-rel-dirname "global.N96" \
-          --esm15-grid-version "2020.05.19" \
-          --dataset-version "IIASA-IAMC-h-1-1-1" \
-          --dataset-vdate "v20260409" \
-          --dataset-date-range "202201-210012" \
-          --esm15-aerosol-version "2020.05.19" \
+          --scenario "${SCEN}" \
+          # Current: "h"
+          --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+          # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+          --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+          # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+          --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+          # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+          --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+          # Current: "global.N96"
+          --esm15-grid-version "${ESM15_GRID_VERSION}" \
+          # Current: "2020.05.19"
+          --dataset-version "${CMIP7_SM_AEROSOL_VERSION[SCEN]}" \
+          # Current: "IIASA-IAMC-h-1-1-1"
+          --dataset-vdate "${CMIP7_SM_AEROSOL_VDATE[SCEN]}" \
+          # Current: "v20260409"
+          --dataset-date-range "${CMIP7_SM_AEROSOL_DATE_RANGE}" \
+          # Current: "202201-210012"
+          --esm15-aerosol-version "${ESM15_AEROSOL_VERSION['PI']}" \
+          # Current: "2020.05.19"
           --ext \
-          --dataset-ext-version "IIASA-IAMC-h-ext-1-1-1" \
-          --dataset-ext-vdate "v20260409" \
-          --dataset-ext-date-range "210101-215012" \
-          --save-filename "scycl_h_2022_2150_cmip7.anc"
+          --dataset-ext-version "${CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]}" \
+          # Current: "IIASA-IAMC-h-ext-1-1-1"
+          --dataset-ext-vdate "${CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]}" \
+          # Current: "v20260409"
+          --dataset-ext-date-range "${CMIP7_SM_EXT_AEROSOL_DATE_RANGE}" \
+          # Current: "210101-215012"
+          --save-filename "${ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN]['SO2']}"
+          # Current: "scycl_h_2022_2150_cmip7.anc"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**
-        * Surface Anthro: `IIASA-IAMC-h-1-1-1`, `v20260409`, `202201-210012`
-        * Aircraft Anthro: `IIASA-IAMC-h-1-1-2`, `v20260624`, `202201-210012`
-        * Extension Anthro: `IIASA-IAMC-h-ext-1-1-1`, `v20260409`, `210101-215012`
-        * Baseline DMS: `2020.05.19` (`dms_1850.anc`)
+        * Surface Anthro: `${CMIP7_SM_AEROSOL_VERSION['h']}` (`IIASA-IAMC-h-1-1-1`), `${CMIP7_SM_AEROSOL_VDATE['h']}` (`v20260409`), `${CMIP7_SM_AEROSOL_DATE_RANGE}` (`202201-210012`)
+        * Aircraft Anthro: `${CMIP7_SM_AEROSOL_AIR_VERSION['h']}` (`IIASA-IAMC-h-1-1-2`), `${CMIP7_SM_AEROSOL_AIR_VDATE['h']}` (`v20260624`), `${CMIP7_SM_AEROSOL_DATE_RANGE}` (`202201-210012`)
+        * Extension Anthro: `${CMIP7_SM_EXT_AEROSOL_VERSION['h']}` (`IIASA-IAMC-h-ext-1-1-1`), `${CMIP7_SM_EXT_AEROSOL_VDATE['h']}` (`v20260409`), `${CMIP7_SM_EXT_AEROSOL_DATE_RANGE}` (`210101-215012`)
+        * Baseline DMS: `${ESM15_AEROSOL_VERSION['PI']}` (`2020.05.19`, `dms_1850.anc`)
     * **4. Input4MIPs Directory Path & Filenames:**
-        * Surface: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-1_gn_202201-210012.nc`
-        * Aircraft: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-1-1-2/atmos/mon/SO2_em_AIR_anthro/gn/v20260624/SO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-1-1-2_gn_202201-210012.nc`
-        * Extension: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/IIASA-IAMC/IIASA-IAMC-h-ext-1-1-1/atmos/mon/SO2_em_anthro/gn/v20260409/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_IIASA-IAMC-h-ext-1-1-1_gn_210101-215012.nc`
+        * Surface: `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/IIASA-IAMC/${CMIP7_SM_AEROSOL_VERSION['h']}/atmos/mon/SO2_em_anthro/gn/${CMIP7_SM_AEROSOL_VDATE['h']}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_${CMIP7_SM_AEROSOL_VERSION['h']}_gn_${CMIP7_SM_AEROSOL_DATE_RANGE}.nc`
+        * Aircraft: `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/IIASA-IAMC/${CMIP7_SM_AEROSOL_AIR_VERSION['h']}/atmos/mon/SO2_em_AIR_anthro/gn/${CMIP7_SM_AEROSOL_AIR_VDATE['h']}/SO2-em-AIR-anthro_input4MIPs_emissions_ScenarioMIP_${CMIP7_SM_AEROSOL_AIR_VERSION['h']}_gn_${CMIP7_SM_AEROSOL_DATE_RANGE}.nc`
+        * Extension: `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/IIASA-IAMC/${CMIP7_SM_EXT_AEROSOL_VERSION['h']}/atmos/mon/SO2_em_anthro/gn/${CMIP7_SM_EXT_AEROSOL_VDATE['h']}/SO2-em-anthro_input4MIPs_emissions_ScenarioMIP_${CMIP7_SM_EXT_AEROSOL_VERSION['h']}_gn_${CMIP7_SM_EXT_AEROSOL_DATE_RANGE}.nc`
     * **5. Scripts & Functions:** `esm1p6_ancil.aerosol.cmip7_SM_SO2_interpolate`, `load_cmip7_sm_so2_aerosol_anthro`, `load_cmip7_sm_aerosol_anthro`, `load_sm_dms`, `load_dms`, `save_cmip7_so2_aerosol_anthro`, `tile_yearly_data`, `zero_poles`, `esm_grid_mask_cube`, `save_ancil`.
     * **6. Cube Transformations:**
         * Base cube (2022–2100) constrained by `cmip7_date_constraint_from_years(2022, 2100)`.
@@ -146,8 +198,8 @@ The ScenarioMIP aerosol suite manufactures future projection ancillaries across 
         * Concatenated via `CubeList.concatenate_cube()` after attribute equalization.
         * High and low components separated via sector indices, scaled by 0.5, regridded to N96, and zeroed at poles.
         * DMS cube constructed by tiling 12-month climatology across 129 years.
-    * **7. Produced File:** `scycl_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150).
-    * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/aerosol/global.N96/<DATE>/scycl_h_2022_2150_cmip7.anc`.
+    * **7. Produced File:** `${ESM_SM_EXT_AEROSOL_SAVE_FILENAME['h']['SO2']}` (`scycl_h_2022_2150_cmip7.anc`, 1548 monthly slices, 2022–2150).
+    * **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/scen7-h/atmosphere/aerosol/${ESM_GRID_DIRNAME}/<DATE>/${ESM_SM_EXT_AEROSOL_SAVE_FILENAME['h']['SO2']}`.
     * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
 
 === "Scenario hl (High-Low)"
