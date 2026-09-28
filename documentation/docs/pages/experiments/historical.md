@@ -18,6 +18,20 @@ The historical forcing suite provides transient, continuous boundary conditions 
 
 ---
 
+## Workflow Switches & Selectors
+
+The execution of Historical experiment tasks is governed by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Experiment Activation Switch:** `USE_EXP['HI'] = True`  
+  `HI` is registered in `MAIN_EXPS = ['HI', 'PI', 'SM']`. When set to `False`, all 12 historical tasks are excluded from the Cylc task DAG.
+* **Master Forcing Toggles:**  
+  Controlled by `ANCIL_CREATE_AEROSOL`, `ANCIL_CREATE_GHG`, `ANCIL_CREATE_NITROGEN`, `ANCIL_CREATE_OZONE`, `ANCIL_CREATE_SOLAR`, and `ANCIL_CREATE_VOLCANIC`.
+* **Downstream Branch Synchronization:**  
+  Clones base branch `${GIT_CONFIG_BRANCH_PRE['HI']}-${GIT_CONFIG_BRANCH_SUF['HI']}` (`dev-historical`) from `${GIT_ORG_URL}/${GIT_CONFIG_REPO}.git` into `${CYLC_WORKFLOW_SHARE_DIR}/HI_${GIT_CONFIG_REPO}`. Commits patched `atmosphere/namelists` to `gen-${GIT_CONFIG_BRANCH_SUF['HI']}-${UNIQUE_NAME}` (`gen-historical-<UUID>`), and conditionally pushes if `GIT_CONFIG_BRANCH_PUSH = true`.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## Complete Task Roster for Historical
 
 The following **12 Cylc workflow tasks** generate all necessary ancillaries and namelist patches for the `HI` configuration:

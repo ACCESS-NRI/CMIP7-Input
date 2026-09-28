@@ -13,6 +13,25 @@ The Greenhouse Gas (GHG) forcing pipeline ingests CMIP7 global-mean annual surfa
 
 ---
 
+## Controlling Suite Switches
+
+The execution, scenario extension, and downstream configuration synchronization for greenhouse gases are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Master Activation Switch:** `ANCIL_CREATE_GHG = true`  
+  When set to `false`, greenhouse gas processing and associated namelist patching tasks are excluded from the execution graph.
+* **Experiment Activation:** Governed by `USE_EXP['PI']`, `USE_EXP['HI']`, and `USE_EXP['SM']`.
+* **Scenario Extension Controls (`EXTEND_SM_GHG`):**  
+  Controls whether future pathways concatenate extension files (2101–2200) to cover up to 2150 with `--ext`:
+    * `'h': True` (Extended to 2150 via `CR-h-ext-1-1-0`)
+    * `'hl': False` (Bounded to 2100)
+    * `'m': False` (Bounded to 2100)
+    * `'vl': True` (Extended to 2150 via `CR-vl-ext-1-1-0`)
+* **Downstream Configuration Branching:**  
+  Greenhouse gases directly patch the `&clmchfcg` namelist in clones of `access-esm1.6-configs`. The source branches are configured via `GIT_CONFIG_BRANCH_PRE` (`dev` for PI/HI, `pl` for SM) and suffixes `GIT_CONFIG_BRANCH_SUF` (`piControl`, `historical`) / `GIT_SM_CONFIG_BRANCH_SUF` (`scen7-<scen>`). Remote push is gated by `GIT_CONFIG_BRANCH_PUSH = false`.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object definitions.
+
+---
+
 ## 1. Pre-Industrial Experiment (PI)
 
 ### `PI_ancil_ghg`
@@ -22,21 +41,28 @@ The Greenhouse Gas (GHG) forcing pipeline ingests CMIP7 global-mean annual surfa
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.ghg.cmip7_PI_ghg_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --dataset-version "CR-CMIP-1-0-0" \
-      --dataset-vdate "v20250228" \
-      --dataset-date-range "1750-2022"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --dataset-version "${CMIP7_GHG_VERSION}" \
+      # Current: "CR-CMIP-1-0-0"
+      --dataset-vdate "${CMIP7_GHG_VDATE}" \
+      # Current: "v20250228"
+      --dataset-date-range "${CMIP7_GHG_DATE_RANGE}"
+      # Current: "1750-2022"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `CR-CMIP-1-0-0`
-    * **Version Date (`vdate`):** `v20250228`
-    * **Input Date Range:** `1750-2022`
+    * **Dataset Version:** `${CMIP7_GHG_VERSION}` (`CR-CMIP-1-0-0`)
+    * **Version Date (`vdate`):** `${CMIP7_GHG_VDATE}` (`v20250228`)
+    * **Input Date Range:** `${CMIP7_GHG_DATE_RANGE}` (`1750-2022`)
     * **Extracted Year:** `1850`
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CR/CR-CMIP-1-0-0/atmos/yr/{ghg}/gm/v20250228/`
-    * **Filenames (9 gases):** `{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_1750-2022.nc`
+    * **Directory Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/CR/${CMIP7_GHG_VERSION}/atmos/yr/{ghg}/gm/${CMIP7_GHG_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CR/CR-CMIP-1-0-0/atmos/yr/{ghg}/gm/v20250228/`)*
+    * **Filenames (9 gases):** `{ghg}_input4MIPs_GHGConcentrations_CMIP_${CMIP7_GHG_VERSION}_gm_${CMIP7_GHG_DATE_RANGE}.nc`
 * **5. Python Scripts & Functions:**  
     * **Main Script / Entrypoint:** `esm1p6_ancil.ghg.cmip7_PI_ghg_generate`
     * **Key Functions Called:** `load_cmip7_ghg_point_mmr`, `cmip7_ghg_mmr`, `cmip7_scale`, `cmip7_pro_greg_date_constraint_from_years`, `cmip7_ghg_update_namelists_file`, `format_namelist`
@@ -74,21 +100,28 @@ The Greenhouse Gas (GHG) forcing pipeline ingests CMIP7 global-mean annual surfa
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.ghg.cmip7_HI_ghg_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --dataset-version "CR-CMIP-1-0-0" \
-      --dataset-vdate "v20250228" \
-      --dataset-date-range "1750-2022"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --dataset-version "${CMIP7_GHG_VERSION}" \
+      # Current: "CR-CMIP-1-0-0"
+      --dataset-vdate "${CMIP7_GHG_VDATE}" \
+      # Current: "v20250228"
+      --dataset-date-range "${CMIP7_GHG_DATE_RANGE}"
+      # Current: "1750-2022"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `CR-CMIP-1-0-0`
-    * **Version Date (`vdate`):** `v20250228`
-    * **Input Date Range:** `1750-2022`
+    * **Dataset Version:** `${CMIP7_GHG_VERSION}` (`CR-CMIP-1-0-0`)
+    * **Version Date (`vdate`):** `${CMIP7_GHG_VDATE}` (`v20250228`)
+    * **Input Date Range:** `${CMIP7_GHG_DATE_RANGE}` (`1750-2022`)
     * **Processed Model Timeline:** `1850-2024` (175 annual points)
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CR/CR-CMIP-1-0-0/atmos/yr/{ghg}/gm/v20250228/`
-    * **Filenames (9 gases):** `{ghg}_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_1750-2022.nc`
+    * **Directory Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/CR/${CMIP7_GHG_VERSION}/atmos/yr/{ghg}/gm/${CMIP7_GHG_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CR/CR-CMIP-1-0-0/atmos/yr/{ghg}/gm/v20250228/`)*
+    * **Filenames (9 gases):** `{ghg}_input4MIPs_GHGConcentrations_CMIP_${CMIP7_GHG_VERSION}_gm_${CMIP7_GHG_DATE_RANGE}.nc`
 * **5. Python Scripts & Functions:**  
     * **Main Script / Entrypoint:** `esm1p6_ancil.ghg.cmip7_HI_ghg_generate`
     * **Key Functions Called:** `load_cmip7_ghg_series_mmr`, `cmip7_ghg_update_namelists_file`, `cmip7_ghg_namelist_str`, `cmip7_ghg_mmr`, `cmip7_scale`, `cmip7_pro_greg_date_constraint_from_years`, `read_namelists_lines_up_to`, `format_namelist`
@@ -126,32 +159,41 @@ The Greenhouse Gas (GHG) forcing pipeline ingests CMIP7 global-mean annual surfa
 
 ### `SM_{h,hl,m,vl}_ancil_ghg`
 
-Tasks generate future greenhouse gas concentration timeseries across the four ScenarioMIP pathways (`h`, `hl`, `m`, `vl`).
+Tasks generate future greenhouse gas concentration timeseries across the four ScenarioMIP pathways (`h`, `hl`, `m`, `vl`). Extension to 2150 is controlled per scenario via `EXTEND_SM_GHG[SCEN]`.
 
 === "Scenario h (High)"
     * **1. Description & Purpose:**  
-      Reads ScenarioMIP high-emissions (`h`) greenhouse gas concentrations, concatenates extension dataset chunks (2101–2200) when `--ext` is active to cover the timeline to 2150, extrapolates annual values to January 1, and patches the `&clmchfcg` namelist in the `gen-scen7-h-<UUID>` branch.
+      Reads ScenarioMIP high-emissions (`h`) greenhouse gas concentrations, concatenates extension dataset chunks (2101–2200) when `EXTEND_SM_GHG['h']` is active (`--ext`) to cover the timeline to 2150, extrapolates annual values to January 1, and patches the `&clmchfcg` namelist in the `gen-scen7-h-<UUID>` branch.
     * **2. CLI Arguments Passed:**  
       ```bash
       python -m esm1p6_ancil.ghg.cmip7_SM_ghg_generate \
-          --ancil-target-dirname <ANCIL_TARGET_PATH> \
-          --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-          --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-          --dataset-version "CR-h-1-1-0" \
-          --dataset-vdate "v20260327" \
-          --dataset-date-range "2022-2100" \
+          --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+          # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+          --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+          # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+          --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+          # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+          --dataset-version "${CMIP7_SM_GHG_VERSION[SCEN]}" \
+          # Current: "CR-h-1-1-0"
+          --dataset-vdate "${CMIP7_SM_GHG_VDATE[SCEN]}" \
+          # Current: "v20260327"
+          --dataset-date-range "${CMIP7_SM_GHG_DATE_RANGE}" \
+          # Current: "2022-2100"
           --ext \
-          --dataset-ext-version "CR-h-ext-1-1-0" \
-          --dataset-ext-vdate "v20260327" \
-          --dataset-ext-date-range "2101-2200"
+          --dataset-ext-version "${CMIP7_SM_EXT_GHG_VERSION[SCEN]}" \
+          # Current: "CR-h-ext-1-1-0"
+          --dataset-ext-vdate "${CMIP7_SM_EXT_GHG_VDATE[SCEN]}" \
+          # Current: "v20260327"
+          --dataset-ext-date-range "${CMIP7_SM_EXT_GHG_DATE_RANGE}"
+          # Current: "2101-2200"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**  
-        * Base Dataset: `CR-h-1-1-0`, `v20260327`, Date Range: `2022-2100`
-        * Extension Dataset: `CR-h-ext-1-1-0`, `v20260327`, Date Range: `2101-2200`
+        * Base Dataset: `${CMIP7_SM_GHG_VERSION['h']}` (`CR-h-1-1-0`), `${CMIP7_SM_GHG_VDATE['h']}` (`v20260327`), Date Range: `${CMIP7_SM_GHG_DATE_RANGE}` (`2022-2100`)
+        * Extension Dataset: `${CMIP7_SM_EXT_GHG_VERSION['h']}` (`CR-h-ext-1-1-0`), `${CMIP7_SM_EXT_GHG_VDATE['h']}` (`v20260327`), Date Range: `${CMIP7_SM_EXT_GHG_DATE_RANGE}` (`2101-2200`)
         * Model Target Range: `2022-2150` (129 annual values)
     * **4. Input4MIPs Directory Path & Filenames:**  
-        * Base: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/CR/CR-h-1-1-0/atmos/yr/{ghg}/gm/v20260327/{ghg}_input4MIPs_GHGConcentrations_ScenarioMIP_CR-h-1-1-0_gm_2022-2100.nc`
-        * Extension: `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/CR/CR-h-ext-1-1-0/atmos/yr/{ghg}/gm/v20260327/{ghg}_input4MIPs_GHGConcentrations_ScenarioMIP_CR-h-ext-1-1-0_gm_2101-2200.nc`
+        * Base: `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/CR/${CMIP7_SM_GHG_VERSION['h']}/atmos/yr/{ghg}/gm/${CMIP7_SM_GHG_VDATE['h']}/{ghg}_input4MIPs_GHGConcentrations_ScenarioMIP_${CMIP7_SM_GHG_VERSION['h']}_gm_${CMIP7_SM_GHG_DATE_RANGE}.nc`
+        * Extension: `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/CR/${CMIP7_SM_EXT_GHG_VERSION['h']}/atmos/yr/{ghg}/gm/${CMIP7_SM_EXT_GHG_VDATE['h']}/{ghg}_input4MIPs_GHGConcentrations_ScenarioMIP_${CMIP7_SM_EXT_GHG_VERSION['h']}_gm_${CMIP7_SM_EXT_GHG_DATE_RANGE}.nc`
     * **5. Python Scripts & Functions:**  
         * **Main Script / Entrypoint:** `esm1p6_ancil.ghg.cmip7_SM_ghg_generate`
         * **Key Functions Called:** `load_cmip7_ghg_series_mmr`, `cmip7_ghg_update_namelists_file`, `cmip7_ghg_namelist_str`, `cmip7_ghg_mmr`, `cmip7_pro_greg_date_constraint_from_years`, `iris.cube.CubeList.concatenate_cube`, `iris.util.equalise_attributes`, `iris.util.unify_time_units`

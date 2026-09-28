@@ -15,6 +15,20 @@ In coupled climate simulations (like `HI` and `PI`), the atmosphere exchanges he
 
 ---
 
+## Workflow Switches & Selectors
+
+The execution and configuration of AMIP boundary generation tasks are governed by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Experiment Activation Switch:** `USE_EXP['AM'] = True`  
+  When set to `False`, all 7 AMIP tasks are excluded from the Cylc task DAG.
+* **Master Forcing Toggle:** `ANCIL_CREATE_AMIP = true`  
+  Both `USE_EXP['AM']` and `ANCIL_CREATE_AMIP` must evaluate to `true` to schedule the AMIP task family.
+* **Target Variables:** `AMIP_VARS = ['seaice', 'sst']`.
+* **Upstream Toolchain Branching:** Clones the UKESM AMIP processing toolchain from `${GIT_ORG_URL}/${GIT_AMIP_SCRIPTS_REPO}.git` on branch `${GIT_AMIP_SCRIPTS_BRANCH}` (`1-port-cmip7-amip-code-for-esm16-site-nci`).
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## Complete Task Roster for AMIP
 
 The following **7 Cylc workflow tasks** execute the AMIP boundary generation pipeline:

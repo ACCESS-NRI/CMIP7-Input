@@ -21,32 +21,59 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
 
 ---
 
+## Controlling Suite Switches
+
+The execution, experiment inclusion, and temporal extension for reactive nitrogen deposition are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
+
+* **Master Activation Switch:** `ANCIL_CREATE_NITROGEN = true`  
+  When set to `false`, all nitrogen deposition processing tasks are excluded from the execution graph.
+* **Experiment Activation:** Governed by `USE_EXP['PI']`, `USE_EXP['HI']`, and `USE_EXP['SM']`.
+* **Scenario Extension Controls (`EXTEND_SM_NITROGEN`):**  
+  Controls whether future projection pathways pass `--ext` to extend coverage through 2150:
+    * `'h': True` (Extended to 2150, producing `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['h']}`)
+    * `'hl': True` (Extended to 2150, producing `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['hl']}`)
+    * `'m': True` (Extended to 2150, producing `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['m']}`)
+    * `'vl': True` (Extended to 2150, producing `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['vl']}`)
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+
+---
+
 ## 1. Pre-Industrial Experiment (PI)
 
 ### `PI_ancil_nitrogen`
 
 * **1. Description & Purpose:**  
-  Generates cyclic 1850 monthly reactive nitrogen deposition ancillaries for the pre-industrial control run (`Ndep_1850_cmip7.anc`).
+  Generates cyclic 1850 monthly reactive nitrogen deposition ancillaries for the pre-industrial control run (`${ESM_PI_NITROGEN_SAVE_FILENAME}` / `Ndep_1850_cmip7.anc`).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.nitrogen.cmip7_PI_nitrogen_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "FZJ-CMIP-nitrogen-1-2" \
-      --dataset-vdate "v20251025" \
-      --dataset-date-range "185001-185012" \
-      --save-filename "Ndep_1850_cmip7.anc"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_NITROGEN_VERSION}" \
+      # Current: "FZJ-CMIP-nitrogen-1-2"
+      --dataset-vdate "${CMIP7_NITROGEN_VDATE}" \
+      # Current: "v20251025"
+      --dataset-date-range "${CMIP7_PI_NITROGEN_DATE_RANGE}" \
+      # Current: "185001-185012"
+      --save-filename "${ESM_PI_NITROGEN_SAVE_FILENAME}"
+      # Current: "Ndep_1850_cmip7.anc"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`
-    * **Version Date (`vdate`):** `v20251025`
-    * **Input Date Range:** `185001-185012` (12 monthly slices)
+    * **Dataset Version:** `${CMIP7_NITROGEN_VERSION}` (`FZJ-CMIP-nitrogen-1-2`)
+    * **Version Date (`vdate`):** `${CMIP7_NITROGEN_VDATE}` (`v20251025`)
+    * **Input Date Range:** `${CMIP7_PI_NITROGEN_DATE_RANGE}` (`185001-185012`, 12 monthly slices)
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Directory Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
-    * **Filenames (4 species):** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-185012.nc`
+    * **Directory Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/FZJ/${CMIP7_NITROGEN_VERSION}/atmos/mon/{species}/gn/${CMIP7_NITROGEN_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`)*
+    * **Filenames (4 species):** `{species}_input4MIPs_surfaceFluxes_CMIP_${CMIP7_NITROGEN_VERSION}_gn_${CMIP7_PI_NITROGEN_DATE_RANGE}.nc`
 * **5. Python Scripts & Functions:**  
     * **Main Script / Entrypoint:** `esm1p6_ancil.nitrogen.cmip7_PI_nitrogen_generate`
     * **Key Functions Called:** `load_cmip7_nitrogen`, `regrid_cmip7_nitrogen`, `save_cmip7_nitrogen`, `fix_coords`, `esm_grid_mask_cube`, `save_ancil`
@@ -67,8 +94,8 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
     * **Calendar:** 365-day (NoLeap) calendar alignment
     * **STASH Code:** `m01s00i884`
 * **8. Produced File Directory Paths & Filenames:**  
-    * **Output Directory:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/<ISO_DATE_TODAY>/modern/pre-industrial/atmosphere/nitrogen/global.N96/<ANCIL_TODAY>/`
-    * **Output Filename:** `Ndep_1850_cmip7.anc`
+    * **Output Directory:** `${VAR.ANCIL_TARGET_PATH}/modern/pre-industrial/atmosphere/nitrogen/${ESM_GRID_DIRNAME}/<ANCIL_TODAY>/`
+    * **Output Filename:** `${ESM_PI_NITROGEN_SAVE_FILENAME}` (`Ndep_1850_cmip7.anc`)
 * **9. Namelist File & Variable Updates:**  
   `None (Generates binary ancillary .anc file)`.
 
@@ -79,33 +106,43 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
 ### `HI_ancil_nitrogen`
 
 * **1. Description & Purpose:**  
-  Ingests monthly transient nitrogen deposition fluxes from 1850 to 2022, pads timeline to span 1849–2023 for model spin-up/spin-down boundary compliance, regrids to N96, and produces `Ndep_1849_2023_cmip7.anc`.
+  Ingests monthly transient nitrogen deposition fluxes from 1850 to 2022, pads timeline to span 1849–2023 for model spin-up/spin-down boundary compliance, regrids to N96, and produces `${ESM_HI_NITROGEN_SAVE_FILENAME}` (`Ndep_1849_2023_cmip7.anc`).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.nitrogen.cmip7_HI_nitrogen_generate \
-      --ancil-target-dirname <ANCIL_TARGET_PATH> \
-      --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-      --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-      --esm-grid-rel-dirname "global.N96" \
-      --esm15-grid-version "2020.05.19" \
-      --dataset-version "FZJ-CMIP-nitrogen-1-2" \
-      --dataset-vdate "v20251025" \
-      --dataset-date-range "185001-202212" \
-      --save-filename "Ndep_1849_2023_cmip7.anc"
+      --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+      # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+      --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+      # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+      --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+      # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+      --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+      # Current: "global.N96"
+      --esm15-grid-version "${ESM15_GRID_VERSION}" \
+      # Current: "2020.05.19"
+      --dataset-version "${CMIP7_NITROGEN_VERSION}" \
+      # Current: "FZJ-CMIP-nitrogen-1-2"
+      --dataset-vdate "${CMIP7_NITROGEN_VDATE}" \
+      # Current: "v20251025"
+      --dataset-date-range "${CMIP7_HI_NITROGEN_DATE_RANGE}" \
+      # Current: "185001-202212"
+      --save-filename "${ESM_HI_NITROGEN_SAVE_FILENAME}"
+      # Current: "Ndep_1849_2023_cmip7.anc"
   ```
 * **3. Input4MIPs Versions & Temporal Metadata:**  
-    * **Dataset Version:** `FZJ-CMIP-nitrogen-1-2`, `v20251025`, Range: `185001-202212`.
+    * **Dataset Version:** `${CMIP7_NITROGEN_VERSION}` (`FZJ-CMIP-nitrogen-1-2`), `${CMIP7_NITROGEN_VDATE}` (`v20251025`), Range: `${CMIP7_HI_NITROGEN_DATE_RANGE}` (`185001-202212`).
     * **Processed Model Timeline:** `184901-202312` (175 years, 2100 monthly slices).
 * **4. Input4MIPs Directory Path & Filenames:**  
-    * **Path:** `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`
-    * **Filenames:** `{species}_input4MIPs_surfaceFluxes_CMIP_FZJ-CMIP-nitrogen-1-2_gn_185001-202212.nc`
+    * **Path:** `${VAR.CMIP7_SOURCE_PATH}/CMIP/FZJ/${CMIP7_NITROGEN_VERSION}/atmos/mon/{species}/gn/${CMIP7_NITROGEN_VDATE}/`  
+      *(Evaluated: `/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/FZJ/FZJ-CMIP-nitrogen-1-2/atmos/mon/{species}/gn/v20251025/`)*
+    * **Filenames:** `{species}_input4MIPs_surfaceFluxes_CMIP_${CMIP7_NITROGEN_VERSION}_gn_${CMIP7_HI_NITROGEN_DATE_RANGE}.nc`
 * **5. Python Scripts & Functions:** `esm1p6_ancil.nitrogen.cmip7_HI_nitrogen_generate`, `load_cmip7_nitrogen`, `regrid_cmip7_nitrogen`, `extend_years`, `save_cmip7_nitrogen`.
 * **6. Cube Transformations:**
     * Aggregates 4 species, converts units to `g m-2 day-1`.
     * Prepends 1849 (repeating 1850) and appends 2023 (repeating 2022) via `extend_years` to satisfy UM padding requirements.
     * Regrids to N96 (`AreaWeighted(mdtol=0.5)`) and sets STASH `m01s00i884`.
-* **7. Produced File:** `Ndep_1849_2023_cmip7.anc` (2100 monthly slices, 1849–2023).
-* **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/historical/atmosphere/nitrogen/global.N96/<DATE>/Ndep_1849_2023_cmip7.anc`.
+* **7. Produced File:** `${ESM_HI_NITROGEN_SAVE_FILENAME}` (`Ndep_1849_2023_cmip7.anc`, 2100 monthly slices, 1849–2023).
+* **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/historical/atmosphere/nitrogen/${ESM_GRID_DIRNAME}/<DATE>/${ESM_HI_NITROGEN_SAVE_FILENAME}`.
 * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
 
 ---
@@ -115,41 +152,51 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
 ### `SM_{h,hl,m,vl}_ancil_nitrogen`
 
 === "Scenario h (High)"
-    * **1. Description & Purpose:** Generates future projection nitrogen deposition ancillaries for scenario `h`. When `--ext` is specified, extends 2022–2100 data to 2150 by tiling the final year (2100) or applying pathway extensions.
+    * **1. Description & Purpose:** Generates future projection nitrogen deposition ancillaries for scenario `h`. When `EXTEND_SM_NITROGEN['h']` is active (`--ext`), extends 2022–2100 data to 2150 by tiling the final year (2100) or applying pathway extensions, saving `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['h']}` (`Ndep_h_2022_2150_cmip7.anc`).
     * **2. CLI Arguments Passed:**
       ```bash
       python -m esm1p6_ancil.nitrogen.cmip7_SM_nitrogen_generate \
-          --scenario h \
-          --ancil-target-dirname <ANCIL_TARGET_PATH> \
-          --cmip7-source-data-dirname "${CMIP7_SOURCE_PATH}" \
-          --esm15-inputs-dirname <ESM15_INPUTS_PATH> \
-          --esm-grid-rel-dirname "global.N96" \
-          --esm15-grid-version "2020.05.19" \
-          --dataset-version "FZJ-CMIP-nitrogen-h-1-0" \
-          --dataset-vdate "v20260409" \
-          --dataset-date-range "202201-210012" \
+          --scenario "${SCEN}" \
+          # Current: "h"
+          --ancil-target-dirname "${VAR.ANCIL_TARGET_PATH}" \
+          # Current: "/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/$(isodatetime -f CCYY.MM.DD)"
+          --cmip7-source-data-dirname "${VAR.CMIP7_SOURCE_PATH}" \
+          # Current: "/g/data/qv56/replicas/input4MIPs/CMIP7"
+          --esm15-inputs-dirname "${VAR.ESM15_INPUTS_PATH}" \
+          # Current: "/g/data/vk83/configurations/inputs/access-esm1p5"
+          --esm-grid-rel-dirname "${ESM_GRID_DIRNAME}" \
+          # Current: "global.N96"
+          --esm15-grid-version "${ESM15_GRID_VERSION}" \
+          # Current: "2020.05.19"
+          --dataset-version "${CMIP7_SM_NITROGEN_VERSION[SCEN]}" \
+          # Current: "FZJ-CMIP-nitrogen-h-1-0"
+          --dataset-vdate "${CMIP7_SM_NITROGEN_VDATE[SCEN]}" \
+          # Current: "v20260409"
+          --dataset-date-range "${CMIP7_SM_NITROGEN_DATE_RANGE}" \
+          # Current: "202201-210012"
           --ext \
-          --save-filename "Ndep_h_2022_2150_cmip7.anc"
+          --save-filename "${ESM_SM_EXT_NITROGEN_SAVE_FILENAME[SCEN]}"
+          # Current: "Ndep_h_2022_2150_cmip7.anc"
       ```
     * **3. Input4MIPs Versions & Temporal Metadata:**  
-        * Version: `FZJ-CMIP-nitrogen-h-1-0`, `v20260409`, Range: `202201-210012`.
+        * Version: `${CMIP7_SM_NITROGEN_VERSION['h']}` (`FZJ-CMIP-nitrogen-h-1-0`), `${CMIP7_SM_NITROGEN_VDATE['h']}` (`v20260409`), Range: `${CMIP7_SM_NITROGEN_DATE_RANGE}` (`202201-210012`).
         * Target Coverage: `2022-2150` (1548 monthly slices).
     * **4. Input4MIPs Directory Path & Filenames:**  
-        * `/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/FZJ/FZJ-CMIP-nitrogen-h-1-0/atmos/mon/{species}/gn/v20260409/{species}_input4MIPs_surfaceFluxes_ScenarioMIP_FZJ-CMIP-nitrogen-h-1-0_gn_202201-210012.nc`
+        * `${VAR.CMIP7_SOURCE_PATH}/ScenarioMIP/FZJ/${CMIP7_SM_NITROGEN_VERSION['h']}/atmos/mon/{species}/gn/${CMIP7_SM_NITROGEN_VDATE['h']}/{species}_input4MIPs_surfaceFluxes_ScenarioMIP_${CMIP7_SM_NITROGEN_VERSION['h']}_gn_${CMIP7_SM_NITROGEN_DATE_RANGE}.nc`
     * **5. Scripts & Functions:** `esm1p6_ancil.nitrogen.cmip7_SM_nitrogen_generate`, `load_cmip7_sm_nitrogen`, `regrid_cmip7_nitrogen`, `extend_years`, `save_cmip7_nitrogen`.
     * **6. Cube Transformations:** Aggregates 4 nitrogen species, converts units, extends time axis to 2150 via `extend_years`, regrids conservatively to N96, and attaches STASH item 884.
-    * **7. Produced File:** `Ndep_h_2022_2150_cmip7.anc` (1548 monthly slices, 2022–2150).
-    * **8. Destination Path:** `/g/data/${PROJECT}/${USER}/CMIP7/esm1p6_ancil/.../modern/scen7-h/atmosphere/nitrogen/global.N96/<DATE>/Ndep_h_2022_2150_cmip7.anc`.
+    * **7. Produced File:** `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['h']}` (`Ndep_h_2022_2150_cmip7.anc`, 1548 monthly slices, 2022–2150).
+    * **8. Destination Path:** `${VAR.ANCIL_TARGET_PATH}/modern/scen7-h/atmosphere/nitrogen/${ESM_GRID_DIRNAME}/<DATE>/${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['h']}`.
     * **9. Namelist Updates:** `None (Generates binary ancillary .anc file)`.
 
 === "Scenario hl (High-Low)"
-    * Dataset: `FZJ-CMIP-nitrogen-hl-1-0`, `v20260706`, `202201-210012`.
-    * Produces: `Ndep_hl_2022_2150_cmip7.anc` (STASH 884).
+    * Dataset: `${CMIP7_SM_NITROGEN_VERSION['hl']}` (`FZJ-CMIP-nitrogen-hl-1-0`), `${CMIP7_SM_NITROGEN_VDATE['hl']}` (`v20260706`), `${CMIP7_SM_NITROGEN_DATE_RANGE}` (`202201-210012`).
+    * Produces: `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['hl']}` (`Ndep_hl_2022_2150_cmip7.anc`, STASH 884, extended via `EXTEND_SM_NITROGEN['hl'] == True`).
 
 === "Scenario m (Medium)"
-    * Dataset: `FZJ-CMIP-nitrogen-m-1-0`, `v20260706`, `202201-210012`.
-    * Produces: `Ndep_m_2022_2150_cmip7.anc` (STASH 884).
+    * Dataset: `${CMIP7_SM_NITROGEN_VERSION['m']}` (`FZJ-CMIP-nitrogen-m-1-0`), `${CMIP7_SM_NITROGEN_VDATE['m']}` (`v20260706`), `${CMIP7_SM_NITROGEN_DATE_RANGE}` (`202201-210012`).
+    * Produces: `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['m']}` (`Ndep_m_2022_2150_cmip7.anc`, STASH 884, extended via `EXTEND_SM_NITROGEN['m'] == True`).
 
 === "Scenario vl (Very Low)"
-    * Dataset: `FZJ-CMIP-nitrogen-vl-1-0`, `v20260409`, `202201-210012`.
-    * Produces: `Ndep_vl_2022_2150_cmip7.anc` (STASH 884).
+    * Dataset: `${CMIP7_SM_NITROGEN_VERSION['vl']}` (`FZJ-CMIP-nitrogen-vl-1-0`), `${CMIP7_SM_NITROGEN_VDATE['vl']}` (`v20260409`), `${CMIP7_SM_NITROGEN_DATE_RANGE}` (`202201-210012`).
+    * Produces: `${ESM_SM_EXT_NITROGEN_SAVE_FILENAME['vl']}` (`Ndep_vl_2022_2150_cmip7.anc`, STASH 884, extended via `EXTEND_SM_NITROGEN['vl'] == True`).
