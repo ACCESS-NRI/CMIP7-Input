@@ -1,6 +1,9 @@
-# Experiment Task Summaries Overview
+# Experiments Overview
 
 ACCESS-ESM1.6 participates in multiple World Climate Research Programme (WCRP) CMIP7 endorsed activities. The `CMIP7-Input` suite provides unified ancillary generation across 7 experiment configurations.
+
+> [!TIP]
+> For a bidirectional mapping between `CMIP7-Input` workflow acronyms and `access-esm1.6-configs` branch names, see the [Naming & Configuration Alignment](naming_alignment.md) page.
 
 ---
 

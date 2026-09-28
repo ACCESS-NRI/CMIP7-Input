@@ -26,8 +26,9 @@ nav:
       - Volcanic Optical Depth (SAOD): pages/forcings/volcanic.md
       - AMIP (SST & Sea Ice): pages/forcings/amip.md
       - Configuration Git Sync: pages/forcings/config_sync.md
-  - Experiment Task Summaries:
+  - Experiments:
       - Overview: pages/experiments/overview.md
+      - Naming & Configuration Alignment: pages/experiments/naming_alignment.md
       - Pre-Industrial Control (PI): pages/experiments/pre_industrial.md
       - Historical (HI): pages/experiments/historical.md
       - ScenarioMIP (SM): pages/experiments/scenariomip.md
