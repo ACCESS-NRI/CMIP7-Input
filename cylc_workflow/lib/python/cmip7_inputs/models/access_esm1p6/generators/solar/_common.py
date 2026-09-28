@@ -23,7 +23,8 @@ def load_solar_cube(path):
 
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
-    Calculate mean Total Solar Irradiance (TSI) values for each year and save them into an array.
+    Calculate mean Total Solar Irradiance (TSI) values for each year and return them as a cube
+    with a "year" coordinate.
     The TSI is the solar power per unit area received at the top of the Earth's atmosphere.
     """
 
@@ -33,12 +34,12 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     # Calculate yearly mean
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
 
-    # Get array
-    solar_array = yearly_means.data.copy()
     # Substitute NaNs with REAL_MISSING_DATA_INDICATOR
-    solar_array[np.isnan(solar_array)] = REAL_MISSING_DATA_INDICATOR
+    solar_data = yearly_means.data.copy()
+    solar_data[np.isnan(solar_data)] = REAL_MISSING_DATA_INDICATOR
+    yearly_means.data = solar_data
 
-    return solar_array
+    return yearly_means
 
 
 def save_solar(save_filepath, cube, start_year, end_year):

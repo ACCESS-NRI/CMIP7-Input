@@ -20,26 +20,26 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
 
 @pytest.fixture
 def create_solar_cube_mock():
-    def _create_solar_cube_mock(data=None, dim_coords=None, aux_coords=None):
-        time_unit = Unit("days since 1850-01-01", calendar="gregorian")
+    def _create_solar_cube_mock(data=None, dim_coords=None, aux_coords=None, yearly_means=None, start_year=1850):
+        """Build a cube from the given coords, or a monthly time series if no coords are given.
+
+        For the monthly time series, yearly_means sets the mean of each year starting at
+        start_year; without it, 1850-1852 is filled with random data.
+        """
         if dim_coords is None and aux_coords is None:
-            
-            start_year = 1850
-            end_year = 1852
-            n_months = (end_year - start_year + 1) * 12
+            n_years = 3 if yearly_means is None else len(yearly_means)
+            years = range(start_year, start_year + n_years)
+            time_unit = Unit("days since 1850-01-01", calendar="gregorian")
             points = time_unit.date2num(
-                        [datetime.datetime(start_year+i//12, i%12+1, 15) for i in range(n_months)]
-                    )
-
-            time = DimCoord(
-                points,
-                standard_name="time",
-                units=time_unit,
+                [datetime.datetime(year, month, 15) for year in years for month in range(1, 13)]
             )
+            dim_coords = [(DimCoord(points, standard_name="time", units=time_unit), 0)]
 
-            data = np.random.rand(n_months)  # Random data for testing
-
-            dim_coords = [(time, 0)]
+            if yearly_means is None:
+                data = np.random.rand(n_years * 12)  # Random data for testing
+            else:
+                # 12 evenly spaced monthly values centred on each yearly mean
+                data = np.concatenate([np.linspace(mean - 1.0, mean + 1.0, 12) for mean in yearly_means])
 
         cube = Cube(
             data,
@@ -66,42 +66,52 @@ def create_solar_cube_mock():
 #     assert loaded_cube.shape == cube_mock.shape
 #     assert np.allclose(loaded_cube.data, cube_mock.data)
 
-# # ===================== cmip7_solar_year_mean tests =====================
-# def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
-#     """Test compute_solar_yearly_mean for full year range (1850-1852)."""
-#     cube_mock = create_solar_cube_mock()
-    
-#     assert cube_mock[0] == 2.0
-#     assert cube_mock[1850 - HI_START_YEAR] == 2.0
-#     assert cube_mock[1851 - HI_START_YEAR] == 6.0
-#     assert cube_mock[1852 - HI_START_YEAR] == 10.0
-#     #assert cube_mock[-1] == REAL_MISSING_DATA_INDICATOR
+# ===================== cmip7_solar_year_mean tests =====================
+def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
+    """Test compute_solar_yearly_mean for full year range (1850-1852)."""
+    input_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0])
+
+    result = compute_solar_yearly_mean(input_cube, 1850, 1852)
+
+    np.testing.assert_array_equal(result.coord("year").points, [1850, 1851, 1852])
+    np.testing.assert_allclose(result.data, [2.0, 6.0, 10.0])
 
 
-# def test_compute_solar_yearly_mean_before_start_year(create_solar_cube_mock):
-#     """Test compute_solar_yearly_mean sets missing values before start year."""
-#     result = compute_solar_yearly_mean(create_solar_cube_mock, 1850, 1851)
-    
-#     assert result[1849 - HI_START_YEAR] == REAL_MISSING_DATA_INDICATOR
-#     assert result[1848 - HI_START_YEAR] == REAL_MISSING_DATA_INDICATOR
+@pytest.mark.parametrize(
+    "start_year, end_year, expected_years, expected_means",
+    [
+        (1850, 1852, [1850, 1851, 1852], [2.0, 6.0, 10.0]), #extra years before
+        (1848, 1850, [1848, 1849, 1850], [-2.0, 1.0, 2.0]), #extra years after
+        (1849, 1851, [1849, 1850, 1851], [1.0, 2.0, 6.0]), #extra years on both sides
+        (1851, 1851, [1851], [6.0]), #single year
+    ],
+    ids=["before_start_year", "after_end_year", "both_sides", "single_year"],
+)
+def test_compute_solar_yearly_mean_excludes_years_outside_range(
+    create_solar_cube_mock, start_year, end_year, expected_years, expected_means
+):
+    """Test compute_solar_yearly_mean excludes years outside [start_year, end_year]."""
+    # cube covering 1848-1852
+    input_cube = create_solar_cube_mock(yearly_means=[-2.0, 1.0, 2.0, 6.0, 10.0], start_year=1848)
 
-# def test_compute_solar_yearly_mean_after_end_year(create_solar_cube_mock):
-#     """Test compute_solar_yearly_mean sets missing values after end year."""
-#     result = compute_solar_yearly_mean(create_solar_cube_mock, 1850, 1851)
-    
-#     assert result[1852 - HI_START_YEAR] == REAL_MISSING_DATA_INDICATOR
-#     assert result[1853 - HI_START_YEAR] == REAL_MISSING_DATA_INDICATOR
+    result = compute_solar_yearly_mean(input_cube, start_year, end_year)
 
-# def test_compute_solar_yearly_mean_with_missing_data(create_solar_cube_mock):
-#     """Test compute_solar_yearly_mean handles NaN values correctly."""
-#     # Introduce NaN values for 1851
-#     create_solar_cube_mock.data[3:6] = np.nan  # Assuming monthly data, indices 3-5 correspond to 1851
+    np.testing.assert_array_equal(result.coord("year").points, expected_years)
+    np.testing.assert_allclose(result.data, expected_means)
 
-#     result = compute_solar_yearly_mean(create_solar_cube_mock, 1850, 1852)
-    
-#     assert result[1850 - HI_START_YEAR] == 2.0
-#     assert result[1851 - HI_START_YEAR] == REAL_MISSING_DATA_INDICATOR
-#     assert result[1852 - HI_START_YEAR] == 10.0
+
+def test_compute_solar_yearly_mean_with_missing_data(create_solar_cube_mock):
+    """Test compute_solar_yearly_mean replaces NaN yearly means with the missing data indicator."""
+    input_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0])
+    # Introduce NaN values in April-June 1851 (monthly indices 15-17)
+    input_cube.data[15:18] = np.nan
+
+    result = compute_solar_yearly_mean(input_cube, 1850, 1852)
+
+    np.testing.assert_array_equal(result.coord("year").points, [1850, 1851, 1852])
+    # a single NaN month makes the yearly mean NaN, so 1851 is flagged as missing
+    np.testing.assert_allclose(result.data, [2.0, REAL_MISSING_DATA_INDICATOR, 10.0])
+
 
 @patch("cmip7_inputs.models.access_esm1p6.generators.solar._common.compute_solar_yearly_mean")
 def test_save_solar(mock_compute_solar_yearly_mean, tmp_path, create_solar_cube_mock):
