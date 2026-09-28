@@ -50,7 +50,7 @@ The automated configuration branch lifecycle is governed by parameters in [`rose
     * `GIT_CONFIG_BRANCH_PRE = {'HI': 'dev', 'PI': 'dev', 'SM': 'pl'}`
     * `GIT_CONFIG_BRANCH_SUF = {'HI': 'historical', 'PI': 'piControl'}`
     * `GIT_SM_CONFIG_BRANCH_SUF = {'h': 'scen7-h', 'hl': 'scen7-hl', 'm': 'scen7-m', 'vl': 'scen7-vl'}`
-* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations.
+* **Reference:** See [Suite Configuration & Parameters Reference](../configuration/suite_objects.md) for full object declarations and [Naming & Configuration Alignment](../experiments/naming_alignment.md) for a complete bidirectional mapping between `CMIP7-Input` acronyms and `access-esm1.6-configs` branch names.
 
 ---
 

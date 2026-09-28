@@ -49,10 +49,11 @@ Detailed 9-dimension technical specifications for all workflow tasks, grouped by
 * **[AMIP (SST & Sea Ice)](forcings/amip.md):** UKESM-derived sea surface temperature and sea-ice concentration ancillaries.
 * **[Configuration Git Synchronization](forcings/config_sync.md):** Automated cloning, branching, namelist injection, and git synchronisation for `access-esm1.6-configs`.
 
-### 3. [Experiment Task Summaries](experiments/overview.md)
+### 3. [Experiments](experiments/overview.md)
 
-Comprehensive summary pages outlining all tasks, execution flows, and configuration parameters needed for each supported climate experiment:
+Comprehensive pages covering experiment naming conventions, task execution flows, and configuration parameters for each supported climate experiment:
 
+* **[Naming & Configuration Alignment](experiments/naming_alignment.md):** Bidirectional mapping between `CMIP7-Input` workflow acronyms and `access-esm1.6-configs` branch names.
 * **[Pre-Industrial Control (PI)](experiments/pre_industrial.md):** Perpetual 1850 climatological forcing suite (12 tasks).
 * **[Historical (HI)](experiments/historical.md):** Time-evolving 1850–2023 historical transient forcing suite (12 tasks).
 * **[ScenarioMIP (SM)](experiments/scenariomip.md):** Future projections across pathways `h`, `hl`, `m`, and `vl`, supporting both standard (to 2100) and extended (to 2150) timelines (46 tasks).
