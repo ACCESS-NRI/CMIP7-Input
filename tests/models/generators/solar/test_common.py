@@ -4,18 +4,18 @@ import numpy as np
 import pytest
 from iris.coords import AuxCoord
 
+from cmip7_inputs.models.access_esm1p6.generators._constants import REAL_MISSING_DATA_INDICATOR
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
-    load_solar_cube,
     compute_solar_yearly_mean,
+    load_solar_cube,
     save_solar,
 )
-from cmip7_inputs.models.access_esm1p6.generators._constants import REAL_MISSING_DATA_INDICATOR
 
 
 # ===================== load_solar_cube tests =====================
 def test_load_solar_cube(tmp_path, create_solar_cube_mock):
     """Test that load_solar_cube loads only the solar_irradiance cube from a file."""
-    
+
     filepath = tmp_path / "test_solar.nc"
     # Inside the written file it contains a second cube that should be ignored
     solar_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0], output_filepath=filepath)
@@ -25,6 +25,7 @@ def test_load_solar_cube(tmp_path, create_solar_cube_mock):
     assert loaded_cube.name() == "solar_irradiance"
     np.testing.assert_allclose(loaded_cube.data, solar_cube.data)
     np.testing.assert_allclose(loaded_cube.coord("time").points, solar_cube.coord("time").points)
+
 
 # ===================== solar_year_mean tests =====================
 def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
@@ -36,13 +37,14 @@ def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
     np.testing.assert_array_equal(result.coord("year").points, [1850, 1851, 1852])
     np.testing.assert_allclose(result.data, [2.0, 6.0, 10.0])
 
+
 @pytest.mark.parametrize(
     "start_year, end_year, expected_years, expected_means",
     [
-        (1850, 1852, [1850, 1851, 1852], [2.0, 6.0, 10.0]), #extra years before
-        (1848, 1850, [1848, 1849, 1850], [-2.0, 1.0, 2.0]), #extra years after
-        (1849, 1851, [1849, 1850, 1851], [1.0, 2.0, 6.0]), #extra years on both sides
-        (1851, 1851, [1851], [6.0]), #single year
+        (1850, 1852, [1850, 1851, 1852], [2.0, 6.0, 10.0]),  # extra years before
+        (1848, 1850, [1848, 1849, 1850], [-2.0, 1.0, 2.0]),  # extra years after
+        (1849, 1851, [1849, 1850, 1851], [1.0, 2.0, 6.0]),  # extra years on both sides
+        (1851, 1851, [1851], [6.0]),  # single year
     ],
     ids=["before_start_year", "after_end_year", "both_sides", "single_year"],
 )
@@ -71,12 +73,13 @@ def test_compute_solar_yearly_mean_with_missing_data(create_solar_cube_mock):
     # a single NaN month makes the yearly mean NaN, so 1851 is flagged as missing
     np.testing.assert_allclose(result.data, [2.0, REAL_MISSING_DATA_INDICATOR, 10.0])
 
+
 # ===================== save_solar tests =====================
 @patch("cmip7_inputs.models.access_esm1p6.generators.solar._common.compute_solar_yearly_mean")
 def test_save_solar(mock_compute_solar_yearly_mean, tmp_path, create_solar_cube_mock):
     """Test that save_solar calls compute_solar_yearly_mean with correct arguments."""
 
-    aux_coord = [(AuxCoord([1850,1851,1852],var_name='year'),0)]
+    aux_coord = [(AuxCoord([1850, 1851, 1852], var_name="year"), 0)]
     data = np.array([2.0, REAL_MISSING_DATA_INDICATOR, 10.0])
 
     # cube with one value per year
@@ -91,14 +94,12 @@ def test_save_solar(mock_compute_solar_yearly_mean, tmp_path, create_solar_cube_
 
     mock_compute_solar_yearly_mean.assert_called_once_with(input_cube, 1850, 1852)
 
-    with open(output_file, "r") as f:
+    with open(output_file) as f:
         lines = f.readlines()
-    
+
         expected_lines = [
             "1850 2.000\n",
             "1851 -1073741824.0\n",  # Missing data indicator for NaN
             "1852 10.000\n",
         ]
         assert lines == expected_lines
-    
-    

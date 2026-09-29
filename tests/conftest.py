@@ -7,9 +7,12 @@ from cf_units import Unit
 from iris.coords import DimCoord
 from iris.cube import Cube
 
+
 @pytest.fixture
 def create_solar_cube_mock():
-    def _create_solar_cube_mock(data=None, dim_coords=None, aux_coords=None, yearly_means=None, start_year=1850, output_filepath=None):
+    def _create_solar_cube_mock(
+        data=None, dim_coords=None, aux_coords=None, yearly_means=None, start_year=1850, output_filepath=None
+    ):
         """Build a cube from the given coords, or a monthly time series if no coords are given.
 
         For the monthly time series, yearly_means sets the mean of each year starting at
@@ -41,8 +44,9 @@ def create_solar_cube_mock():
             # a second cube in the same file that should be ignored
             other_cube = Cube([])
             other_cube.var_name = "other_variable"
-            #save cube into output_filepath
+            # save cube into output_filepath
             iris.save([cube, other_cube], output_filepath)
 
         return cube
+
     return _create_solar_cube_mock
