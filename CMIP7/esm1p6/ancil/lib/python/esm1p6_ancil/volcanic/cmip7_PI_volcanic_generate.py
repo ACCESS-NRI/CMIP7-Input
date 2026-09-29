@@ -42,6 +42,8 @@ def mean_over_pi_months(cube):
     in the pre-industrial year, weighted by month length.
     """
     time_coord = next(c for c in cube.coords() if c.standard_name == "time")
+    if not time_coord.has_bounds():
+        time_coord.guess_bounds()
     time_weights = (
         np.diff(np.append(time_coord.points, [DAYS_IN_CMIP7_PI_YEAR]))
         / DAYS_IN_CMIP7_PI_YEAR

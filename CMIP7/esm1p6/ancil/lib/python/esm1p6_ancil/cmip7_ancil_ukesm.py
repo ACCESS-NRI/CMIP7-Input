@@ -7,6 +7,8 @@ from cmip7_ancil_common import (
     fix_poles,
 )
 
+iris.FUTURE.datum_support = True
+
 
 def ukesm_parser():
     parser = ArgumentParser(add_help=False)
