@@ -32,13 +32,8 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     period = cube.extract(iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year))
     add_year(period, "time")
     # Calculate yearly mean
-    yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
-
-    # Substitute NaNs with REAL_MISSING_DATA_INDICATOR
-    solar_data = yearly_means.data.copy()
-    solar_data[np.isnan(solar_data)] = REAL_MISSING_DATA_INDICATOR
-    yearly_means.data = solar_data
-
+    yearly_means = period.aggregated_by("year", iris.analysis.MEAN) # only nan if all of the months are nan.
+    np.nan_to_num(yearly_means.data, copy=False, nan=REAL_MISSING_DATA_INDICATOR)
     return yearly_means
 
 
