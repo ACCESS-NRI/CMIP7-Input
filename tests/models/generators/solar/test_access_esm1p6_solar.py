@@ -3,9 +3,6 @@
 from pathlib import Path
 
 import pytest
-import iris
-import numpy as np
-from iris.coords import AuxCoord
 
 from cmip7_inputs import experiments, input_names
 from cmip7_inputs.core.dispatch import generate_inputs

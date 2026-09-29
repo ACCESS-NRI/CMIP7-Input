@@ -1,10 +1,11 @@
-import pytest
+import datetime
+
 import iris
+import numpy as np
+import pytest
+from cf_units import Unit
 from iris.coords import DimCoord
 from iris.cube import Cube
-from cf_units import Unit
-import datetime
-import numpy as np
 
 @pytest.fixture
 def create_solar_cube_mock():

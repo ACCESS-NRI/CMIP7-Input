@@ -12,14 +12,12 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
 )
 
-
 def load_solar_cube(path):
     """
     Loads the solar irradiance cube from an ancil file
     """
     name_constraint = iris.Constraint(name="solar_irradiance")
     return iris.load_cube(path, name_constraint)
-
 
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
@@ -32,7 +30,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     period = cube.extract(iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year))
     add_year(period, "time")
     # Calculate yearly mean
-    yearly_means = period.aggregated_by("year", iris.analysis.MEAN) # only nan if all of the months are nan.
+    yearly_means = period.aggregated_by("year", iris.analysis.MEAN) # Confirm if this is the desired: only nan if all of the months are nan.
     np.nan_to_num(yearly_means.data, copy=False, nan=REAL_MISSING_DATA_INDICATOR)
     return yearly_means
 

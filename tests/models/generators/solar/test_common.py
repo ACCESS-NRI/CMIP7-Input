@@ -1,9 +1,8 @@
-import pytest
-import iris
-from iris.coords import AuxCoord
-import numpy as np
-
 from unittest.mock import patch
+
+import numpy as np
+import pytest
+from iris.coords import AuxCoord
 
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     load_solar_cube,
