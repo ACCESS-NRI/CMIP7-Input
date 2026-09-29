@@ -24,6 +24,12 @@ STASH_ITEM = 251
 
 
 def parse_args():
+    """Parse command-line arguments for ScenarioMIP CO2 emission interpolation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing grid, dataset,
+            scenario, and output filename options.
+    """
     parser = ArgumentParser(
         prog=f"cmip7_ES_{SPECIES}_interpolate",
         description=(
@@ -40,6 +46,18 @@ def parse_args():
 
 
 def esm_es_co2_save_dirpath(args):
+    """Construct the destination directory path for ScenarioMIP CO2 ancillary
+    files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, scenario,
+            esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under modern/esm-
+            scen7-{scenario}/atmosphere/forcing/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -52,6 +70,19 @@ def esm_es_co2_save_dirpath(args):
 
 
 def cmip7_es_co2_anthro_interpolate(args):
+    """Interpolate CMIP7 ScenarioMIP anthropogenic CO2 emissions to the ESM1.6
+    grid.
+
+    Checks extension availability when requested, loads surface and aircraft
+    anthropogenic emissions,
+    regrids horizontally using area-weighted conservative interpolation, zeroes
+    polar rows,
+    assigns UM STASH item 251, and writes the output ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying scenario,
+            datasets, grid configuration, and output filename.
+    """
     if getattr(args, "ext", False):
         surf_avail = check_aerosol_ext_available(args, SPECIES, is_air=False)
         air_avail = check_aerosol_ext_available(args, SPECIES, is_air=True)

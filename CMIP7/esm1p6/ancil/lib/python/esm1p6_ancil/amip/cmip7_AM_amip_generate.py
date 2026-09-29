@@ -15,6 +15,12 @@ from cmip7_ancil_ukesm import (
 
 
 def parse_args():
+    """Parse command-line arguments for UK CMIP7 AMIP ancillary generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, grid, and
+            UKESM options.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ukesm_parser()],
         prog="cmip7_AM_amip_generate",
@@ -24,6 +30,17 @@ def parse_args():
 
 
 def esm_am_amip_save_dirpath(args):
+    """Construct the destination directory path for AMIP SST and sea-ice
+    ancillary files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under
+            modern/amip/atmosphere/boundary_conditions/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -36,6 +53,14 @@ def esm_am_amip_save_dirpath(args):
 
 
 def save_cmip7_am_amip(args, cube):
+    """Write the AMIP boundary condition cube to an ancillary file (360-day
+    calendar).
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path and filename.
+        cube (iris.cube.Cube): Harmonized AMIP cube.
+    """
     # Save as an ancillary file
     save_dirpath = esm_am_amip_save_dirpath(args)
     save_ancil(

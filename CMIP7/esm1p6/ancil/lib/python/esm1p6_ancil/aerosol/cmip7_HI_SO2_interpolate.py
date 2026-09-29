@@ -25,6 +25,12 @@ HI_DMS_ANCIL_FILENAME = "scycl_1849_2015_ESM1_v4.anc"
 
 
 def parse_args():
+    """Parse command-line arguments for historical SO2 emission interpolation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, DMS filename,
+            date range list, and output filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_HI_SO2_interpolate",
         description=("Generate input files from CMIP7 historical SO2 forcings"),
@@ -39,6 +45,15 @@ def parse_args():
 
 
 def load_cmip7_hi_so2_aerosol_anthro(args, species):
+    """Load historical anthropogenic SO2 emissions covering the baseline years.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Target species ('SO2').
+
+    Returns:
+        iris.cube.Cube: Loaded SO2 emissions cube spanning 1849 to 2024.
+    """
     return load_cmip7_hi_aerosol_anthro(
         args,
         species,
@@ -48,6 +63,15 @@ def load_cmip7_hi_so2_aerosol_anthro(args, species):
 
 
 def load_hi_dms(args):
+    """Load historical CMIP6 DMS ancillary dataset with 360-day calendar date
+    fixes.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+
+    Returns:
+        iris.cube.Cube: Loaded DMS emissions cube.
+    """
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
         esm_hi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)

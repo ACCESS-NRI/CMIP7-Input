@@ -19,16 +19,33 @@ GHG_MOLAR_MASS = {
 
 
 def cmip7_scale(cube):
-    """
-    Determine the scaling factor used for the given cube
+    """Determine the scaling factor used for the given cube.
+
+    Args:
+        cube (iris.cube.Cube): Input cube containing greenhouse gas
+            concentration data with origin units in ppm, ppb, or ppt.
+
+    Returns:
+        float: Multiplicative scaling factor to convert concentration units to
+            mol/mol (1.0e-6 for ppm, 1.0e-9 for ppb, 1.0e-12 for ppt).
     """
     SCALE_FACTOR = {"ppm": 1.0e-6, "ppb": 1.0e-9, "ppt": 1.0e-12}
     return SCALE_FACTOR[cube.metadata.units.origin]
 
 
 def cmip7_ghg_mmr(cube, ghg):
-    """
-    Determine the mass mixing ratio for a greenhouse gas from Iris cube data.
+    """Determine the mass mixing ratio for a greenhouse gas from Iris cube
+    data.
+
+    Args:
+        cube (iris.cube.Cube): Input cube containing greenhouse gas
+            concentrations.
+        ghg (str): Greenhouse gas species key (e.g. 'co2', 'ch4', 'n2o',
+            'cfc11').
+
+    Returns:
+        numpy.ndarray or float: Greenhouse gas mass mixing ratio (kg gas / kg
+            dry air).
     """
     conc = cube.data
     ghg_scale = cmip7_scale(cube)
@@ -36,6 +53,20 @@ def cmip7_ghg_mmr(cube, ghg):
 
 
 def cmip7_ghg_dirpath(args, activity, ghg):
+    """Construct the source directory path for CMIP7 greenhouse gas forcing
+    files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration (cmip7_source_data_dirname, dataset_version,
+            dataset_vdate).
+        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
+        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4').
+
+    Returns:
+        pathlib.Path: Directory path containing the raw netCDF input4MIPs GHG
+            forcing file.
+    """
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -50,6 +81,19 @@ def cmip7_ghg_dirpath(args, activity, ghg):
 
 
 def cmip7_ghg_filename(args, activity, ghg):
+    """Construct the standard input4MIPs netCDF filename for greenhouse gas
+    forcings.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration (dataset_version, dataset_date_range).
+        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
+        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4').
+
+    Returns:
+        str: Filename for the global-mean annual greenhouse gas concentration
+            dataset.
+    """
     return (
         f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
         f"{args.dataset_version}_gm_"
@@ -58,9 +102,17 @@ def cmip7_ghg_filename(args, activity, ghg):
 
 
 def cmip7_pro_greg_date_constraint_from_years(beg_year, end_year):
-    """
-    For CMIP6 and CMIP7 data.
-    The CMIP7 greenhouse gas forcing files use Proleptic Gregorian
+    """For CMIP6 and CMIP7 data.
+    The CMIP7 greenhouse gas forcing files use Proleptic Gregorian.
+
+    Args:
+        beg_year (int): Start year (inclusive) for the temporal slice.
+        end_year (int): End year (inclusive) for the temporal slice.
+
+    Returns:
+        iris.Constraint: Time coordinate constraint spanning from January 1 of
+            beg_year to December 31 of end_year using proleptic Gregorian
+            calendar dates.
     """
     beg_date = cftime.DatetimeProlepticGregorian(beg_year, 1, 1)
     end_date = cftime.DatetimeProlepticGregorian(end_year, 12, 31)

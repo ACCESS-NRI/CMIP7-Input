@@ -7,6 +7,13 @@ from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
 
 
 def parse_args():
+    """Parse command-line arguments for pre-industrial solar forcing
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path and dataset
+            parameters.
+    """
     parser = ArgumentParser(
         parents=[common_parser()],
         prog="cmip7_PI_solar_generate",
@@ -18,8 +25,11 @@ def parse_args():
 
 
 def cmip7_pi_solar_patch(solar_irradiance):
-    """
-    Patch the SC variable in the coupling namelist
+    """Patch the SC variable in the coupling namelist.
+
+    Args:
+        solar_irradiance (float): Pre-industrial solar constant irradiance
+            value (W/m2).
     """
     patch = {"coupling": {"SC": solar_irradiance}}
     patch_namelist = f90nml.namelist.Namelist(patch)

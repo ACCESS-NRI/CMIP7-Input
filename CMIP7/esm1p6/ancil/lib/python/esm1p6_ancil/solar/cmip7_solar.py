@@ -11,6 +11,19 @@ SOLAR_PI_DEFAULT_YEAR_MEAN = 1361.603
 
 
 def cmip7_solar_dirpath(args, activity, period):
+    """Construct the source directory path for CMIP7 solar irradiance datasets.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration (cmip7_source_data_dirname, dataset_version,
+            dataset_vdate).
+        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
+        period (str): Temporal frequency ('mon' or 'fx').
+
+    Returns:
+        pathlib.Path: Directory path under SOLARIS-
+            HEPPA/{dataset_version}/atmos/{period}/multiple/gn/{dataset_vdate}.
+    """
     return (
         Path(args.cmip7_source_data_dirname)
         / activity
@@ -25,6 +38,14 @@ def cmip7_solar_dirpath(args, activity, period):
 
 
 def load_cmip7_solar_cube(path):
+    """Load the solar irradiance cube from an input4MIPs netCDF file.
+
+    Args:
+        path (pathlib.Path): Path to the input4MIPs solar dataset.
+
+    Returns:
+        iris.cube.Cube: Solar irradiance Iris cube.
+    """
     cubelist = iris.load(path)
     name_constraint = iris.Constraint(name="solar_irradiance")
     return cubelist.extract_cube(name_constraint)
@@ -33,8 +54,19 @@ def load_cmip7_solar_cube(path):
 def cmip7_solar_year_mean(
     cube, beg_year, end_year, save_beg_year, save_end_year
 ):
-    """
-    Calculate mean TSI values for each year and save them into an array.
+    """Calculate mean TSI values for each year and save them into an array.
+
+    Args:
+        cube (iris.cube.Cube): Solar irradiance cube with time coordinate.
+        beg_year (int): Start year of active solar data to average.
+        end_year (int): End year of active solar data to average.
+        save_beg_year (int): Start year for the output array (pre-filled with
+            1850 PI mean).
+        save_end_year (int): End year for the output array (post-filled with
+            missing value indicator).
+
+    Returns:
+        numpy.ndarray: 1D array of annual mean TSI values (W/m2).
     """
     NBR_YEARS = save_end_year - save_beg_year + 1
     solar_array = np.zeros(NBR_YEARS)
@@ -71,8 +103,19 @@ def cmip7_solar_save(
     save_beg_year=SOLAR_ARRAY_BEG_YEAR,
     save_end_year=SOLAR_ARRAY_END_YEAR,
 ):
-    """
-    Save the TSI values for each year into a text file.
+    """Save the TSI values for each year into a text file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing
+            save_filename.
+        cube (iris.cube.Cube): Solar irradiance cube.
+        beg_year (int): Start year of active data.
+        end_year (int): End year of active data.
+        save_dirpath (pathlib.Path): Target directory path.
+        save_beg_year (int, optional): First year in output file. Defaults to
+            1700.
+        save_end_year (int, optional): Last year in output file. Defaults to
+            2300.
     """
     solar_array = cmip7_solar_year_mean(
         cube, beg_year, end_year, save_beg_year, save_end_year
