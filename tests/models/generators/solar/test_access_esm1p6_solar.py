@@ -3,27 +3,49 @@
 from pathlib import Path
 
 import pytest
+import iris
+import numpy as np
+from iris.coords import AuxCoord
 
 from cmip7_inputs import experiments, input_names
 from cmip7_inputs.core.dispatch import generate_inputs
 from cmip7_inputs.models.access_esm1p6 import MODEL_ID
+from cmip7_inputs.core.context import GenerationRequest
 
-# def test_generate_solar_historical(tmp_path: Path) -> None:
-#     output_path = generate_inputs(
-#         model=MODEL_ID,
-#         experiment=experiments.HISTORICAL,
-#         input_name=input_names.SOLAR,
-#         output_dir=tmp_path,
-#     )
+from cmip7_inputs.models.access_esm1p6.generators.solar import generate_solar_historical
+from cmip7_inputs.models.access_esm1p6.generators._constants import TODAY
 
-#     assert output_path.exists()
-#     assert output_path.parent == tmp_path
+def test_generate_solar_historical(tmp_path, create_solar_cube_mock):
 
-#     content = output_path.read_text()
-#     assert MODEL_ID in content
-#     assert experiment in content
-#     assert input_names.SOLAR in content
+    test_input_filepath = tmp_path / "test_input_solar_historical.nc"
+    create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0], output_filepath=test_input_filepath)
 
+    test_output_filename = "test_output_solar_historical.txt"
+    test_request = GenerationRequest(
+        model=MODEL_ID,
+        experiment=experiments.HISTORICAL,
+        input_name=input_names.SOLAR,
+        output_dir=str(tmp_path),
+        options={
+            "input_filepath": test_input_filepath,
+            "output_filename": test_output_filename,
+        }
+    )
+
+    test_output_filepath = tmp_path / TODAY / test_output_filename
+    generate_solar_historical(test_request)
+
+    assert test_output_filepath.exists()
+    # The output file is not a cube, but a text file
+    with open(test_output_filepath, "r") as f:
+            lines = f.readlines()
+        
+            expected_lines = [
+                "1850 2.000\n",
+                "1851 6.000\n",
+                "1852 10.000\n",
+            ]
+            assert lines == expected_lines
 
 def test_generate_inputs_unknown_combination_raises(
     tmp_path: Path,
