@@ -1,5 +1,10 @@
 """cmip7_inputs: generate CMIP7 input files for climate models."""
 
+import iris
+
+iris.FUTURE.save_split_attrs = True
+iris.FUTURE.date_microseconds = True
+
 # Importing cmip7_inputs.models registers every model's generators as
 # an import side effect (see cmip7_inputs/models/__init__.py).
 from cmip7_inputs import models  # noqa: F401
