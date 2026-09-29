@@ -61,6 +61,12 @@ Comprehensive pages covering experiment naming conventions, task execution flows
 * **[Emission-Driven Experiments (EH & ES)](experiments/emission_driven.md):** Carbon-cycle interactive CO2 emission experiments (5 tasks).
 * **[Paleoclimate / PMIP (PM)](experiments/pmip.md):** Equilibrium paleoclimate ozone boundary conditions.
 
+### 4. [Python API Reference](api/index.html)
+
+Automated function-level API documentation generated via Sphinx:
+
+* **[Python API Reference](api/index.html):** Complete reference covering all 55 modules and 192 functions in the `esm1p6_ancil` package across common utilities and 8 physical forcing domains (`aerosol`, `amip`, `co2`, `ghg`, `nitrogen`, `ozone`, `solar`, `volcanic`).
+
 ---
 
 ## The 9 Technical Dimensions

@@ -22,6 +22,12 @@ CMIP7_SM_SOLAR_END_YEAR = 2299
 
 
 def parse_args():
+    """Parse command-line arguments for ScenarioMIP solar forcing generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, pad, ext,
+            scenario, date range, and save filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_SM_solar_generate",
         description=(
@@ -40,8 +46,12 @@ def parse_args():
 
 
 def cmip7_sm_solar_save(args, cube):
-    """
-    Save the TSI values for each year into a text file.
+    """Save the TSI values for each year into a text file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying pad, ext,
+            and output options.
+        cube (iris.cube.Cube): Loaded ScenarioMIP solar irradiance cube.
     """
     is_ext = getattr(args, "ext", False)
     target_end_year = (

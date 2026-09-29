@@ -13,6 +13,13 @@ from nitrogen.cmip7_nitrogen import (
 
 
 def parse_args():
+    """Parse command-line arguments for historical nitrogen ancillary
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, grid,
+            dataset, date range, and save filename parameters.
+    """
     parser = ArgumentParser(
         parents=[common_parser()],
         prog="cmip7_HI_nitrogen_generate",
@@ -26,6 +33,17 @@ def parse_args():
 
 
 def cmip7_hi_nitrogen_filepath(args, species):
+    """Construct the file path for a historical monthly nitrogen netCDF
+    dataset.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration.
+        species (str): Reactive nitrogen species identifier.
+
+    Returns:
+        pathlib.Path: File path to the monthly input4MIPs netCDF file.
+    """
     dirpath = cmip7_nitrogen_dirpath(args, "CMIP", "mon", species)
     filename = (
         f"{species}_input4MIPs_surfaceFluxes_CMIP_"
@@ -36,6 +54,17 @@ def cmip7_hi_nitrogen_filepath(args, species):
 
 
 def esm_hi_nitrogen_save_dirpath(args):
+    """Construct the destination directory path for historical nitrogen
+    ancillary files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration.
+
+    Returns:
+        pathlib.Path: Target directory path under
+            modern/historical/atmosphere/land/biogeochemistry/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"

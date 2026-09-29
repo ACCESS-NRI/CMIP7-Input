@@ -11,6 +11,13 @@ repo_url: https://github.com/ACCESS-NRI/cmip7-input
 repo_name: ACCESS-NRI/cmip7-input
 edit_uri: edit/main/documentation/docs/
 
+# Validation (allow post-build Sphinx API references)
+validation:
+  nav:
+    not_found: info
+  links:
+    not_found: info
+
 # Navigation
 nav:
   - Home: pages/index.md
@@ -35,6 +42,7 @@ nav:
       - AMIP (AM): pages/experiments/amip.md
       - Emission-Driven (EH & ES): pages/experiments/emission_driven.md
       - Paleoclimate / PMIP (PM): pages/experiments/pmip.md
+  - Python API Reference: api/index.html
 
 # Theme
 theme:
@@ -159,3 +167,4 @@ watch:
 
 hooks:
   - hooks/hide_pages_url_segment.py
+  - hooks/build_sphinx_api.py
