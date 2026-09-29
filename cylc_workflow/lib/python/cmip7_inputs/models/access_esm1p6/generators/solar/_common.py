@@ -32,7 +32,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     # Calculate yearly mean
     yearly_means = period.aggregated_by(
         "year", iris.analysis.MEAN
-    )  # Confirm if this is the desired: only nan if all of the months are nan.
+    )
     np.nan_to_num(yearly_means.data, copy=False, nan=REAL_MISSING_DATA_INDICATOR)
     return yearly_means
 
