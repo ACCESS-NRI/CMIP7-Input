@@ -17,6 +17,7 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     load_solar_cube,
     save_solar,
 )
+from cmip7_inputs.models.access_esm1p6.generators.solar._picontrol import patch_pi_solar
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
@@ -64,7 +65,6 @@ def generate_solar_picontrol(request: GenerationRequest) :
     """
     
     solar_irradiance_cube = load_solar_cube(request.options["input_filepath"])
-    solar_irradiance = solar_irradiance_cube[0].data
 
     # Patch the SC variable in the coupling namelist
-    patch_pi_solar(solar_irradiance)
+    patch_pi_solar(solar_irradiance_cube[0].data)
