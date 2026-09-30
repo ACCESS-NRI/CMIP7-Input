@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import (
@@ -83,11 +82,5 @@ if __name__ == "__main__":
     )
     dataset_path = dirpath / filename
 
-    if not dataset_path.exists():
-        warnings.warn(
-            f"ScenarioMIP solar dataset {dataset_path} not found.",
-            UserWarning,
-        )
-    else:
-        solar_irradiance_cube = load_cmip7_solar_cube(dataset_path)
-        cmip7_sm_solar_save(args, solar_irradiance_cube)
+    solar_irradiance_cube = load_cmip7_solar_cube(dataset_path)
+    cmip7_sm_solar_save(args, solar_irradiance_cube)

@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -55,22 +54,17 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load the CMIP7 datasets
-    try:
-        nitrogen_cube = load_cmip7_nitrogen(args, cmip7_sm_nitrogen_filepath)
-    except Exception as e:
-        warnings.warn(f"Could not load nitrogen dataset: {e}", UserWarning)
-        nitrogen_cube = None
+    nitrogen_cube = load_cmip7_nitrogen(args, cmip7_sm_nitrogen_filepath)
 
-    if nitrogen_cube is not None:
-        # Regrid to match the ESM1.5 mask and extend the time series
-        esm_cube = regrid_cmip7_nitrogen(args, nitrogen_cube)
-        if getattr(args, "ext", False):
-            target_end_year = (
-                getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-            )
-            esm_cube = tile_constant_years(
-                esm_cube, CMIP7_SM_END_YEAR, target_end_year
-            )
-        esm_cube = extend_years(esm_cube)
-        # Save the ancillary
-        save_cmip7_nitrogen(args, esm_cube, esm_sm_nitrogen_save_dirpath)
+    # Regrid to match the ESM1.5 mask and extend the time series
+    esm_cube = regrid_cmip7_nitrogen(args, nitrogen_cube)
+    if getattr(args, "ext", False):
+        target_end_year = (
+            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        )
+        esm_cube = tile_constant_years(
+            esm_cube, CMIP7_SM_END_YEAR, target_end_year
+        )
+    esm_cube = extend_years(esm_cube)
+    # Save the ancillary
+    save_cmip7_nitrogen(args, esm_cube, esm_sm_nitrogen_save_dirpath)

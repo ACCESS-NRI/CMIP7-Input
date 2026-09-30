@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import (
@@ -109,31 +108,25 @@ if __name__ == "__main__":
     )
     sm_dataset_path = sm_dirpath / sm_filename
 
-    if not sm_dataset_path.exists():
-        warnings.warn(
-            f"ScenarioMIP volcanic dataset {sm_dataset_path} not found.",
-            UserWarning,
-        )
-    else:
-        pi_dirpath = cmip7_volcanic_dirpath(
-            args,
-            "CMIP",
-            "monC",
-            args.pi_dataset_version,
-            args.pi_dataset_vdate,
-        )
-        pi_filename = cmip7_pi_volcanic_filename(
-            args.pi_dataset_version,
-            args.pi_dataset_date_range,
-        )
-        pi_dataset_path = pi_dirpath / pi_filename
+    pi_dirpath = cmip7_volcanic_dirpath(
+        args,
+        "CMIP",
+        "monC",
+        args.pi_dataset_version,
+        args.pi_dataset_vdate,
+    )
+    pi_filename = cmip7_pi_volcanic_filename(
+        args.pi_dataset_version,
+        args.pi_dataset_date_range,
+    )
+    pi_dataset_path = pi_dirpath / pi_filename
 
-        # Calculate the pre-industrial average stratospheric optical depth.
-        pi_mean_saod = (
-            average_stratospheric_aerosol_optical_depth(pi_dataset_path)
-            * SAOD_SCALING
-        )
-        # Calculate and save the average stratospheric aerosol optical depth.
-        save_sm_stratospheric_aerosol_optical_depth(
-            args, sm_dataset_path, pi_mean_saod=pi_mean_saod
-        )
+    # Calculate the pre-industrial average stratospheric optical depth.
+    pi_mean_saod = (
+        average_stratospheric_aerosol_optical_depth(pi_dataset_path)
+        * SAOD_SCALING
+    )
+    # Calculate and save the average stratospheric aerosol optical depth.
+    save_sm_stratospheric_aerosol_optical_depth(
+        args, sm_dataset_path, pi_mean_saod=pi_mean_saod
+    )

@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -109,33 +108,6 @@ def cmip7_sm_aerosol_air_ext_anthro_filepath(
     return dirpath / filename
 
 
-def check_aerosol_ext_available(args, species, is_air=False):
-    if is_air:
-        ext_version = getattr(args, "dataset_air_ext_version", None)
-        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(
-            args, "dataset_air_vdate", None
-        )
-        ext_date_range = getattr(args, "dataset_air_ext_date_range", None)
-        if ext_version and ext_vdate and ext_date_range:
-            p = cmip7_sm_aerosol_air_ext_anthro_filepath(
-                args, species, ext_date_range, ext_version, ext_vdate
-            )
-            return p.exists()
-        return False
-    else:
-        ext_version = getattr(args, "dataset_ext_version", None)
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
-            args, "dataset_vdate", None
-        )
-        ext_date_range = getattr(args, "dataset_ext_date_range", None)
-        if ext_version and ext_vdate and ext_date_range:
-            p = cmip7_sm_aerosol_ext_anthro_filepath(
-                args, species, ext_date_range, ext_version, ext_vdate
-            )
-            return p.exists()
-        return False
-
-
 def load_cmip7_sm_aerosol_air_anthro(args, species):
     is_ext = getattr(args, "ext", False)
     target_end_year = CMIP7_SM_END_YEAR
@@ -150,32 +122,15 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
         target_end_year = (
             getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
         )
-
-        if ext_version and ext_vdate and ext_date_range:
-            ext_path = cmip7_sm_aerosol_air_ext_anthro_filepath(
-                args, species, ext_date_range, ext_version, ext_vdate
-            )
-            if ext_path.exists():
-                ext_cube = iris.load_cube(
-                    ext_path,
-                    cmip7_date_constraint_from_years(
-                        CMIP7_SM_END_YEAR + 1, target_end_year
-                    ),
-                )
-            else:
-                warnings.warn(
-                    f"Aircraft aerosol extension file {ext_path} not found. "
-                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                    UserWarning,
-                )
-                target_end_year = CMIP7_SM_END_YEAR
-        else:
-            warnings.warn(
-                f"Aircraft aerosol extension parameters incomplete for "
-                f"{species}. Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                UserWarning,
-            )
-            target_end_year = CMIP7_SM_END_YEAR
+        ext_path = cmip7_sm_aerosol_air_ext_anthro_filepath(
+            args, species, ext_date_range, ext_version, ext_vdate
+        )
+        ext_cube = iris.load_cube(
+            ext_path,
+            cmip7_date_constraint_from_years(
+                CMIP7_SM_END_YEAR + 1, target_end_year
+            ),
+        )
 
     base_cube = load_cmip7_aerosol(
         args,
@@ -215,32 +170,15 @@ def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
         target_end_year = (
             getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
         )
-
-        if ext_version and ext_vdate and ext_date_range:
-            ext_path = cmip7_sm_aerosol_ext_anthro_filepath(
-                args, species, ext_date_range, ext_version, ext_vdate
-            )
-            if ext_path.exists():
-                ext_cube = iris.load_cube(
-                    ext_path,
-                    cmip7_date_constraint_from_years(
-                        CMIP7_SM_END_YEAR + 1, target_end_year
-                    ),
-                )
-            else:
-                warnings.warn(
-                    f"Aerosol extension file {ext_path} not found. "
-                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                    UserWarning,
-                )
-                target_end_year = CMIP7_SM_END_YEAR
-        else:
-            warnings.warn(
-                f"Aerosol extension parameters incomplete for {species}. "
-                f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                UserWarning,
-            )
-            target_end_year = CMIP7_SM_END_YEAR
+        ext_path = cmip7_sm_aerosol_ext_anthro_filepath(
+            args, species, ext_date_range, ext_version, ext_vdate
+        )
+        ext_cube = iris.load_cube(
+            ext_path,
+            cmip7_date_constraint_from_years(
+                CMIP7_SM_END_YEAR + 1, target_end_year
+            ),
+        )
 
     base_cube = load_cmip7_aerosol(
         args,

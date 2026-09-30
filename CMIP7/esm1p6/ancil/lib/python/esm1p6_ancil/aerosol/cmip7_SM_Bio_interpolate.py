@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 from datetime import datetime
 from pathlib import Path
@@ -215,36 +214,19 @@ def load_cmip7_sm_aerosol_biomass(args, species):
         target_end_year = (
             getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
         )
-
-        if ext_version and ext_vdate and ext_date_range:
-            ext_filepath = cmip7_sm_aerosol_biomass_ext_filepath(
-                args, species, ext_date_range, ext_version, ext_vdate
-            )
-            if ext_filepath.exists():
-                ext_cube = load_cmip7_aerosol(
-                    args,
-                    lambda a, s, dr: ext_filepath,
-                    species,
-                    ext_date_range,
-                    cmip7_date_constraint_from_years(
-                        CMIP7_SM_END_YEAR + 1, target_end_year
-                    ),
-                )
-                ext_cube.data = ext_cube.data.filled(0.0)
-            else:
-                warnings.warn(
-                    f"Biomass extension file {ext_filepath} not found. "
-                    f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                    UserWarning,
-                )
-                target_end_year = CMIP7_SM_END_YEAR
-        else:
-            warnings.warn(
-                f"Biomass extension parameters incomplete for {species}. "
-                f"Falling back to baseline {CMIP7_SM_END_YEAR}.",
-                UserWarning,
-            )
-            target_end_year = CMIP7_SM_END_YEAR
+        ext_filepath = cmip7_sm_aerosol_biomass_ext_filepath(
+            args, species, ext_date_range, ext_version, ext_vdate
+        )
+        ext_cube = load_cmip7_aerosol(
+            args,
+            lambda a, s, dr: ext_filepath,
+            species,
+            ext_date_range,
+            cmip7_date_constraint_from_years(
+                CMIP7_SM_END_YEAR + 1, target_end_year
+            ),
+        )
+        ext_cube.data = ext_cube.data.filled(0.0)
 
     base_cube = load_cmip7_aerosol_biomass(
         args,

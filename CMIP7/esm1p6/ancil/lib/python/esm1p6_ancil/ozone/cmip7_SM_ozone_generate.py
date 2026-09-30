@@ -1,4 +1,3 @@
-import warnings
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -51,24 +50,19 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load the CMIP7 datasets
-    try:
-        ozone_cube = load_cmip7_ozone(args)
-    except Exception as e:
-        warnings.warn(f"Could not load ozone dataset: {e}", UserWarning)
-        ozone_cube = None
+    ozone_cube = load_cmip7_ozone(args)
 
-    if ozone_cube is not None:
-        # Match the ESM1.5 mask
-        esm_cube = fix_cmip7_ozone(args, ozone_cube)
-        if getattr(args, "ext", False):
-            target_end_year = (
-                getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-            )
-            # Ozone input from UKESM contains 1 padding year at each boundary
-            # (e.g. 2021 and 2101). When extending to target_end_year (2150),
-            # tile to target_end_year + 1 (2151) to preserve UM end padding.
-            esm_cube = tile_constant_years(
-                esm_cube, CMIP7_SM_END_YEAR, target_end_year + 1
-            )
-        # Save the ancillary
-        save_cmip7_sm_ozone(args, esm_cube)
+    # Match the ESM1.5 mask
+    esm_cube = fix_cmip7_ozone(args, ozone_cube)
+    if getattr(args, "ext", False):
+        target_end_year = (
+            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
+        )
+        # Ozone input from UKESM contains 1 padding year at each boundary
+        # (e.g. 2021 and 2101). When extending to target_end_year (2150),
+        # tile to target_end_year + 1 (2151) to preserve UM end padding.
+        esm_cube = tile_constant_years(
+            esm_cube, CMIP7_SM_END_YEAR, target_end_year + 1
+        )
+    # Save the ancillary
+    save_cmip7_sm_ozone(args, esm_cube)
