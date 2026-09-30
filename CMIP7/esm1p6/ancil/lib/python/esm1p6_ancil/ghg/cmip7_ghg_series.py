@@ -15,7 +15,9 @@ from ghg.cmip7_ghg import (
 )
 
 
-def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
+def load_cmip7_ghg_series_mmr(
+    args, activity, ghg, beg_year, end_year, ext=False
+):
     dirpath = cmip7_ghg_dirpath(args, activity, ghg)
     filename = cmip7_ghg_filename(args, activity, ghg)
     cmip7_filepath = dirpath / filename
@@ -23,7 +25,7 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
     # Read in the CMIP7 cube.
     full_cube = iris.load_cube(cmip7_filepath)
 
-    if getattr(args, "ext", False):
+    if ext:
         ext_version = args.dataset_ext_version
         ext_vdate = args.dataset_ext_vdate
         ext_date_range = args.dataset_ext_date_range

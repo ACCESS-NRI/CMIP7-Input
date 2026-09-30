@@ -38,7 +38,12 @@ if __name__ == "__main__":
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
         series = load_cmip7_ghg_series_mmr(
-            args, "ScenarioMIP", ghg, CMIP7_SM_BEG_YEAR, target_end_year
+            args,
+            "ScenarioMIP",
+            ghg,
+            CMIP7_SM_BEG_YEAR,
+            target_end_year,
+            ext=args.ext,
         )
         ghg_mmr_dict[ghg] = series
 
