@@ -1,8 +1,10 @@
+"""Tests for shared ACCESS-ESM1.6 solar generator helpers."""
+
 from unittest.mock import patch
 
+import iris
 import numpy as np
 import pytest
-from iris.coords import AuxCoord
 
 from cmip7_inputs.models.access_esm1p6.generators._constants import REAL_MISSING_DATA_INDICATOR
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
@@ -13,12 +15,13 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
 
 
 # ===================== load_solar_cube tests =====================
-def test_load_solar_cube(tmp_path, create_solar_cube_mock):
+def test_load_solar_cube(tmp_path, make_monthly_time_cube, make_cube):
     """Test that load_solar_cube loads only the solar_irradiance cube from a file."""
 
     filepath = tmp_path / "test_solar.nc"
-    # Inside the written file it contains a second cube that should be ignored
-    solar_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0], output_filepath=filepath)
+    solar_cube = make_monthly_time_cube([2.0, 6.0, 10.0], var_name="solar_irradiance")
+    other_cube = make_cube([], var_name="other_variable")
+    iris.save([solar_cube, other_cube], filepath)
 
     loaded_cube = load_solar_cube(str(filepath))
 
@@ -28,9 +31,9 @@ def test_load_solar_cube(tmp_path, create_solar_cube_mock):
 
 
 # ===================== solar_year_mean tests =====================
-def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
+def test_compute_solar_yearly_mean_full_range(make_monthly_time_cube):
     """Test compute_solar_yearly_mean for full year range (1850-1852)."""
-    input_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0])
+    input_cube = make_monthly_time_cube([2.0, 6.0, 10.0])
 
     result = compute_solar_yearly_mean(input_cube, 1850, 1852)
 
@@ -49,11 +52,11 @@ def test_compute_solar_yearly_mean_full_range(create_solar_cube_mock):
     ids=["before_start_year", "after_end_year", "both_sides", "single_year"],
 )
 def test_compute_solar_yearly_mean_excludes_years_outside_range(
-    create_solar_cube_mock, start_year, end_year, expected_years, expected_means
+    make_monthly_time_cube, start_year, end_year, expected_years, expected_means
 ):
     """Test compute_solar_yearly_mean excludes years outside [start_year, end_year]."""
     # cube covering 1848-1852
-    input_cube = create_solar_cube_mock(yearly_means=[-2.0, 1.0, 2.0, 6.0, 10.0], start_year=1848)
+    input_cube = make_monthly_time_cube([-2.0, 1.0, 2.0, 6.0, 10.0], start_year=1848)
 
     result = compute_solar_yearly_mean(input_cube, start_year, end_year)
 
@@ -61,9 +64,9 @@ def test_compute_solar_yearly_mean_excludes_years_outside_range(
     np.testing.assert_allclose(result.data, expected_means)
 
 
-def test_compute_solar_yearly_mean_with_missing_data(create_solar_cube_mock):
+def test_compute_solar_yearly_mean_with_missing_data(make_monthly_time_cube):
     """Test compute_solar_yearly_mean replaces NaN yearly means with the missing data indicator."""
-    input_cube = create_solar_cube_mock(yearly_means=[2.0, 6.0, 10.0])
+    input_cube = make_monthly_time_cube([2.0, 6.0, 10.0])
     # Introduce NaN values in April-June 1851 (monthly indices 15-17)
     input_cube.data[15:18] = np.nan
 
@@ -76,20 +79,19 @@ def test_compute_solar_yearly_mean_with_missing_data(create_solar_cube_mock):
 
 # ===================== save_solar tests =====================
 @patch("cmip7_inputs.models.access_esm1p6.generators.solar._common.compute_solar_yearly_mean")
-def test_save_solar(mock_compute_solar_yearly_mean, tmp_path, create_solar_cube_mock):
+def test_save_solar(mock_compute_solar_yearly_mean, tmp_path, make_yearly_cube, make_monthly_time_cube):
     """Test that save_solar calls compute_solar_yearly_mean with correct arguments."""
 
-    aux_coord = [(AuxCoord([1850, 1851, 1852], var_name="year"), 0)]
     data = np.array([2.0, REAL_MISSING_DATA_INDICATOR, 10.0])
 
     # cube with one value per year
-    cube_mock = create_solar_cube_mock(data, aux_coords=aux_coord)
+    cube_mock = make_yearly_cube(data)
     mock_compute_solar_yearly_mean.return_value = cube_mock
 
     # mock_directory is added to test the creation of the directory
     output_file = tmp_path / "mock_directory" / "solar_output.txt"
 
-    input_cube = create_solar_cube_mock()
+    input_cube = make_monthly_time_cube([2.0, 6.0, 10.0])
     save_solar(output_file, input_cube, 1850, 1852)
 
     mock_compute_solar_yearly_mean.assert_called_once_with(input_cube, 1850, 1852)

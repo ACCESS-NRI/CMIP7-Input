@@ -1,52 +1,61 @@
+"""Shared pytest fixtures for constructing Iris cubes."""
+
 import datetime
 
-import iris
 import numpy as np
 import pytest
 from cf_units import Unit
-from iris.coords import DimCoord
+from iris.coords import AuxCoord, DimCoord
 from iris.cube import Cube
 
 
 @pytest.fixture
-def create_solar_cube_mock():
-    def _create_solar_cube_mock(
-        data=None, dim_coords=None, aux_coords=None, yearly_means=None, start_year=1850, output_filepath=None
+def make_cube():
+    """Build a cube from data and Iris coordinate/dimension pairs."""
+
+    def _make_cube(
+        data,
+        *,
+        dim_coords_and_dims=None,
+        aux_coords_and_dims=None,
+        **metadata,
     ):
-        """Build a cube from the given coords, or a monthly time series if no coords are given.
-
-        For the monthly time series, yearly_means sets the mean of each year starting at
-        start_year; without it, 1850-1852 is filled with random data.
-        """
-        if dim_coords is None and aux_coords is None:
-            n_years = 3 if yearly_means is None else len(yearly_means)
-            years = range(start_year, start_year + n_years)
-            time_unit = Unit("days since 1850-01-01", calendar="gregorian")
-            points = time_unit.date2num(
-                [datetime.datetime(year, month, 15) for year in years for month in range(1, 13)]
-            )
-            dim_coords = [(DimCoord(points, standard_name="time", units=time_unit), 0)]
-
-            if yearly_means is None:
-                data = np.random.rand(n_years * 12)  # Random data for testing
-            else:
-                # 12 evenly spaced monthly values centred on each yearly mean
-                data = np.concatenate([np.linspace(mean - 1.0, mean + 1.0, 12) for mean in yearly_means])
-
-        cube = Cube(
+        return Cube(
             data,
-            dim_coords_and_dims=dim_coords,
-            aux_coords_and_dims=aux_coords,
+            dim_coords_and_dims=dim_coords_and_dims,
+            aux_coords_and_dims=aux_coords_and_dims,
+            **metadata,
         )
 
-        if output_filepath is not None:
-            cube.var_name = "solar_irradiance"
-            # a second cube in the same file that should be ignored
-            other_cube = Cube([])
-            other_cube.var_name = "other_variable"
-            # save cube into output_filepath
-            iris.save([cube, other_cube], output_filepath)
+    return _make_cube
 
-        return cube
 
-    return _create_solar_cube_mock
+@pytest.fixture
+def make_yearly_cube(make_cube):
+    """Build a 1D cube with one value and a ``year`` coordinate per point."""
+
+    def _make_yearly_cube(values, years=None, start_year=1850, **metadata):
+        if years is None:
+            years = range(start_year, start_year + len(values))
+        year_coord = AuxCoord(np.asarray(years), var_name="year")
+        return make_cube(values, aux_coords_and_dims=[(year_coord, 0)], **metadata)
+
+    return _make_yearly_cube
+
+
+@pytest.fixture
+def make_monthly_time_cube(make_cube):
+    """Build a monthly time series with prescribed annual means."""
+
+    def _make_monthly_time_cube(yearly_means, start_year=1850, **metadata):
+        years = range(start_year, start_year + len(yearly_means))
+        time_unit = Unit("days since 1850-01-01", calendar="gregorian")
+        time_points = time_unit.date2num(
+            [datetime.datetime(year, month, 15) for year in years for month in range(1, 13)]
+        )
+        time_coord = DimCoord(time_points, standard_name="time", units=time_unit)
+        # Symmetric monthly samples preserve the requested mean while varying each month.
+        data = np.concatenate([np.linspace(mean - 1.0, mean + 1.0, 12) for mean in yearly_means])
+        return make_cube(data, dim_coords_and_dims=[(time_coord, 0)], **metadata)
+
+    return _make_monthly_time_cube
