@@ -15,13 +15,41 @@ from ghg.cmip7_ghg import (
 )
 
 
-def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
+def load_cmip7_ghg_series_mmr(
+    args, activity, ghg, beg_year, end_year, ext=False
+):
     dirpath = cmip7_ghg_dirpath(args, activity, ghg)
     filename = cmip7_ghg_filename(args, activity, ghg)
     cmip7_filepath = dirpath / filename
 
     # Read in the CMIP7 cube.
     full_cube = iris.load_cube(cmip7_filepath)
+
+    if ext:
+        ext_version = args.dataset_ext_version
+        ext_vdate = args.dataset_ext_vdate
+        ext_date_range = args.dataset_ext_date_range
+        ext_filename = (
+            f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
+            f"{ext_version}_gm_{ext_date_range}.nc"
+        )
+        ext_filepath = (
+            Path(args.cmip7_source_data_dirname)
+            / activity
+            / "CR"
+            / ext_version
+            / "atmos"
+            / "yr"
+            / ghg
+            / "gm"
+            / ext_vdate
+            / ext_filename
+        )
+        ext_cube = iris.load_cube(ext_filepath)
+        cubelist = iris.cube.CubeList([full_cube, ext_cube])
+        iris.util.equalise_attributes(cubelist)
+        iris.util.unify_time_units(cubelist)
+        full_cube = cubelist.concatenate_cube()
 
     # Check that we have the right greenhouse gas.
     variable_id = full_cube.metadata.attributes["variable_id"]

@@ -10,12 +10,16 @@ import cftime
 import iris
 import iris.analysis
 import iris.coord_categorisation
+import iris.util
 import mule
 import numpy as np
 from cmip7_ancil_constants import (
     MONTHS_IN_A_YEAR,
     UM_VERSION,
 )
+from iris.util import equalise_attributes
+
+iris.FUTURE.datum_support = True
 
 INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
@@ -134,6 +138,70 @@ def extend_years(cube):
 
     # Return a cube with extended years.
     cubelist = iris.cube.CubeList((beg_year, cube, end_year))
+    return cubelist.concatenate_cube()
+
+
+def _extract_baseline_slice(cube, baseline_year):
+    year_constraint = iris.Constraint(
+        time=lambda cell: cell.point.year == baseline_year
+    )
+    baseline_slice = cube.extract(year_constraint)
+    if (
+        baseline_slice is None
+        or len(baseline_slice.coord("time").points) != MONTHS_IN_A_YEAR
+    ):
+        raise ValueError(
+            f"Baseline year {baseline_year} is missing or does not contain "
+            f"{MONTHS_IN_A_YEAR} months in {cube.name()}."
+        )
+    return baseline_slice.copy()
+
+
+def tile_constant_years(cube, baseline_year, target_end_year):
+    """
+    Extend a monthly time series cube from baseline_year to target_end_year
+    by repeating the 12 monthly slices of baseline_year for subsequent years.
+    Shifts time points and bounds using cftime year replacement to avoid
+    leap-year calendar drift.
+    """
+    if target_end_year <= baseline_year:
+        return cube
+
+    baseline_slice = _extract_baseline_slice(cube, baseline_year)
+    trimmed_cube = cube.extract(
+        iris.Constraint(time=lambda cell: cell.point.year <= baseline_year)
+    )
+    if trimmed_cube is not None:
+        cube = trimmed_cube
+
+    units = cube.coord("time").units
+    cubelist = iris.cube.CubeList([cube])
+
+    for y in range(baseline_year + 1, target_end_year + 1):
+        year_cube = baseline_slice.copy()
+        tc = year_cube.coord("time")
+        nyears = y - baseline_year
+        tc.points = np.array(
+            [
+                units.date2num(d.replace(year=d.year + nyears))
+                for d in units.num2date(tc.points)
+            ],
+            dtype=tc.points.dtype,
+        )
+        if tc.has_bounds():
+            tc.bounds = np.array(
+                [
+                    [
+                        units.date2num(b[0].replace(year=b[0].year + nyears)),
+                        units.date2num(b[1].replace(year=b[1].year + nyears)),
+                    ]
+                    for b in units.num2date(tc.bounds)
+                ],
+                dtype=tc.bounds.dtype,
+            )
+        cubelist.append(year_cube)
+
+    equalise_attributes(cubelist)
     return cubelist.concatenate_cube()
 
 

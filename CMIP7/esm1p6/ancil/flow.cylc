@@ -154,7 +154,7 @@
                 {% if USE_SCEN[SCEN] %}
             ES_{{SCEN}}_ancil_co2
                 {% endif %}
-	      {% endfor %}
+              {% endfor %}
             {% endif %}
 
             # Ozone
@@ -237,6 +237,8 @@
 {% endset %}
 
     [[GIT]]
+        [[[environment]]]
+            GIT_SSH_COMMAND = "ssh -o StrictHostKeyChecking=accept-new"
 {% macro GIT_REPO_URL(repo) %}{{GIT_ORG_URL}}/{{repo}}.git{% endmacro %}
 
     [[GIT_SCRIPTS]]
@@ -351,7 +353,7 @@
         inherit = ANCIL_CO2, SMALL_JOB
         script = """
             mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-	    export PYTHONUNBUFFERED=1
+            export PYTHONUNBUFFERED=1
             python_env python \
                 -m co2.cmip7_ES_CO2_interpolate \
                 --scenario {{ SCEN }} \
@@ -362,7 +364,18 @@
                 --dataset-air-version {{ quote(CMIP7_SM_AEROSOL_AIR_VERSION[SCEN]) }} \
                 --dataset-air-vdate {{ quote(CMIP7_SM_AEROSOL_AIR_VDATE[SCEN]) }} \
                 --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                {% if EXTEND_SM_CO2[SCEN] %}
+                --ext \
+                --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
+                --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
+                --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
+                --dataset-air-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_VERSION[SCEN]) }} \
+                --dataset-air-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_VDATE[SCEN]) }} \
+                --dataset-air-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_DATE_RANGE) }} \
+                --save-filename {{ quote(ESM_ES_EXT_CO2_SAVE_FILENAME[SCEN]) }}
+                {% else %}
                 --save-filename {{ quote(ESM_ES_CO2_SAVE_FILENAME[SCEN]) }}
+                {% endif %}
             """
       {% endif %}
     {% endfor %}
@@ -495,13 +508,21 @@
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
               python_env python \
                   -m aerosol.cmip7_SM_{{SPECIES}}_interpolate \
-          --scenario {{ SCEN }} \
+                  --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                  {% if EXTEND_SM_AEROSOL[SCEN] %}
+                  --ext \
+                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
+                  {% else %}
                   --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
+                  {% endif %}
               """
         {% endfor %}
 
@@ -511,13 +532,21 @@
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
               python_env python \
                   -m aerosol.cmip7_SM_Bio_interpolate \
-          --scenario {{ SCEN }} \
+                  --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
+                  {% if EXTEND_SM_AEROSOL[SCEN] %}
+                  --ext \
+                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN]['Bio']) }}
+                  {% else %}
                   --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['Bio']) }}
+                  {% endif %}
               """
 
       [[SM_{{SCEN}}_ancil_aerosol_SO2]]
@@ -526,14 +555,22 @@
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
               python_env python \
                   -m aerosol.cmip7_SM_SO2_interpolate \
-          --scenario {{ SCEN }} \
+                  --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
                   --esm15-aerosol-version {{ quote(ESM15_AEROSOL_VERSION['PI']) }} \
+                  {% if EXTEND_SM_AEROSOL[SCEN] %}
+                  --ext \
+                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
+                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
+                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
+                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN]['SO2']) }}
+                  {% else %}
                   --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['SO2']) }}
+                  {% endif %}
               """
           {% endif %}
     {% endfor %}
@@ -624,10 +661,16 @@
               cd $GIT_SM_{{SCEN}}_CONFIG_DIR
               python_env python \
                   -m ghg.cmip7_SM_ghg_generate \
-                  {{ PATH_ARGS }}
+                  {{ PATH_ARGS }} \
                   --dataset-version {{ quote(CMIP7_SM_GHG_VERSION[SCEN]) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_GHG_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_GHG_DATE_RANGE) }}
+                  --dataset-date-range {{ quote(CMIP7_SM_GHG_DATE_RANGE) }} \
+                  {% if EXTEND_SM_GHG[SCEN] %}
+                  --ext \
+                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_GHG_VERSION[SCEN]) }} \
+                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_GHG_VDATE[SCEN]) }} \
+                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_GHG_DATE_RANGE) }}
+                  {% endif %}
           """
           {% endif %}
     {% endfor %}
@@ -660,13 +703,18 @@
           script = """
               python_env python \
                   -m nitrogen.cmip7_SM_nitrogen_generate \
-          --scenario {{ SCEN }} \
+                  --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --dataset-version {{ quote(CMIP7_SM_NITROGEN_VERSION[SCEN]) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_NITROGEN_VDATE[SCEN]) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_NITROGEN_DATE_RANGE) }} \
+                  {% if EXTEND_SM_NITROGEN[SCEN] %}
+                  --ext \
+                  --save-filename {{ quote(ESM_SM_EXT_NITROGEN_SAVE_FILENAME[SCEN]) }}
+                  {% else %}
                   --save-filename {{ quote(ESM_SM_NITROGEN_SAVE_FILENAME[SCEN]) }}
+                  {% endif %}
               """
           {% endif %}
     {% endfor %}
@@ -720,12 +768,17 @@
           script = """
               python_env python \
                   -m ozone.cmip7_SM_ozone_generate \
-          --scenario {{ SCEN }} \
+                  --scenario {{ SCEN }} \
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH}/{{ SCEN }} \
                   --ukesm-netcdf-filename {{ quote(UKESM_SM_OZONE_NETCDF_FILENAME) }} \
+                  {% if EXTEND_SM_OZONE[SCEN] %}
+                  --ext \
+                  --save-filename {{ quote(ESM_SM_EXT_OZONE_SAVE_FILENAME[SCEN]) }}
+                  {% else %}
                   --save-filename {{ quote(ESM_SM_OZONE_SAVE_FILENAME[SCEN]) }}
+                  {% endif %}
               """
           {% endif %}
         {% endfor %}
@@ -798,6 +851,9 @@
                   --dataset-version {{ quote(CMIP7_SM_SOLAR_VERSION) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_SOLAR_VDATE) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_SOLAR_DATE_RANGE) }} \
+                  {% if EXTEND_SM_SOLAR %}
+                  --ext \
+                  {% endif %}
                   --save-filename {{ quote(ESM_SM_SOLAR_SAVE_FILENAME) }}
               """
       {% else %}
@@ -839,13 +895,16 @@
               python_env python \
                   -m volcanic.cmip7_SM_volcanic_generate \
                   --scenario h \
-                  {{ PATH_ARGS }}
+                  {{ PATH_ARGS }} \
                   --pi-dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
                   --pi-dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
                   --pi-dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }} \
-		  --dataset-version {{ quote(CMIP7_SM_VOLCANIC_VERSION) }} \
+                  --dataset-version {{ quote(CMIP7_SM_VOLCANIC_VERSION) }} \
                   --dataset-vdate {{ quote(CMIP7_SM_VOLCANIC_VDATE) }} \
                   --dataset-date-range {{ quote(CMIP7_SM_VOLCANIC_DATE_RANGE) }} \
+                  {% if EXTEND_SM_VOLCANIC %}
+                  --ext \
+                  {% endif %}
                   --save-filename {{ quote(ESM_SM_VOLCANIC_SAVE_FILENAME) }}
               """
       {% else %}
@@ -896,7 +955,7 @@
                 git commit -m "CMIP7 forcing update to $GIT_SM_{{SCEN}}_OLD_BRANCH"
             {% if GIT_CONFIG_BRANCH_PUSH %}
                 git push origin $GIT_SM_{{SCEN}}_NEW_BRANCH
-	    {% endif %}
+            {% endif %}
               else
                 echo "Finished with no config files changes to commit."
               fi
@@ -919,7 +978,7 @@
                 git commit -m "CMIP7 forcing update to $GIT_{{EXP}}_OLD_BRANCH"
             {% if GIT_CONFIG_BRANCH_PUSH %}
                 git push origin $GIT_{{EXP}}_NEW_BRANCH
-	    {% endif %}
+            {% endif %}
               else
                 echo "Finished with no config files changes to commit."
               fi

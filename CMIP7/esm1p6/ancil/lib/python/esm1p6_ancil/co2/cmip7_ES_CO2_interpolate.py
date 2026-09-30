@@ -8,7 +8,7 @@ from aerosol.cmip7_SM_aerosol_anthro import (
     load_cmip7_sm_aerosol_air_anthro,
     load_cmip7_sm_aerosol_anthro,
 )
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import common_parser, ext_parser
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
@@ -26,7 +26,7 @@ def parse_args():
         description=(
             f"Generate input files from CMIP7 ScenarioMIP {SPECIES} forcings"
         ),
-        parents=[common_parser()],
+        parents=[common_parser(), ext_parser()],
     )
     parser.add_argument("--dataset-air-version")
     parser.add_argument("--dataset-air-vdate")

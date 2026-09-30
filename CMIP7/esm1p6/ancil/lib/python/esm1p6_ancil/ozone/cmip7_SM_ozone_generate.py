@@ -2,11 +2,13 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from cmip7_ancil_argparse import (
+    ext_parser,
     grid_parser,
     path_parser,
 )
-from cmip7_ancil_common import save_ancil
+from cmip7_ancil_common import save_ancil, tile_constant_years
 from cmip7_ancil_constants import ANCIL_TODAY
+from cmip7_SM import CMIP7_SM_END_YEAR, CMIP7_SM_EXT_END_YEAR
 from ozone.cmip7_ozone import (
     fix_cmip7_ozone,
     load_cmip7_ozone,
@@ -16,7 +18,7 @@ from ozone.cmip7_ozone import (
 
 def parse_args():
     parser = ArgumentParser(
-        parents=[path_parser(), grid_parser(), ozone_parser()],
+        parents=[path_parser(), grid_parser(), ozone_parser(), ext_parser()],
         prog="cmip7_SM_ozone_generate",
         description=(
             "Generate input files from UK CMIP7 ScenarioMIP ozone forcings"
@@ -49,7 +51,16 @@ if __name__ == "__main__":
 
     # Load the CMIP7 datasets
     ozone_cube = load_cmip7_ozone(args)
+
     # Match the ESM1.5 mask
     esm_cube = fix_cmip7_ozone(args, ozone_cube)
+    if args.ext:
+        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
+        # Ozone input from UKESM contains 1 padding year at each boundary
+        # (e.g. 2021 and 2101). When extending to target_end_year (2150),
+        # tile to target_end_year + 1 (2151) to preserve UM end padding.
+        esm_cube = tile_constant_years(
+            esm_cube, CMIP7_SM_END_YEAR, target_end_year + 1
+        )
     # Save the ancillary
     save_cmip7_sm_ozone(args, esm_cube)
