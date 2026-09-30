@@ -150,7 +150,10 @@ def _extract_baseline_slice(cube, baseline_year):
         baseline_slice is None
         or len(baseline_slice.coord("time").points) != MONTHS_IN_A_YEAR
     ):
-        return cube[-MONTHS_IN_A_YEAR:].copy()
+        raise ValueError(
+            f"Baseline year {baseline_year} is missing or does not contain "
+            f"{MONTHS_IN_A_YEAR} months in {cube.name()}."
+        )
     return baseline_slice.copy()
 
 
