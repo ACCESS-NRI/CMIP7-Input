@@ -19,6 +19,17 @@ def load_solar_cube(path):
     return iris.load_cube(path, name_constraint)
 
 
+def replace_nan(cube, replacement):
+    """Replace NaNs and infinities in a cube's data in place."""
+    cube.data = np.nan_to_num(
+        cube.data,
+        copy=False,
+        nan=replacement,
+        posinf=replacement,
+        neginf=replacement,
+    )
+
+
 def compute_solar_yearly_mean(cube, start_year, end_year):
     """
     Calculate mean Total Solar Irradiance (TSI) values for each year and return them as a cube
@@ -31,7 +42,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     add_year(period, "time")
     # Calculate yearly mean
     yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
-    np.nan_to_num(yearly_means.data, copy=False, nan=REAL_MISSING_DATA_INDICATOR)
+    replace_nan(yearly_means, REAL_MISSING_DATA_INDICATOR)
     return yearly_means
 
 

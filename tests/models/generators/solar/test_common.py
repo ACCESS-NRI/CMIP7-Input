@@ -10,6 +10,7 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import REAL_MISSING
 from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     compute_solar_yearly_mean,
     load_solar_cube,
+    replace_nan,
     save_solar,
 )
 
@@ -31,6 +32,18 @@ def test_load_solar_cube(tmp_path, make_monthly_time_cube, make_cube):
 
 
 # ===================== solar_year_mean tests =====================
+def test_replace_nan_replaces_nan_and_infinite_values(make_cube):
+    """Replace all non-finite values with the sentinel, preserving finite values."""
+    cube = make_cube(np.array([np.nan, 1.5, np.inf, -np.inf]))
+
+    replace_nan(cube, REAL_MISSING_DATA_INDICATOR)
+
+    np.testing.assert_array_equal(
+        cube.data,
+        [REAL_MISSING_DATA_INDICATOR, 1.5, REAL_MISSING_DATA_INDICATOR, REAL_MISSING_DATA_INDICATOR],
+    )
+
+
 def test_compute_solar_yearly_mean_full_range(make_monthly_time_cube):
     """Test compute_solar_yearly_mean for full year range (1850-1852)."""
     input_cube = make_monthly_time_cube([2.0, 6.0, 10.0])
