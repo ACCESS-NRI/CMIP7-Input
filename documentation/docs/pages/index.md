@@ -1,5 +1,5 @@
 
-# Home
+# CMIP7 Inputs
 
 Welcome to the documentation for the [CMIP7 Inputs tools](https://github.com/ACCESS-NRI/cmip7-input)! 
 
