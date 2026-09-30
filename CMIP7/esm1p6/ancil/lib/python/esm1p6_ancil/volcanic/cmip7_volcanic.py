@@ -128,59 +128,39 @@ def taper_saod(
     return saod_array
 
 
-def save_year_tapered_saod(
-    year, tapered_saod_array, volcanic_end_year, save_file
-):
+def _save_year_saod(save_file, year, saod_year):
     """
-    Save one year's worth of interpolated saod values in save_file.
+    Save 12 monthly SAOD records for a given year to save_file.
     """
-    index = year - (volcanic_end_year + 1)
     for month in range(1, MONTHS_IN_A_YEAR + 1):
         print(f"{year:4d} {month:4d}", end="", file=save_file)
-
-        # Divide into latitude bands.
         for lat_band_nbr in range(NBR_OF_BANDS):
-            saod = tapered_saod_array[index, month - 1, lat_band_nbr]
-            print(
-                f"{saod:7.1f}",
-                end="",
-                file=save_file,
-            )
+            saod = saod_year[month - 1, lat_band_nbr]
+            print(f"{saod:7.1f}", end="", file=save_file)
         print(file=save_file)
 
 
-def print_early_saod(volcanic_beg_year, save_file, pi_mean_saod):
+def save_early_saod(volcanic_beg_year, save_file, pi_mean_saod):
     """
-    Print the PI average SOAD for all years before volcanic_beg_year
+    Save the PI average SAOD for all years before volcanic_beg_year
     """
+    early_saod = np.full((MONTHS_IN_A_YEAR, NBR_OF_BANDS), pi_mean_saod)
     for year in range(SAOD_BEG_YEAR, volcanic_beg_year):
-        for month in range(1, MONTHS_IN_A_YEAR + 1):
-            print(f"{year:4d} {month:4d}", end="", file=save_file)
-            # Divide into latitude bands.
-            for lat_band_nbr in range(NBR_OF_BANDS):
-                print(
-                    f"{pi_mean_saod:7.1f}",
-                    end="",
-                    file=save_file,
-                )
-            print(file=save_file)
+        _save_year_saod(save_file, year, early_saod)
 
 
-def _write_constant_saod(save_file, saod_for_end_year, start_year, end_year):
+def _save_constant_saod(save_file, saod_for_end_year, start_year, end_year):
     """Tile the 12 monthly SAOD values of volcanic_end_year to end_year."""
     for year in range(start_year, end_year + 1):
-        for month in range(1, MONTHS_IN_A_YEAR + 1):
-            print(f"{year:4d} {month:4d}", end="", file=save_file)
-            for lat_band_nbr in range(NBR_OF_BANDS):
-                saod = saod_for_end_year[month - 1, lat_band_nbr]
-                print(f"{saod:7.1f}", end="", file=save_file)
-            print(file=save_file)
+        _save_year_saod(save_file, year, saod_for_end_year)
 
 
-def _write_tapered_saod(
+def _save_tapered_saod(
     save_file, volcanic_end_year, save_end_year, saod_for_beg, saod_for_end
 ):
-    """Interpolate between saod_for_beg and saod_for_end and write to file."""
+    """
+    Interpolate between saod_for_beg and saod_for_end and save to file.
+    """
     tapered_saod_array = taper_saod(
         volcanic_end_year,
         save_end_year,
@@ -188,9 +168,8 @@ def _write_tapered_saod(
         saod_for_end,
     )
     for year in range(volcanic_end_year + 1, save_end_year + 1):
-        save_year_tapered_saod(
-            year, tapered_saod_array, volcanic_end_year, save_file
-        )
+        index = year - (volcanic_end_year + 1)
+        _save_year_saod(save_file, year, tapered_saod_array[index])
 
 
 def save_stratospheric_aerosol_optical_depth(
@@ -226,9 +205,9 @@ def save_stratospheric_aerosol_optical_depth(
     saod_for_beg_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     saod_for_end_year = np.zeros((MONTHS_IN_A_YEAR, NBR_OF_BANDS))
     with open(save_filepath, "w") as save_file:
-        # Print the PI average SOAD for all years before volcanic_beg_year.
+        # Save the PI average SAOD for all years before volcanic_beg_year.
         if volcanic_beg_year > save_beg_year and pi_mean_saod is not None:
-            print_early_saod(volcanic_beg_year, save_file, pi_mean_saod)
+            save_early_saod(volcanic_beg_year, save_file, pi_mean_saod)
 
         # Iterate over years and months.
         for year in range(volcanic_beg_year, volcanic_end_year + 1):
@@ -263,14 +242,14 @@ def save_stratospheric_aerosol_optical_depth(
                 print(file=save_file)
         if save_end_year > volcanic_end_year:
             if hold_constant:
-                _write_constant_saod(
+                _save_constant_saod(
                     save_file,
                     saod_for_end_year,
                     volcanic_end_year + 1,
                     save_end_year,
                 )
             else:
-                _write_tapered_saod(
+                _save_tapered_saod(
                     save_file,
                     volcanic_end_year,
                     save_end_year,
