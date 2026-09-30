@@ -30,9 +30,7 @@ def compute_solar_yearly_mean(cube, start_year, end_year):
     period = cube.extract(iris.Constraint(time=lambda cell: start_year <= cell.point.year <= end_year))
     add_year(period, "time")
     # Calculate yearly mean
-    yearly_means = period.aggregated_by(
-        "year", iris.analysis.MEAN
-    )
+    yearly_means = period.aggregated_by("year", iris.analysis.MEAN)
     np.nan_to_num(yearly_means.data, copy=False, nan=REAL_MISSING_DATA_INDICATOR)
     return yearly_means
 
