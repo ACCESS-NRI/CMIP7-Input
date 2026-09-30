@@ -157,96 +157,49 @@ def _extract_baseline_slice(cube, baseline_year):
     return baseline_slice.copy()
 
 
-def _calc_annual_time_increment(time_coord):
-    time_points = time_coord.points
-    if len(time_points) >= MONTHS_IN_A_YEAR * 2:
-        length = time_points[-1] - time_points[-1 - MONTHS_IN_A_YEAR]
-    else:
-        units = time_coord.units
-        d0 = units.num2date(time_points[0])
-        d1 = d0.replace(year=d0.year + 1)
-        length = units.date2num(d1) - units.date2num(d0)
-    if np.issubdtype(time_coord.points.dtype, np.integer):
-        return int(round(length))
-    return length
-
-
-def _shift_time_coord(tc, shift, p_dtype, b_dtype, ref_metadata):
-    if np.issubdtype(p_dtype, np.integer):
-        tc.points = (tc.points + shift).astype(p_dtype)
-    else:
-        tc.points = tc.points + shift
-
-    if tc.has_bounds():
-        if b_dtype is not None and np.issubdtype(b_dtype, np.integer):
-            tc.bounds = (tc.bounds + shift).astype(b_dtype)
-        else:
-            tc.bounds = tc.bounds + shift
-
-    tc.metadata = ref_metadata
-
-
-def _sync_cube_time_coord(cube, target_p_dtype, target_b_dtype, ref_metadata):
-    tc = cube.coord("time")
-    if tc.points.dtype != target_p_dtype:
-        if np.issubdtype(target_p_dtype, np.integer):
-            tc.points = np.rint(tc.points).astype(target_p_dtype)
-        else:
-            tc.points = tc.points.astype(target_p_dtype)
-    if tc.has_bounds() and target_b_dtype is not None:
-        if tc.bounds.dtype != target_b_dtype:
-            if np.issubdtype(target_b_dtype, np.integer):
-                tc.bounds = np.rint(tc.bounds).astype(target_b_dtype)
-            else:
-                tc.bounds = tc.bounds.astype(target_b_dtype)
-    tc.metadata = ref_metadata
-
-
 def tile_constant_years(cube, baseline_year, target_end_year):
     """
     Extend a monthly time series cube from baseline_year to target_end_year
-    by repeating the 12 monthly time slices of baseline_year for each
-    subsequent year. Shifts time points and bounds by
-    length_one_year * (y - baseline_year), matching the logic of
-    extend_years() to preserve bounds monotonicity and coordinate dtype.
+    by repeating the 12 monthly slices of baseline_year for subsequent years.
+    Shifts time points and bounds using cftime year replacement to avoid
+    leap-year calendar drift.
     """
     if target_end_year <= baseline_year:
         return cube
 
-    time_coord = cube.coord("time")
     baseline_slice = _extract_baseline_slice(cube, baseline_year)
-    length_one_year = _calc_annual_time_increment(time_coord)
-
-    # If the cube contains any years beyond baseline_year (e.g. padding),
-    # trim up to baseline_year to avoid overlapping cubes on concatenation.
     trimmed_cube = cube.extract(
         iris.Constraint(time=lambda cell: cell.point.year <= baseline_year)
     )
     if trimmed_cube is not None:
         cube = trimmed_cube
 
-    target_p_dtype = time_coord.points.dtype
-    target_b_dtype = (
-        time_coord.bounds.dtype if time_coord.has_bounds() else None
-    )
-
+    units = cube.coord("time").units
     cubelist = iris.cube.CubeList([cube])
+
     for y in range(baseline_year + 1, target_end_year + 1):
         year_cube = baseline_slice.copy()
-        shift = length_one_year * (y - baseline_year)
-        _shift_time_coord(
-            year_cube.coord("time"),
-            shift,
-            target_p_dtype,
-            target_b_dtype,
-            time_coord.metadata,
+        tc = year_cube.coord("time")
+        nyears = y - baseline_year
+        tc.points = np.array(
+            [
+                units.date2num(d.replace(year=d.year + nyears))
+                for d in units.num2date(tc.points)
+            ],
+            dtype=tc.points.dtype,
         )
+        if tc.has_bounds():
+            tc.bounds = np.array(
+                [
+                    [
+                        units.date2num(b[0].replace(year=b[0].year + nyears)),
+                        units.date2num(b[1].replace(year=b[1].year + nyears)),
+                    ]
+                    for b in units.num2date(tc.bounds)
+                ],
+                dtype=tc.bounds.dtype,
+            )
         cubelist.append(year_cube)
-
-    for c in cubelist:
-        _sync_cube_time_coord(
-            c, target_p_dtype, target_b_dtype, time_coord.metadata
-        )
 
     equalise_attributes(cubelist)
     return cubelist.concatenate_cube()
