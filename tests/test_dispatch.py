@@ -5,8 +5,10 @@ yourself the mechanics are right without wading through real
 processing code.
 """
 
-from cmip7_inputs.core.dispatch import generate_inputs
 import pytest
+
+from cmip7_inputs.core.dispatch import generate_inputs
+
 
 @pytest.mark.parametrize(
     "model, experiment, input_name",
