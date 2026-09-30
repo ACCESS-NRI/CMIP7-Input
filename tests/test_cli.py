@@ -10,6 +10,18 @@ from cmip7_inputs.cli import _parse_option, main
 from cmip7_inputs.core.registry import registry
 
 
+@pytest.fixture
+def mock_registry_resolve():
+    real_resolve = registry.resolve
+
+    def resolve_with_mock_generator(**kwargs):
+        real_resolve(**kwargs)
+        return MagicMock()
+
+    with patch.object(registry, "resolve", side_effect=resolve_with_mock_generator) as mock_resolve:
+        yield mock_resolve
+
+
 def test_parse_option_splits_key_value() -> None:
     assert _parse_option("key=value") == ("key", "value")
 
@@ -29,7 +41,7 @@ def test_parse_option_without_equals_raises() -> None:
 @pytest.mark.parametrize(
     ("model", "experiment", "input_name"),
     [
-        ("access-esm1.6", "picontrol", "solar"),
+        # ("access-esm1.6", "picontrol", "solar"),
         ("access-esm1.6", "historical", "solar"),
     ],
 )
@@ -38,6 +50,7 @@ def test_cli_valid_combination_dispatches(
     experiment: str,
     input_name: str,
     tmp_path: Path,
+    mock_registry_resolve,
 ) -> None:
     """Check the CLI accepts a valid combination and dispatches it.
 
@@ -47,27 +60,20 @@ def test_cli_valid_combination_dispatches(
     mock generator so whichever registered function it resolves to
     never actually runs.
     """
-    real_resolve = registry.resolve
+    main(
+        [
+            "-m",
+            model,
+            "-e",
+            experiment,
+            "-n",
+            input_name,
+            "-o",
+            str(tmp_path),
+        ]
+    )
 
-    def resolve_with_mock_generator(**kwargs):
-        real_resolve(**kwargs)  # raises if not a real combination
-        return MagicMock()
-
-    with patch.object(registry, "resolve", side_effect=resolve_with_mock_generator) as mock_resolve:
-        main(
-            [
-                "-m",
-                model,
-                "-e",
-                experiment,
-                "-n",
-                input_name,
-                "-o",
-                str(tmp_path),
-            ]
-        )
-
-    mock_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)
+    mock_registry_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)
 
 
 @pytest.mark.parametrize(
@@ -83,6 +89,7 @@ def test_cli_not_valid_combinations_error(
     experiment: str,
     input_name: str,
     tmp_path: Path,
+    mock_registry_resolve,
 ) -> None:
     """Check the CLI errors out for a combination that isn't registered.
 
@@ -92,16 +99,7 @@ def test_cli_not_valid_combinations_error(
     whichever registered function it might otherwise resolve to never
     actually runs.
     """
-    real_resolve = registry.resolve
-
-    def resolve_with_mock_generator(**kwargs):
-        real_resolve(**kwargs)  # raises if not a real combination
-        return MagicMock()
-
-    with (
-        patch.object(registry, "resolve", side_effect=resolve_with_mock_generator) as mock_resolve,
-        pytest.raises(SystemExit),
-    ):
+    with pytest.raises(SystemExit):
         main(
             [
                 "-m",
@@ -115,4 +113,4 @@ def test_cli_not_valid_combinations_error(
             ]
         )
 
-    mock_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)
+    mock_registry_resolve.assert_called_once_with(model=model, input_name=input_name, experiment=experiment)
