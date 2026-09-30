@@ -29,10 +29,9 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    is_ext = getattr(args, "ext", False)
     target_end_year = (
-        (getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR)
-        if is_ext
+        (args.end_year or CMIP7_SM_EXT_END_YEAR)
+        if args.ext
         else CMIP7_SM_END_YEAR
     )
 

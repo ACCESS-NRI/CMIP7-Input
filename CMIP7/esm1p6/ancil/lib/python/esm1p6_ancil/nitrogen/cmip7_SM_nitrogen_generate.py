@@ -58,10 +58,8 @@ if __name__ == "__main__":
 
     # Regrid to match the ESM1.5 mask and extend the time series
     esm_cube = regrid_cmip7_nitrogen(args, nitrogen_cube)
-    if getattr(args, "ext", False):
-        target_end_year = (
-            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-        )
+    if args.ext:
+        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
         esm_cube = tile_constant_years(
             esm_cube, CMIP7_SM_END_YEAR, target_end_year
         )

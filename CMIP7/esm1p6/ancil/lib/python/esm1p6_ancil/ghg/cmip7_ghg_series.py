@@ -23,12 +23,10 @@ def load_cmip7_ghg_series_mmr(args, activity, ghg, beg_year, end_year):
     # Read in the CMIP7 cube.
     full_cube = iris.load_cube(cmip7_filepath)
 
-    if end_year > 2100:
-        ext_version = getattr(args, "dataset_ext_version", None)
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
-            args, "dataset_vdate", None
-        )
-        ext_date_range = getattr(args, "dataset_ext_date_range", None)
+    if getattr(args, "ext", False):
+        ext_version = args.dataset_ext_version
+        ext_vdate = args.dataset_ext_vdate
+        ext_date_range = args.dataset_ext_date_range
         ext_filename = (
             f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
             f"{ext_version}_gm_{ext_date_range}.nc"

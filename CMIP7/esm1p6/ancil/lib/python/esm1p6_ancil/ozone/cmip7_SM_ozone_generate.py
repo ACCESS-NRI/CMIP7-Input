@@ -54,10 +54,8 @@ if __name__ == "__main__":
 
     # Match the ESM1.5 mask
     esm_cube = fix_cmip7_ozone(args, ozone_cube)
-    if getattr(args, "ext", False):
-        target_end_year = (
-            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-        )
+    if args.ext:
+        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
         # Ozone input from UKESM contains 1 padding year at each boundary
         # (e.g. 2021 and 2101). When extending to target_end_year (2150),
         # tile to target_end_year + 1 (2151) to preserve UM end padding.

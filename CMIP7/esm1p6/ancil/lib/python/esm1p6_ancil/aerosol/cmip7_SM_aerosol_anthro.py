@@ -109,19 +109,14 @@ def cmip7_sm_aerosol_air_ext_anthro_filepath(
 
 
 def load_cmip7_sm_aerosol_air_anthro(args, species):
-    is_ext = getattr(args, "ext", False)
     target_end_year = CMIP7_SM_END_YEAR
     ext_cube = None
 
-    if is_ext:
-        ext_version = getattr(args, "dataset_air_ext_version", None)
-        ext_vdate = getattr(args, "dataset_air_ext_vdate", None) or getattr(
-            args, "dataset_air_vdate", None
-        )
-        ext_date_range = getattr(args, "dataset_air_ext_date_range", None)
-        target_end_year = (
-            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-        )
+    if args.ext:
+        ext_version = args.dataset_air_ext_version
+        ext_vdate = args.dataset_air_ext_vdate
+        ext_date_range = args.dataset_air_ext_date_range
+        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
         ext_path = cmip7_sm_aerosol_air_ext_anthro_filepath(
             args, species, ext_date_range, ext_version, ext_vdate
         )
@@ -157,19 +152,14 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
 
 
 def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
-    is_ext = getattr(args, "ext", False)
     target_end_year = CMIP7_SM_END_YEAR
     ext_cube = None
 
-    if is_ext:
-        ext_version = getattr(args, "dataset_ext_version", None)
-        ext_vdate = getattr(args, "dataset_ext_vdate", None) or getattr(
-            args, "dataset_vdate", None
-        )
-        ext_date_range = getattr(args, "dataset_ext_date_range", None)
-        target_end_year = (
-            getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR
-        )
+    if args.ext:
+        ext_version = args.dataset_ext_version
+        ext_vdate = args.dataset_ext_vdate
+        ext_date_range = args.dataset_ext_date_range
+        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
         ext_path = cmip7_sm_aerosol_ext_anthro_filepath(
             args, species, ext_date_range, ext_version, ext_vdate
         )

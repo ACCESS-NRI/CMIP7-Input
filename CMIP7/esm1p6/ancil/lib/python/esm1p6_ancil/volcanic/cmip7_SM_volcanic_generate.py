@@ -59,13 +59,12 @@ def save_sm_stratospheric_aerosol_optical_depth(
     for each historical month by averaging extinction over latitude,
     and summing over stratospheric layers. Save to the save file.
     """
-    is_ext = getattr(args, "ext", False)
     target_end_year = (
-        (getattr(args, "end_year", None) or CMIP7_SM_EXT_END_YEAR)
-        if is_ext
+        (args.end_year or CMIP7_SM_EXT_END_YEAR)
+        if args.ext
         else CMIP7_SM_VOLCANIC_END_YEAR
     )
-    hold_constant = is_ext
+    hold_constant = args.ext
 
     if args.pad:
         save_stratospheric_aerosol_optical_depth(
