@@ -17,6 +17,7 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
     load_solar_cube,
     save_solar,
 )
+from cmip7_inputs.models.access_esm1p6.generators.solar._picontrol import patch_pi_solar
 
 # ------------------------------------------------------
 # ------------------- HISTORICAL -----------------------
@@ -25,7 +26,6 @@ from cmip7_inputs.models.access_esm1p6.generators.solar._common import (
 # -O dataset-version=SOLARIS-HEPPA-CMIP-4-6 -O dataset-vdate=v20250219
 # -O dataset-date-range=185001-202312 -O save-filename=TSI_CMIP7_ESM
 # -O cmip7-source-data-dirname=/input_test -O ancil_target_dirname=/ancil_dirname
-
 
 @registry.register(
     model=MODEL_ID,
@@ -50,17 +50,21 @@ def generate_solar_historical(request: GenerationRequest):
 # ------------------- PI CONTROL -----------------------
 # ------------------------------------------------------
 
-# @registry.register(
-#     model=MODEL_ID,
-#     input_name=input_names.SOLAR,
-#     experiments=[experiments.PI_CONTROL],
-# )
-# def generate_solar_picontrol(request: GenerationRequest) -> Path:
-#     """Generate solar forcing input file for:
-#     model: ACCESS-ESM1.6
-#     experiment: piControl
+@registry.register(
+    model=MODEL_ID,
+    input_name=input_names.SOLAR,
+    experiments=[experiments.PI_CONTROL],
+)
+def generate_solar_picontrol(request: GenerationRequest) :
+    """Modify solar forcing namelist for:
+    model: ACCESS-ESM1.6
+    experiment: piControl
 
-#     Placeholder processing that writes a text file describing the
-#     request instead of real solar forcing data.
-#     """
-#     return write_mock_solar_file(request)
+    Placeholder processing that writes a text file describing the
+    request instead of real solar forcing data.
+    """
+    
+    solar_irradiance_cube = load_solar_cube(request.options["input_filepath"])
+
+    # Patch the SC variable in the coupling namelist
+    patch_pi_solar(solar_irradiance_cube[0].data)

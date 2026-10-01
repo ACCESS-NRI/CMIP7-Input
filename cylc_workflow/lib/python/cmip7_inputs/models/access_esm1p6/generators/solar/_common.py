@@ -10,7 +10,6 @@ from cmip7_inputs.models.access_esm1p6.generators._constants import (
     REAL_MISSING_DATA_INDICATOR,
 )
 
-
 def load_solar_cube(path):
     """
     Loads the solar irradiance cube from an ancil file
