@@ -15,6 +15,13 @@ from ozone.cmip7_ozone import (
 
 
 def parse_args():
+    """Parse command-line arguments for historical UKESM ozone ancillary
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, grid, and
+            ozone dataset options.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ozone_parser()],
         prog="cmip7_HI_ozone_generate",
@@ -26,6 +33,17 @@ def parse_args():
 
 
 def esm_hi_ozone_save_dirpath(args):
+    """Construct the destination directory path for historical ozone ancillary
+    files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under
+            modern/historical/atmosphere/forcing/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -38,6 +56,14 @@ def esm_hi_ozone_save_dirpath(args):
 
 
 def save_cmip7_hi_ozone(args, cube):
+    """Write the processed historical ozone cube to an ancillary file with
+    replaced bounds.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path and filename.
+        cube (iris.cube.Cube): Harmonized ozone cube to save.
+    """
     # Save as an ancillary file
     save_dirpath = esm_hi_ozone_save_dirpath(args)
     save_ancil(cube, save_dirpath, args.save_filename, replace_bounds=True)
