@@ -1,10 +1,3 @@
-/*
-   ACCESS-Hive Docs CSS
-*/
-
-/* Import medium-weight Roboto font for tabs */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500&display=swap');
-
 :root {
   --nri-green-color: 165, 205, 58; 
   --nri-orange-color: 249, 166, 28; 
@@ -179,20 +172,8 @@
   --tooltip-border-color: #a3a5a9; /* Tooltip border color */
 }
 
-/* Set rem based on viewport width */
-@media (width > 500px) {
-  :root {
-    font-size: calc(16px + 9 * ((100vw - 500px) / (2000 - 500)));
-  }
-}
-@media (width <= 500px) {
-  :root {
-    font-size: 16px;
-  }
-}
-
 /* =============================================================== 
-  Cards for ACCESS-Hive Docs navigation, model components, model tabs, MED stuff
+  Cards
 */
 /* Flexbox container for cards*/
 .card-container {
@@ -202,14 +183,14 @@
   align-items: center;
   align-content: center;
   flex-wrap: wrap;
-  column-gap: 1.5rem;
+  column-gap: 1rem;
   row-gap: 0.8rem;
 }
 
 /* Single card */
 .card-container > * {
   border: var(--border-width) solid var(--card-borders);
-  border-radius: 0.6rem;
+  border-radius: 0.6em;
   box-shadow: 0.28rem 0.28rem 0.45rem var(--card-shadows);
   overflow: hidden;
 }
@@ -228,11 +209,11 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  width: clamp(100px,30%,250px);
+  width: clamp(100px,20%,250px);
   min-height: 0;
   container-type: inline-size;
-  padding: 0.4rem;
-  gap: 0.2rem;
+  padding: 0.5em;
+  gap: 0.2em;
 }
 
 .horizontal-card {
@@ -241,14 +222,15 @@
   justify-content: center;
   align-items: stretch;
   width: 100%;
-  height: 6rem;
-  padding: 0.4rem;
-  gap: 0.4rem;
+  aspect-ratio: 8/1;
+  padding: 0.5em;
+  gap: 0.4em;      
+  box-sizing: border-box;
 }
 
 .card-text-container {
   color: var(--md-default-fg-color);
-  font-size: 1.2em;
+  font-size: 1em;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -291,8 +273,10 @@
   border-radius: 0.35rem;
 }
 
+/* Horizontal card title */
 .horizontal-card > .card-text-container > *:first-child:not(:only-child) {
   margin-bottom: 0.5em;
+  font-size: 1.2em;
 }
 
 /* Text card */
@@ -303,8 +287,6 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0;
-  /* column-gap: 0.5em;
-  row-gap: 0; */
 }
 
 .text-card {
@@ -371,95 +353,6 @@ h6 {
     margin: 0.7em 0 0.3em !important;
 }
 
-/* =============================================================== 
-  Homepage
-*/
-/* Hide Title */
-h1.homepage {
-  display: none;
-}
-
-/*
- Introductory paragraph 
-*/
-.introduction {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: stretch;
-  margin-bottom: 0.8rem;
-  width: 100%;
-  text-align: center;
-}
-/* Text */
-.introduction > :first-child {
-  flex-basis: 80%;
-  font-size: 1.3rem;
-}
-.introduction > :first-child > :first-child {
-  font-weight: 600;
-  font-size: 1.8rem;
-}
-/* Logo */
-.introduction > :last-child {
-  flex-basis: 20%;
-  display: flex;
-  align-items: center;
-}
-.introduction > :last-child > img {
-  max-height: 5rem;
-  margin-left: 0.5rem;
-}
-
-
-/* Lower text on all homepage cards*/
-:is(.homepage-buttons,.homepage-navigation) .card-text-container {
-  color: var(--tab-text);
-  font-size: 12cqi;
-}
-:is(.homepage-buttons,.homepage-navigation) .card-text-container > * {
-  border-radius: 0.4rem;
-  background-color: var(--md-primary-fg-color--dark);
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-/* Buttons After introductory paragraph */
-.homepage-buttons {
-  justify-content: space-around;
-  align-items: stretch;
-  gap: 10%;
-  flex-wrap: nowrap;
-  margin-bottom: 1.5rem;
-}
-.homepage-buttons > * {
-  width: 100%;
-}
-
-.homepage-buttons > .vertical-card > :first-child {
-  color: var(--md-default-fg-color);
-  font-size: 1.2em;
-}
-.homepage-buttons .card-text-container {
-  height: 1.8em;
-  font-size: 2em;
-}
-
-/* Navigation cards in homepage */
-.homepage-navigation {
-  justify-content: space-around;
-  flex-wrap: nowrap;
-}
-
-.acknowledgement-img {
-  height: 10em !important;
-  width: 100%;
-  object-fit: cover;
-  border-radius: 0.5rem;
-}
 
 /* =============================================================== 
   Back to top button
@@ -775,7 +668,7 @@ details.code {
 }
 
 /* =============================================================== 
-  Left Navigation and right "On this page" navigation 
+  Left Navigation and right "On this page" navigation (TOC)
 */
 .md-nav--primary {
   font-size: 1.7em;
@@ -802,6 +695,23 @@ details.code {
 /* Hide navigation part toggling from burger menu if it has no subpages (e.g. Home) */
 .md-nav__item--active [data-md-level="1"].md-nav:not(:has(li)) {
   visibility: hidden;
+}
+
+/* TOC Level 1 link */
+.md-nav--secondary .md-nav__item .md-nav__link {
+  font-weight: 550;
+}
+/* TOC Level 2 link */
+.md-nav--secondary .md-nav__item .md-nav__item .md-nav__link {
+  font-weight: 400;
+}
+/* TOC Level 3 link */
+.md-nav--secondary .md-nav__item .md-nav__item .md-nav__item .md-nav__link {
+  font-weight: 300;
+}
+/* TOC Level 4 link */
+.md-nav--secondary .md-nav__item .md-nav__item .md-nav__item .md-nav__link {
+  font-weight: 200;
 }
 
 /* =============================================================== 
@@ -904,6 +814,10 @@ details.code {
   align-self: center;
 }
 
+.md-footer-meta__inner.md-grid {
+  text-align: center;
+}
+
 /* =============================================================== 
   Header 
 */
@@ -934,13 +848,9 @@ details.code {
 }
 
 /* Adjust anchors to links */
-:target::before {
-  content: "";
-  display: block;
-  height: 1rem; /* This identifies the distance of the element from the banner when clicking on an achor link */
-  margin-top: -1rem; /* This should be match the height with the sign switched */
+.md-content [id] {
+  scroll-margin-top: 7rem !important;
 }
-
 
 /* Tab section */
 .md-tabs {
@@ -1003,7 +913,7 @@ details.code {
   gap: 0.2rem;
   border-radius: 0.3rem;
   border: 1px solid;
-  padding: 0 0.3em;
+  padding: 0 0.3rem;
   height: 1.6rem;
   color: var(--md-primary-bg-color);
 }
@@ -1099,9 +1009,49 @@ pre>code {
   word-break: break-all !important;
 }
 
+pre>nav {
+  background-color: unset !important;
+}
+
 /* Copy icon turning orange when hovering over it*/
 pre > button:is(:hover,:focus).md-clipboard {
   color: var(--md-primary-fg-color--dark) !important;
+}
+
+/* =============================================================== 
+  Jupyter Notebooks code blocks
+*/
+.jupyter-code.highlight-ipynb {
+    --jp-mirror-editor-keyword-color: var(--md-code-hl-keyword-color);
+    --jp-mirror-editor-comment-color: var(--md-code-hl-comment-color);
+    --jp-mirror-editor-variable-color: var(--md-code-hl-variable-color);
+    --jp-mirror-editor-punctuation-color: var(--md-code-hl-punctuation-color);
+    --jp-mirror-editor-number-color: var(--md-code-hl-number-color);
+    --jp-mirror-editor-generic-color: var(--md-code-hl-generic-color);
+    --jp-mirror-editor-operator-color: var(--md-code-hl-operator-color);
+    --jp-mirror-editor-string-color: var(--md-code-hl-string-color);
+    --jp-cell-editor-background: var(--md-code-bg-color);
+    & .nn {
+        color: var(--md-code-hl-function-color);
+    }
+    & .n {
+        color: var(--md-code-hl-name-color);
+    }
+    & > pre {
+        padding: 0.5em 0.8em !important;
+    }
+}
+.jupyter-wrapper .zeroclipboard-container clipboard-copy .clipboard-copy-icon {
+    color: var(--md-default-fg-color--lightest);
+}
+.jupyter-wrapper:has(.highlight-ipynb.jupyter-code:hover) .zeroclipboard-container clipboard-copy .clipboard-copy-icon {
+    color: var(--md-default-fg-color--light);
+}
+.jupyter-wrapper .zeroclipboard-container clipboard-copy:hover .clipboard-copy-icon {
+    color: var(--md-accent-fg-color);
+}
+.jupyter-wrapper .jp-CodeMirrorEditor.jp-Editor.jp-InputArea-editor {
+    border: unset;
 }
 
 /* =============================================================== 
@@ -1138,29 +1088,35 @@ pre > button:is(:hover,:focus).md-clipboard {
   word-break: normal;
 }
 
+.terminal-switch-container {
+    position: relative;
+    float: right;
+    height: 1.2rem;
+    margin: 0.4rem 0.2rem;
+}
+
 img.terminal-switch {
+  height: 100%;
+}
+
+img.terminal-switch.inactive {
   position: absolute;
-  right: 0;
-  top: -0.5em;
-  height: 1.5rem;
-  margin: 0.5rem 0.2rem;
+  left: 0;
+  top: 0;
+  z-index: 1;
 }
 
 img.terminal-switch:hover {
   cursor: pointer;
 }
 
-.terminal-switch-container {
-    position: relative;
-}
-
 .terminal-switch-tooltip {
     position: absolute;
     display: inline-block;
     z-index: 1;
-    right: 2em;
-    top: 2em;
-    max-width: 30vw;
+    right: 1.6em;
+    top: 1.1em;
+    width: clamp(20vw,10rem,30vw);
     font-size: 0.7em;
     background-color: var(--tooltip-background);
     border: solid 1.5px var(--tooltip-border-color);
@@ -1225,6 +1181,17 @@ img.terminal-switch:hover ~ .terminal-switch-tooltip {
 .git-cyan {
     color: #00C6C7;
 }
+.payu-yellow {
+  color:#ecff1e;
+}
+.payu-red {
+  color: #b78683;
+}
+.payu-dark-yellow {
+  color: #f9bd26;
+}
+
+
 
 /* =============================================================== 
   General styling for html tabs
@@ -1235,7 +1202,6 @@ img.terminal-switch:hover ~ .terminal-switch-tooltip {
   display: flex;
   flex-wrap: wrap;
   width: fit-content;
-  overflow: auto;
   margin-top: 1em;
   gap: 1px;
   font-size: 0.9em;
@@ -1250,7 +1216,6 @@ img.terminal-switch:hover ~ .terminal-switch-tooltip {
   flex-shrink: 0;
   font-weight: 700;
   padding: 0.78125em 1.25em 0.625em;
-  scroll-margin-inline-start: 1rem;
   transition: background-color .25s;
   white-space: nowrap;
   width: auto;
@@ -1274,8 +1239,8 @@ img.terminal-switch:hover ~ .terminal-switch-tooltip {
 [tabcontentfor] {
   display: none;
 }
-[tabcontentfor].activeTab {
-  display: contents;
+[tabcontentfor].activeContent {
+  display: revert;
 }
 
 /* =============================================================== 
@@ -1384,6 +1349,10 @@ img.intro-img {
   color: var(--nri-green);
 }
 
+.nri-danger-color {
+    color: var(--danger);
+}
+
 .small-text {
   font-size: 0.92em !important;
 }
@@ -1396,14 +1365,12 @@ img.intro-img {
   font-size: 1.4em !important;
 }
 
-.display-block {
-  display: block;
+.underline {
+  text-decoration: underline;
 }
 
-.vertical-card-half-width {
-  flex-direction: column;
-  max-width: 48%;
-  height: 20em;
+.display-block {
+  display: block;
 }
 
 .green_prompt_output {
@@ -1419,125 +1386,4 @@ img.intro-img {
   margin-right: 0.5em;
   font-size: 1.5rem;
   width: 1.5rem;
-}
-/* =============================================================== 
-  Media queries for website responsiveness
-*/
-
-@media screen and (width < 800px) {
-  /* Make gap scale with viewport width */
-  .homepage-buttons {
-    gap: 5vw;
-  }
-  /* Hide upper text in homepage buttons */
-  .homepage-buttons > .vertical-card > :first-child {
-    display: none;
-  }
-  /* Lower text in homepage buttons */
-  .homepage-buttons > .vertical-card > :last-child {
-    font-size: calc(2.9vw + 0.15rem);
-  }
-  /* Homepage buttons Cards */
-  .homepage-buttons > .vertical-card {
-    background-color: var(--md-primary-fg-color--dark);
-    height: 8vw;
-    border-radius: 2vw;
-  }
-}
-
-@media screen and (width > 650px) {
-  .small-card {
-    max-height: 5rem;
-    max-width: 40%;
-  }
-}
-@media screen and (width <= 650px) {
-  .vertical-card {
-    width: 40%;
-  }
-  
-  /* Change the horizontal card to be rendered as a vertical one with aspect-ratio 1 */
-  .horizontal-card {
-    align-items: center;
-    flex-direction: column;
-    height: auto;
-    aspect-ratio: 1;
-    width: 40%;
-    container-type: inline-size;
-  }
-  .horizontal-card > .card-text-container {
-    height: 30%;
-    flex: 0 0 auto;
-    font-size: 10cqi;
-    font-weight: 600;
-  }
-  .horizontal-card > .card-text-container > *:last-child:not(:only-child) {
-    display: none;
-  }
-  .horizontal-card > .card-text-container > *:first-child:not(:only-child) {
-    margin-bottom: 0;
-  }
-  .horizontal-card > .card-image-container {
-    flex-basis: 70%;
-  }
-  /* Wrap homepage navigation cards */
-  .homepage-navigation {
-    flex-wrap: wrap;
-  }
-
-  /* Make squared btn */
-  .header-btn {
-    flex-basis: 0;
-    flex-grow: 0;
-    aspect-ratio: 1;
-    justify-self: start;
-    height: 2rem;
-  }
-  /* Increase btn Logos */
-  .header-btn > :first-child > * {
-    font-size: 1.8em;
-  }
-  /* Hide btn Text */
-  .header-btn >:last-child {
-    display: none;
-  }
-  
-  /* Homepage introduction paragraph */
-  /* Upper text */
-  .introduction > :first-child > :first-child {
-    font-size: calc(4.9vw + 0.15rem);
-  }
-  /* Lower text */
-  .introduction > :first-child > :last-child {
-    font-size: calc(2.9vw + 0.15rem);
-   }
-  
-  /* Footer */
-  :is(.funding,.partners) > *:first-child {
-    font-size: calc(1vw + 0.5rem);
-  }
-  :is(.funding,.partners) > *:last-child a {
-    max-width: calc(6vw + 2rem);
-  }
-
-  .md-footer-meta__inner {
-    flex-direction: column;
-  }
-  .md-footer-meta__inner > * {
-    gap: 1rem;
-  }
-}
-
-@media screen and (width <= 450px) {
-  /* Hide title in header */
-  .md-header__title {
-    visibility: hidden;
-  }
-}
-
-/* Keep logo always visible for mobile devices */
-@media screen and (max-width: 76.1875em) {
-  .md-header__button.md-logo {
-    display: flex;
-  }
 }
