@@ -4,3 +4,5 @@ mkdocs-macros-plugin==1.0.4
 mkdocs-bibtex==4.4.0
 pypandoc_binary==1.15
 git+https://github.com/rbeucher/mkdocs_events_plugin.git
+sphinx>=8.0.0
+sphinx-rtd-theme>=3.1.0

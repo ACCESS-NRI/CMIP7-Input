@@ -17,6 +17,15 @@ from cmip7_ancil_common import (
 
 
 def _biomass_dirpath(args, species):
+    """Construct the source directory path for CMIP7 biomass burning datasets.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Species name (e.g. 'BC', 'OC', or percentage variable).
+
+    Returns:
+        pathlib.Path: Source directory path.
+    """
     return (
         Path(args.cmip7_source_data_dirname)
         / "CMIP"
@@ -31,6 +40,16 @@ def _biomass_dirpath(args, species):
 
 
 def cmip7_aerosol_biomass_filepath(args, species, date_range):
+    """Construct the file path for a CMIP7 biomass burning netCDF file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Species or percentage variable name.
+        date_range (str): Date range string.
+
+    Returns:
+        pathlib.Path: NetCDF file path.
+    """
     dirpath = _biomass_dirpath(args, species)
     filename = (
         f"{species}_input4MIPs_emissions_CMIP_"
@@ -41,6 +60,18 @@ def cmip7_aerosol_biomass_filepath(args, species, date_range):
 
 
 def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
+    """Load a biomass burning emission or percentage cube, zero-filling missing
+    ocean values.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Species or percentage variable name.
+        date_range (str): Date range string.
+        constraint (iris.Constraint or None): Loading constraint.
+
+    Returns:
+        iris.cube.Cube: Loaded and zero-filled Iris cube.
+    """
     cube = load_cmip7_aerosol(
         args, cmip7_aerosol_biomass_filepath, species, date_range, constraint
     )
@@ -51,6 +82,18 @@ def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
 
 
 def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
+    """Load, concatenate, and zero-fill biomass burning cubes across multiple
+    date range files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Species or percentage variable name.
+        date_range_list (list of str): List of date range strings.
+        constraint (iris.Constraint or None): Loading constraint.
+
+    Returns:
+        iris.cube.Cube: Concatenated and zero-filled continuous Iris cube.
+    """
     cube = load_cmip7_aerosol_list(
         args,
         cmip7_aerosol_biomass_filepath,
@@ -68,6 +111,24 @@ force_load = True
 
 
 def split_frac_low_high(args, load_pc_fn, species):
+    """Compute low-level and high-level biomass emission fraction cubes using
+    concurrent loading.
+
+    Loads 6 fire emission sources ('AGRI', 'BORF', 'DEFO', 'PEAT', 'SAVA',
+    'TEMF') in parallel.
+    Partitions into low-level (AGRI, PEAT, SAVA) and high-level (BORF, DEFO,
+    TEMF) fractions
+    following the UK Met Office CMIP6 methodology.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        load_pc_fn (callable): Callback to load percentage cubes.
+        species (str): Species name ('BC' or 'OC').
+
+    Returns:
+        tuple of (iris.cube.Cube, iris.cube.Cube): (frac_low, frac_high)
+            fraction cubes.
+    """
     sources = ["AGRI", "BORF", "DEFO", "PEAT", "SAVA", "TEMF"]
     pc = dict()
     futures = dict()
@@ -95,6 +156,21 @@ def split_frac_low_high(args, load_pc_fn, species):
 
 
 def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
+    """Combine BC and OC biomass emissions into low/high injection heights and
+    save ancillary.
+
+    Computes bulk low and high emissions, sets coordinate systems, regrids to
+    the model grid,
+    zeroes polar rows, attaches STASH item 130 (low) and 131 (high), and writes
+    the ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        load_pc_fn (callable): Callback to load percentage source fractions.
+        load_fn (callable): Callback to load total species emissions.
+        save_dirpath (pathlib.Path): Destination directory for the ancillary
+            file.
+    """
     bc_frac_low, bc_frac_high = split_frac_low_high(args, load_pc_fn, "BC")
     oc_frac_low, oc_frac_high = split_frac_low_high(args, load_pc_fn, "OC")
 

@@ -25,6 +25,17 @@ CMIP7_HI_CO2_END_YEAR = CMIP7_HI_END_YEAR + 1
 
 
 def esm_eh_co2_save_dirpath(args):
+    """Construct the destination directory path for historical CO2 ancillary
+    files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under modern/historical-
+            emissions/atmosphere/forcing/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -37,6 +48,19 @@ def esm_eh_co2_save_dirpath(args):
 
 
 def cmip7_eh_co2_anthro_interpolate(args):
+    """Interpolate CMIP7 historical anthropogenic CO2 emissions to the ESM1.6
+    grid.
+
+    Loads surface and aircraft anthropogenic emissions, sums across sectors and
+    vertical levels,
+    regrids horizontally to the model grid using conservative interpolation,
+    zeroes polar rows,
+    assigns UM STASH item 251, and writes the output ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying dataset
+            sources, grid, and output filenames.
+    """
     cube = load_cmip7_hi_aerosol_anthro(
         args,
         SPECIES,
