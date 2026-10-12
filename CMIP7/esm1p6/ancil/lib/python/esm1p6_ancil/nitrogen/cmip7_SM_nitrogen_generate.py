@@ -14,6 +14,14 @@ from nitrogen.cmip7_nitrogen import (
 
 
 def parse_args():
+    """Parse command-line arguments for ScenarioMIP nitrogen ancillary
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, grid,
+            dataset, extension, scenario, date range, and save filename
+            parameters.
+    """
     parser = ArgumentParser(
         parents=[common_parser(), ext_parser()],
         prog="cmip7_SM_nitrogen_generate",
@@ -28,6 +36,17 @@ def parse_args():
 
 
 def cmip7_sm_nitrogen_filepath(args, species):
+    """Construct the file path for a ScenarioMIP monthly nitrogen netCDF
+    dataset.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration.
+        species (str): Reactive nitrogen species identifier.
+
+    Returns:
+        pathlib.Path: File path to the monthly input4MIPs netCDF file.
+    """
     dirpath = cmip7_nitrogen_dirpath(args, "ScenarioMIP", "mon", species)
     filename = (
         f"{species}_input4MIPs_surfaceFluxes_ScenarioMIP_"
@@ -38,6 +57,18 @@ def cmip7_sm_nitrogen_filepath(args, species):
 
 
 def esm_sm_nitrogen_save_dirpath(args):
+    """Construct the destination directory path for ScenarioMIP nitrogen
+    ancillary files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, scenario,
+            esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under
+            modern/scen7-{scenario}/atmosphere/land/biogeochemistry/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"

@@ -1,3 +1,7 @@
+"""Pre-industrial experiment (PI) configuration constants and ancillary date
+adjustments.
+"""
+
 import calendar
 
 import mule
@@ -9,17 +13,27 @@ DAYS_IN_CMIP7_PI_YEAR = 365.0
 
 
 def cmip7_pi_date_constraint():
+    """Create an Iris temporal constraint for the perpetual pre-industrial
+    equilibrium year (1850).
+
+    Returns:
+        iris.Constraint: Time coordinate constraint spanning January 1 to
+            December 31, 1850.
+    """
     return cmip7_date_constraint_from_years(CMIP7_PI_YEAR, CMIP7_PI_YEAR)
 
 
 def fix_esm15_pi_ancil_date(ifile, ofile):
-    """
-    Correct the dates of the ESM1.5 preindustrial ancillaries
-    so that they can be read by Iris.
+    """Correct the dates of the ESM1.5 preindustrial ancillaries so that they
+    can be read by Iris.
+
     These have field end dates appropriate to the 360 day calendar
     rather than Gregorian. Also reset the year number to CMIP7_PI_YEAR.
-    """
 
+    Args:
+        ifile (str or pathlib.Path): Input UM ancillary file path.
+        ofile (str or pathlib.Path): Output UM ancillary file destination path.
+    """
     sm = mule.STASHmaster.from_version(UM_VERSION)
     ff = mule.AncilFile.from_file(ifile, stashmaster=sm)
 

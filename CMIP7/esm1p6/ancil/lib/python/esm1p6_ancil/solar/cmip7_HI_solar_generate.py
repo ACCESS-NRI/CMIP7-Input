@@ -17,6 +17,12 @@ from solar.cmip7_solar import (
 
 
 def parse_args():
+    """Parse command-line arguments for historical solar forcing generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, pad, date
+            range, and save filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_HI_solar_generate",
         description=(
@@ -33,8 +39,12 @@ def parse_args():
 
 
 def cmip7_hi_solar_save(args, cube):
-    """
-    Save the TSI values for each year into a text file.
+    """Save the TSI values for each year into a text file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying pad and
+            output options.
+        cube (iris.cube.Cube): Loaded historical solar irradiance cube.
     """
     save_dirpath = esm_hi_forcing_save_dirpath(args)
     if args.pad:

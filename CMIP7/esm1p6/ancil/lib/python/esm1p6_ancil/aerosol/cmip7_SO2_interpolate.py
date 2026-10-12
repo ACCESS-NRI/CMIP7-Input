@@ -21,6 +21,22 @@ DMS_NAME_CONSTRAINT = iris.Constraint(
 
 
 def load_sector_dict(args, filepath_fn, date_range_maybe_list):
+    """Parse netCDF sector attributes to map sector names to integer indices.
+
+    Uses netCDF4 to extract the sector string attribute ('id: name; ...') since
+    Iris does not parse sector coordinates by default.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        filepath_fn (callable): Callback function returning dataset path given
+            (args, species, date_range).
+        date_range_maybe_list (str or list of str): Single date range string or
+            list of chunks.
+
+    Returns:
+        dict: Mapping of sector name (e.g. 'Energy', 'Industrial') to integer
+            index.
+    """
     date_range = (
         date_range_maybe_list[0]
         if isinstance(date_range_maybe_list, list)
@@ -37,6 +53,20 @@ def load_sector_dict(args, filepath_fn, date_range_maybe_list):
 
 
 def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
+    """Load CMIP6 DMS ancillary dataset, applying date fixes via temporary
+    file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing
+            dms_ancil_filename.
+        dms_ancil_dirpath (pathlib.Path): Directory containing the CMIP6 DMS
+            ancillary file.
+        fix_ancil_date_fn (callable): Callback to fix ancillary date headers in
+            a temp directory.
+
+    Returns:
+        iris.cube.Cube: Loaded DMS emissions Iris cube.
+    """
     # Use the CMIP6 DMS
     dms_ancil_pathname = fsdecode(dms_ancil_dirpath / args.dms_ancil_filename)
     with tempfile.TemporaryDirectory() as temp:
@@ -51,6 +81,19 @@ def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
 
 
 def tile_yearly_data(from_cube, to_cube):
+    """Tile a single-year 12-month cube array across multiple years to match
+    target time length.
+
+    Args:
+        from_cube (iris.cube.Cube): Target cube defining total number of
+            monthly time slices.
+        to_cube (iris.cube.Cube): Source cube containing 12 monthly slices to
+            replicate.
+
+    Returns:
+        numpy.ndarray: Repeated monthly data array matching the year count of
+            from_cube.
+    """
     from_mons = from_cube.data.shape[0]
     from_years = from_mons // 12
     to_year0 = to_cube.data[0:12, :, :]
@@ -60,6 +103,23 @@ def tile_yearly_data(from_cube, to_cube):
 def save_cmip7_so2_aerosol_anthro(
     args, cmip7_load_fn, filepath_fn, date_range, dms_load_fn, save_dirpath
 ):
+    """Partition SO2 into low/high level emissions, combine with DMS, and save
+    multi-variable ancillary.
+
+    Splits SO2 emissions into high-level (Energy + 0.5 * Industrial) and low-
+    level (remaining),
+    scales by 0.5 to convert to mass of Sulfur, attaches STASH item 58 (low)
+    and 126 (high),
+    combines with tiled DMS, and writes the 3-field ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        cmip7_load_fn (callable): Callback to load the raw SO2 cube.
+        filepath_fn (callable): Callback to determine source netCDF path.
+        date_range (str or list of str): Date range string or chunk list.
+        dms_load_fn (callable): Callback to load the DMS cube.
+        save_dirpath (pathlib.Path): Target directory for the ancillary output.
+    """
     cmip7_so2 = cmip7_load_fn(args, "SO2")
 
     # Iris doesn't read the sector coordinate

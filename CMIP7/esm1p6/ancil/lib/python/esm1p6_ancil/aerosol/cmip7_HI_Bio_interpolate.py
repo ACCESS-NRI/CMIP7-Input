@@ -21,6 +21,13 @@ from cmip7_ancil_common import cmip7_date_constraint_from_years
 
 
 def parse_args():
+    """Parse command-line arguments for historical biomass burning emission
+    interpolation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, percentage,
+            date range list, and output filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_HI_Bio_interpolate",
         description=(
@@ -37,6 +44,17 @@ def parse_args():
 
 
 def load_cmip7_hi_aerosol_biomass(args, species):
+    """Load historical biomass burning emissions for a species across all date
+    range chunks.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name ('BC' or 'OC').
+
+    Returns:
+        iris.cube.Cube: Loaded continuous biomass emissions cube spanning 1849
+            to 2024.
+    """
     return load_cmip7_aerosol_biomass_list(
         args,
         species,
@@ -49,6 +67,16 @@ def load_cmip7_hi_aerosol_biomass(args, species):
 
 
 def load_cmip7_hi_aerosol_biomass_percentage(args, species):
+    """Load historical biomass burning percentage fractions for a given fire
+    source.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Percentage variable name (e.g. 'BCpercentageAGRI').
+
+    Returns:
+        iris.cube.Cube: Loaded percentage fraction cube.
+    """
     return load_cmip7_aerosol_biomass(
         args,
         species,

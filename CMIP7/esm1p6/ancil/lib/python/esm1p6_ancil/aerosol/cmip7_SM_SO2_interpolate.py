@@ -22,6 +22,12 @@ from cmip7_PI import fix_esm15_pi_ancil_date
 
 
 def parse_args():
+    """Parse command-line arguments for ScenarioMIP SO2 emission interpolation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, ext, DMS
+            filename, scenario, date range, and save filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_SM_SO2_interpolate",
         description=(
@@ -40,10 +46,28 @@ def parse_args():
 
 
 def load_cmip7_sm_so2_aerosol_anthro(args, species):
+    """Load ScenarioMIP anthropogenic SO2 emissions covering the simulation
+    period.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Target species ('SO2').
+
+    Returns:
+        iris.cube.Cube: Loaded monthly SO2 emissions cube.
+    """
     return load_cmip7_sm_aerosol_anthro(args, species)
 
 
 def load_sm_dms(args):
+    """Load ScenarioMIP DMS ancillary dataset with 360-day calendar date fixes.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+
+    Returns:
+        iris.cube.Cube: Loaded DMS emissions cube.
+    """
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
         esm_pi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)
