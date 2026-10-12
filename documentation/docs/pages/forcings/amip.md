@@ -17,6 +17,80 @@ The AMIP (Atmospheric Model Intercomparison Project) forcing pipeline ingests ob
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The AMIP pipeline follows the W3C PROV framework, integrating upstream UKESM spatial regridding, Taylor temporal interpolation, and in-house Mule packaging with strict ocean mask preservation:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_TOS[("PCMDI tos (SST) NetCDF<br><code>PCMDI-AMIP-1-1-10 (1870-2022)</code>")]:::inputStyle
+            E_SIC[("PCMDI siconc (Sea Ice) NetCDF<br><code>PCMDI-AMIP-1-1-10 (1870-2022)</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgUK{{"UKESM AMIP Scripts<br><i>cloned via git</i>"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.amip (Iris and Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Multi-Stage Pipeline (prov:Activity)"]
+        direction TB
+        A_Regrid["Stage 1: UKESM Regridding<br><i>AM_ukesm_regrid (N96 spatial regrid)</i>"]:::activityStyle
+        A_Taylor["Stage 2: Taylor Interpolation<br><i>AM_ukesm_taylor (daily -> monthly)</i>"]:::activityStyle
+        A_Ancil["Stage 3: Intermediate Extraction<br><i>AM_ukesm_ancil</i>"]:::activityStyle
+        A_Fix["Stage 4: Coordinate Alignment<br><i>fix_cmip7_ukesm (fill=False to preserve ocean mask)</i>"]:::activityStyle
+        A_Mule["Stage 5: Mule Packaging<br><i>save_ancil (gregorian=False)</i>"]:::activityStyle
+
+        A_Regrid --> A_Taylor --> A_Ancil --> A_Fix --> A_Mule
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_TOS_Anc[("Time-Series SST Ancillary<br><code>tos.anc (STASH m01s00i024)</code>")]:::outputStyle
+        E_SIC_Anc[("Time-Series Sea Ice Ancillary<br><code>siconc.anc (STASH m01s00i031)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_TOS & E_SIC -->|prov:used| A_Regrid
+    E_Mask -->|prov:used| A_Fix
+    A_Mule -->|prov:wasGeneratedBy| E_TOS_Anc & E_SIC_Anc
+
+    E_TOS_Anc & E_SIC_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgUK -.->|prov:wasAssociatedWith| A_Regrid
+    AgUK -.->|prov:wasAssociatedWith| A_Taylor
+    AgPy -.->|prov:wasAssociatedWith| A_Fix
+    AgPy -.->|prov:wasAssociatedWith| A_Mule
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
+
+---
+
 ## Controlling Suite Switches
 
 The execution, experiment inclusion, and script branches for the AMIP pipeline are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):

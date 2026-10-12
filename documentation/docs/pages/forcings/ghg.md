@@ -13,6 +13,14 @@ The Greenhouse Gas (GHG) forcing pipeline ingests CMIP7 global-mean annual surfa
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The greenhouse gas pipeline follows the W3C PROV framework, ingesting global-mean volume mixing ratios, realigning temporal coordinates, and synchronizing configuration patches into the downstream model repository. The architecture separates by experiment requirements:
+* **Pre-Industrial Control (`PI`):** Extracts 1850 single-year scalar concentrations, converts them to mass mixing ratios (MMR), and patches model coupling namelists. See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`) & ScenarioMIP (`SM`):** Realigns multi-century time series to January 1, extends backwards to 1700, and injects annual time-series arrays into Rose app configurations. See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
+
+---
+
 ## Controlling Suite Switches
 
 The execution, scenario extension, and downstream configuration synchronization for greenhouse gases are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
@@ -33,6 +41,69 @@ The execution, scenario extension, and downstream configuration synchronization 
 ---
 
 ## 1. Pre-Industrial Experiment (PI)
+
+<a id="pi-dataflow"></a>
+### Dataflow Architecture
+
+The pre-industrial GHG pipeline extracts 1850 perpetual concentrations, converts volume mixing ratios to mass mixing ratios (MMR), and patches the model namelist:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_GHG[("input4MIPs GHG NetCDFs<br><code>CR-CMIP-1-0-0 (year 1850)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.ghg (Iris and f90nml)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Extract["1850 Mean Extraction<br><i>iris.analysis.MEAN on year 1850</i>"]:::activityStyle
+        A_MMR["MMR Conversion<br><i>mole fraction (mol/mol) -> Mass Mixing Ratio (kg/kg)</i>"]:::activityStyle
+        A_PI_Patch["Constant Namelist Patch<br><i>f90nml: &clmchfcg scalar concentrations</i>"]:::activityStyle
+        A_Extract --> A_MMR --> A_PI_Patch
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_PI_Nml[["Pre-Industrial Model Namelist<br><code>atmosphere/input_atm.nml</code>"]]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_GHG -->|prov:used| A_Extract
+    A_PI_Patch -->|prov:wasGeneratedBy| E_PI_Nml
+    E_PI_Nml -->|Git commit and push| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Extract
+    AgPy -.->|prov:wasAssociatedWith| A_MMR
+    AgPy -.->|prov:wasAssociatedWith| A_PI_Patch
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `PI_ancil_ghg`
 
@@ -92,6 +163,70 @@ The execution, scenario extension, and downstream configuration synchronization 
 ---
 
 ## 2. Historical Experiment (HI)
+
+<a id="hi-dataflow"></a>
+### Dataflow Architecture
+
+The historical and ScenarioMIP GHG pipelines realign multi-species time series to January 1, extrapolate backward to 1700, and serialize multi-year arrays into the Rose application configuration:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_GHG[("Historical GHG NetCDFs<br><code>CR-CMIP-1-0-0 (1850-2023)</code>")]:::inputStyle
+            E_SM_GHG[("ScenarioMIP GHG NetCDFs<br><code>CR-ScenarioMIP-1-1-0 (2024-2150)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.ghg (Iris and Git)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_MMR["MMR Conversion<br><i>dry air mass mixing ratio scaling</i>"]:::activityStyle
+        A_Align["Jan 1 Realignment and Extrapolation<br><i>shift mid-year points to Jan 1 | 1700-1849 padding</i>"]:::activityStyle
+        A_Rose["Rose App Config Patching<br><i>serialize multi-year annual arrays into clmchfcg</i>"]:::activityStyle
+        A_MMR --> A_Align --> A_Rose
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_Rose[["Rose Application Configuration<br><code>app/um/opt/rose-app.conf</code>"]]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["Model Modern Configurations<br><code>ACCESS-NRI/access-esm1.6-configs (modern/{historical,scen7-*})</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_GHG & E_SM_GHG -->|prov:used| A_MMR
+    A_Rose -->|prov:wasGeneratedBy| E_Rose
+    E_Rose -->|Git commit and push| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_MMR
+    AgPy -.->|prov:wasAssociatedWith| A_Align
+    AgPy -.->|prov:wasAssociatedWith| A_Rose
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `HI_ancil_ghg`
 
@@ -156,6 +291,9 @@ The execution, scenario extension, and downstream configuration synchronization 
 ---
 
 ## 3. ScenarioMIP Experiment (SM)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP greenhouse gas processing follows the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
 
 ### `SM_{h,hl,m,vl}_ancil_ghg`
 

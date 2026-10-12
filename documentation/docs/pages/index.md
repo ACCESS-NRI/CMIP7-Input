@@ -8,20 +8,78 @@ Welcome to the technical documentation for [ACCESS-NRI/CMIP7-Input](https://gith
 
 The `CMIP7-Input` suite automates the ingestion, regridding, temporal interpolation, formatting, and model configuration patching of CMIP7 [input4MIPs](https://esgf-node.llnl.gov/projects/input4mips/) datasets. Orchestrated by a unified [Cylc 8](https://cylc.github.io/) workflow, the system produces binary Unified Model (UM) ancillary files (`.anc`), ASCII boundary condition tables (`.dat`), and Fortran namelist patches (`&clmchfcg`, `&coupling`, `&RUN_Radiation`) required across historical, pre-industrial, emission-driven, and future projection climate experiments.
 
+{% raw %}
 ```mermaid
-graph TD
-    RawMIP["Input4MIPs NetCDF Replicas<br>/g/data/qv56/replicas/input4MIPs/CMIP7/"] --> Ingest["Ingestion and Validation<br>esm1p6_ancil Python Libraries"]
-    Ingest --> CylcSuite["Cylc 8 Suite Orchestration<br>flow.cylc and rose-suite.conf"]
-    CylcSuite --> ForcingGen["Forcing and Ancillary Engines<br>(Iris, Ants, Mule, NetCDF4)"]
-    
-    ForcingGen --> AncilFiles["Binary Ancillary Files (.anc)<br>Aerosols, Ozone, Nitrogen, CO2, AMIP SST/SeaIce"]
-    ForcingGen --> AsciiFiles["ASCII Forcing Files (.dat)<br>Volcanic SAOD, Solar TSI"]
-    ForcingGen --> NmlPatches["Model Namelist Patches<br>&amp;clmchfcg, &amp;coupling, &amp;RUN_Radiation"]
-    
-    AncilFiles --> DownstreamConfig["Downstream Model Configuration<br>ACCESS-NRI/access-esm1.6-configs"]
-    AsciiFiles --> DownstreamConfig
-    NmlPatches --> DownstreamConfig
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Orchestrating Agents"]
+        direction LR
+        subgraph S_IN["Input Entities (prov:Entity)"]
+            direction TB
+            E_Raw[("Primary input4MIPs NetCDF<br><code>/g/data/qv56/...</code>")]:::inputStyle
+            E_Ref[("Reference Auxiliary Data<br><i>N96 qrparm.mask / CMIP6 DMS</i>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPkg{{"esm1p6_ancil (Iris / Ants / Mule)"}}:::agentStyle
+            AgUK{{"UKESM Upstream Pipelines"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Ingest["Ingest and Validate<br><i>variables, units, dimensions</i>"]:::activityStyle
+        A_Combine["Select and Combine<br><i>sector sum, species and time slice</i>"]:::activityStyle
+        A_Regrid["Regrid and Interpolate<br><i>N96 area-weighted, Jan 1 realignment</i>"]:::activityStyle
+        A_Pack["Reformat and Encode<br><i>Mule binary / ASCII / namelists</i>"]:::activityStyle
+
+        A_Ingest --> A_Combine --> A_Regrid --> A_Pack
+    end
+
+    %% Lower Middle Level: Output Entities
+    subgraph S_OUT["3. Forcing Products (prov:Entity)"]
+        direction TB
+        E_Anc[("Binary Ancillaries (<code>.anc</code>)<br><i>Aerosols, Ozone, Nitrogen, CO2, AMIP</i>")]:::outputStyle
+        E_Dat[("ASCII Forcing Tables (<code>.dat</code>)<br><i>Solar TSI, Volcanic SAOD</i>")]:::outputStyle
+        E_Nml[("Fortran Namelist Patches<br><i>clmchfcg, coupling, RUN_Radiation</i>")]:::outputStyle
+    end
+
+    %% Bottom Level: Downstream Model Configuration
+    subgraph S_DEPLOY["4. Downstream Model Configuration"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs</code>"]]:::targetStyle
+    end
+
+    %% Provenance Relationships (flowing Top -> Bottom)
+    E_Raw -->|prov:used| A_Ingest
+    E_Ref -->|prov:used| A_Regrid
+
+    A_Pack -->|prov:wasGeneratedBy| E_Anc
+    A_Pack -->|prov:wasGeneratedBy| E_Dat
+    A_Pack -->|prov:wasGeneratedBy| E_Nml
+
+    E_Anc -->|staged into| E_Model
+    E_Dat -->|staged into| E_Model
+    E_Nml -->|Git commit and push| E_Model
+
+    %% Agent Associations
+    AgPkg -.->|prov:wasAssociatedWith| A_Ingest
+    AgPkg -.->|prov:wasAssociatedWith| A_Combine
+    AgPkg -.->|prov:wasAssociatedWith| A_Regrid
+    AgPkg -.->|prov:wasAssociatedWith| A_Pack
+    AgUK -.->|prov:wasAssociatedWith| A_Regrid
+    AgCylc -.->|orchestrates| S_ACT
 ```
+{% endraw %}
 
 ---
 
