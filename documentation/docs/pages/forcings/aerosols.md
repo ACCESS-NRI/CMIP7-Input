@@ -22,9 +22,10 @@ The aerosol forcing suite processes CMIP7 monthly anthropogenic, aircraft, and b
 
 ## Provenance & Dataflow Architecture
 
-The aerosol pipeline follows the W3C PROV framework, separating carbonaceous and biomass particulate processing from the multi-component sulfur cycle (incorporating sector height splitting, sulfur scaling, and baseline DMS climatology tiling). The architecture separates by experiment:
-* **Pre-Industrial Control (`PI`):** Generates 1850 perpetual 12-month cyclic ancillaries for Black Carbon, Organic Carbon, Biomass Burning, and Sulfur Cycle (`BC_1850`, `OCFF_1850`, `Bio_1850`, `scycl_1850`). See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
-* **Historical (`HI`) & ScenarioMIP (`SM`):** Generates continuous monthly multi-decadal time-series ancillaries spanning up to 2150. See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
+The aerosol pipeline follows the W3C PROV framework, explicitly separating **Carbonaceous & Biomass Particulate Processing** (`BC`, `OCFF`, `Bio`) from the multi-component **Sulfur Cycle** (`SO2` / `scycl`, incorporating sector height splitting, sulfur scaling, and baseline DMS climatology tiling). Each experiment features dedicated dataflow diagrams for both streams:
+* **Pre-Industrial Control (`PI`):** Generates 1850 perpetual 12-month cyclic ancillaries for particulate species (`BC_1850`, `OCFF_1850`, `Bio_1850`) and the sulfur cycle (`scycl_1850`). See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`):** Generates continuous monthly multi-decadal time-series ancillaries spanning 1849–2023 for particulate species and the sulfur cycle. See [Historical Experiment Dataflow Architecture](#hi-dataflow).
+* **ScenarioMIP (`SM`):** Ingests baseline projection datasets and extension chunks (`*-ext-*`), concatenates time slices, and manufactures future ancillaries up to 2150 across both streams. See [ScenarioMIP Experiment Dataflow Architecture](#sm-dataflow).
 
 ---
 
@@ -52,7 +53,11 @@ The pre-industrial aerosol suite generates cyclic 1850-representative annual anc
 <a id="pi-dataflow"></a>
 ### Dataflow Architecture
 
-The pre-industrial aerosol workflow ingests 1850 emissions, regrids carbonaceous sectors to N96, splits $\text{SO}_2$ into high/low stacks, integrates baseline marine DMS climatology, and packages 12-month cyclic ancillaries:
+The pre-industrial aerosol workflow is divided into two distinct pipelines:
+1. **Carbonaceous & Biomass Particulate Pipeline:** Processes Black Carbon (`BC`), Organic Carbon (`OCFF`), and Biomass Burning (`Bio`) emissions, regridding them conservatively to N96 and packaging single-variable 12-month cyclic ancillaries.
+2. **Sulfur Cycle Pipeline:** Splits anthropogenic $\text{SO}_2$ into high-level and low-level emissions, scales sulfur mass, integrates baseline marine DMS climatology, and packages a composite 3-variable cyclic ancillary.
+
+#### Carbonaceous & Biomass Particulate Pipeline (BC, OCFF, Bio)
 
 {% raw %}
 ```mermaid
@@ -69,8 +74,73 @@ flowchart TD
         direction LR
         subgraph Inputs["Input Entities (prov:Entity)"]
             direction TB
-            E_CEDS[("1850 CEDS NetCDFs<br><code>BC, OC, SO2 (surface and air)</code>")]:::inputStyle
+            E_CEDS_BC[("1850 CEDS BC NetCDF<br><code>BC_em_anthro (surface and aircraft)</code>")]:::inputStyle
+            E_CEDS_OC[("1850 CEDS OC NetCDF<br><code>OC_em_anthro (surface)</code>")]:::inputStyle
             E_Bio[("1850 BB4CMIP7 NetCDF<br><code>Biomass burning particulate</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.aerosol (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Comb["Sum Sectors and AreaWeighted Regrid<br><i>collapse sectors, AreaWeighted(mdtol=0.5) to N96, zero poles</i>"]:::activityStyle
+        A_Mule_C["Pack Single-Variable Ancillaries<br><i>STASH 57 (BC), 59 (OCFF), 86 (Bio)</i>"]:::activityStyle
+        A_Comb --> A_Mule_C
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_BC[("BC Cyclic Ancillary<br><code>BC_1850_cmip7.anc (STASH 57)</code>")]:::outputStyle
+        E_Bio_Anc[("Biomass Cyclic Ancillary<br><code>Bio_1850_cmip7.anc (STASH 86)</code>")]:::outputStyle
+        E_OC[("OCFF Cyclic Ancillary<br><code>OCFF_1850_cmip7.anc (STASH 59)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_CEDS_BC & E_CEDS_OC & E_Bio -->|prov:used| A_Comb
+    E_Mask -->|prov:used| A_Comb
+
+    A_Mule_C -->|prov:wasGeneratedBy| E_BC & E_Bio_Anc & E_OC
+
+    E_BC & E_Bio_Anc & E_OC -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Comb
+    AgPy -.->|prov:wasAssociatedWith| A_Mule_C
+    AgCylc -.->|orchestrates| S_ACT
+```
+{% endraw %}
+
+#### Sulfur Cycle Pipeline (scycl)
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_CEDS_SO2[("1850 CEDS SO2 NetCDFs<br><code>SO2_em_anthro (surface and aircraft)</code>")]:::inputStyle
             E_DMS[("Baseline CMIP6 DMS Ancillary<br><code>dms_1850.anc (marine DMS)</code>")]:::inputStyle
             E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
         end
@@ -82,34 +152,23 @@ flowchart TD
         end
     end
 
-    %% Middle Level: Transformation Pipelines
-    subgraph S_ACT["2. Transformation Pipelines (prov:Activity)"]
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
         direction TB
-        subgraph S_SO2["Sulfur Cycle Transformation"]
-            direction TB
-            A_Split["Split SO2 Sectors<br><i>High: Energy + 50% Ind (STASH 126)<br>Low: remaining surface (STASH 58)</i>"]:::activityStyle
-            A_Scale["Scale Mass of Sulfur<br><i>factor of 0.5 (SO2 -> S)</i>"]:::activityStyle
-            A_DMS["Calendar Alignment<br><i>fix_esm15_pi_ancil_date on DMS</i>"]:::activityStyle
-            A_Mule_S["Pack Sulfur Ancillary<br><i>save_ancil([so2_low, so2_high, dms])</i>"]:::activityStyle
-            A_Split --> A_Scale --> A_Mule_S
-            A_DMS --> A_Mule_S
-        end
+        A_Split["Split SO2 Sectors<br><i>High: Energy + 50% Ind (STASH 126)<br>Low: remaining surface (STASH 58)</i>"]:::activityStyle
+        A_Scale["Scale Mass of Sulfur<br><i>factor of 0.5 (SO2 -> S)</i>"]:::activityStyle
+        A_Regrid["AreaWeighted Regrid and Zero Poles<br><i>AreaWeighted(mdtol=0.5) to N96</i>"]:::activityStyle
+        A_DMS["Calendar Alignment<br><i>fix_esm15_pi_ancil_date on DMS</i>"]:::activityStyle
+        A_Mule_S["Pack Sulfur Ancillary<br><i>save_ancil([so2_low, so2_high, dms])</i>"]:::activityStyle
 
-        subgraph S_Carb["Carbonaceous and Biomass Pipeline"]
-            direction TB
-            A_Comb["Sum Sectors and AreaWeighted Regrid<br><i>collapse sectors, N96 regrid, zero poles</i>"]:::activityStyle
-            A_Mule_C["Pack Single-Variable Ancillaries<br><i>STASH 57 (BC), 59 (OCFF), 86 (Bio)</i>"]:::activityStyle
-            A_Comb --> A_Mule_C
-        end
+        A_Split --> A_Scale --> A_Regrid --> A_Mule_S
+        A_DMS --> A_Mule_S
     end
 
     %% Lower Level: Output Entities
     subgraph Outputs["3. Output Entities (prov:Entity)"]
         direction TB
-        E_BC[("BC Cyclic Ancillary<br><code>BC_1850_cmip7.anc</code>")]:::outputStyle
-        E_Bio_Anc[("Biomass Cyclic Ancillary<br><code>Bio_1850_cmip7.anc</code>")]:::outputStyle
-        E_OC[("OCFF Cyclic Ancillary<br><code>OCFF_1850_cmip7.anc</code>")]:::outputStyle
-        E_Scycl[("Sulfur Cycle Ancillary<br><code>scycl_1850_cmip7.anc (12-mo cyclic)</code>")]:::outputStyle
+        E_Scycl[("Sulfur Cycle Ancillary<br><code>scycl_1850_cmip7.anc (items 58, 126, DMS)</code>")]:::outputStyle
     end
 
     %% Bottom Level: Model Target
@@ -118,21 +177,19 @@ flowchart TD
     end
 
     %% Relationships
-    E_CEDS -->|prov:used| A_Split & A_Comb
-    E_Bio -->|prov:used| A_Comb
+    E_CEDS_SO2 -->|prov:used| A_Split
+    E_Mask -->|prov:used| A_Regrid
     E_DMS -->|prov:used| A_DMS
-    E_Mask -->|prov:used| A_Comb & A_Scale
 
-    A_Mule_C -->|prov:wasGeneratedBy| E_BC & E_Bio_Anc & E_OC
     A_Mule_S -->|prov:wasGeneratedBy| E_Scycl
 
-    E_BC & E_Bio_Anc & E_OC & E_Scycl -->|staged for model execution| E_Model
+    E_Scycl -->|staged for model execution| E_Model
 
     %% Agent Associations
     AgPy -.->|prov:wasAssociatedWith| A_Split
     AgPy -.->|prov:wasAssociatedWith| A_Scale
-    AgPy -.->|prov:wasAssociatedWith| A_Comb
-    AgPy -.->|prov:wasAssociatedWith| A_Mule_C
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
+    AgPy -.->|prov:wasAssociatedWith| A_DMS
     AgPy -.->|prov:wasAssociatedWith| A_Mule_S
     AgCylc -.->|orchestrates| S_ACT
 ```
@@ -194,7 +251,11 @@ flowchart TD
 <a id="hi-dataflow"></a>
 ### Dataflow Architecture
 
-The historical and ScenarioMIP aerosol workflows process continuous multi-decadal time series (1849–2023 for historical; 2022–2150 for ScenarioMIP), time-tiling marine DMS across the simulation window:
+The historical aerosol workflow processes continuous multi-decadal time series (1849–2023) across two distinct pipelines:
+1. **Carbonaceous & Biomass Particulate Pipeline:** Aggregates continuous monthly emissions for Black Carbon (`BC`), Organic Carbon (`OCFF`), and Biomass Burning (`Bio`), regrids to N96, and produces continuous 175-year single-variable ancillaries.
+2. **Sulfur Cycle Pipeline:** Decomposes continuous $\text{SO}_2$ into high/low stacks, scales elemental sulfur mass, tiles 12-month marine DMS climatology across 175 years, and packages a multi-variable time-series ancillary (`scycl_1849_2023_cmip7.anc`).
+
+#### Carbonaceous & Biomass Particulate Pipeline (BC, OCFF, Bio)
 
 {% raw %}
 ```mermaid
@@ -211,8 +272,71 @@ flowchart TD
         direction LR
         subgraph Inputs["Input Entities (prov:Entity)"]
             direction TB
-            E_HI_CEDS[("Time-Series CEDS NetCDFs<br><code>BC, OC, SO2 (1849-2023 / 2022-2150)</code>")]:::inputStyle
-            E_HI_Bio[("Time-Series BB4CMIP7 NetCDFs<br><code>Biomass burning particulate</code>")]:::inputStyle
+            E_HI_BC[("Historical CEDS BC NetCDFs<br><code>BC_em_anthro (1849-2023)</code>")]:::inputStyle
+            E_HI_OC[("Historical CEDS OC NetCDFs<br><code>OC_em_anthro (1849-2023)</code>")]:::inputStyle
+            E_HI_Bio[("Historical BB4CMIP7 NetCDFs<br><code>Biomass burning (1849-2023)</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.aerosol (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Comb["Sum Multi-Year Sectors and Regrid<br><i>AreaWeighted N96, zero_poles, timeline padding</i>"]:::activityStyle
+        A_Mule_C["Pack Single-Variable Ancillaries<br><i>STASH 57 (BC), 59 (OCFF), 86 (Bio)</i>"]:::activityStyle
+        A_Comb --> A_Mule_C
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_HI_Ancs[("Historical Particulate Ancillaries (1849-2023)<br><code>BC, Bio, OCFF_1849_2023_cmip7.anc</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (historical)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_BC & E_HI_OC & E_HI_Bio -->|prov:used| A_Comb
+    E_Mask -->|prov:used| A_Comb
+
+    A_Mule_C -->|prov:wasGeneratedBy| E_HI_Ancs
+
+    E_HI_Ancs -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Comb
+    AgPy -.->|prov:wasAssociatedWith| A_Mule_C
+    AgCylc -.->|orchestrates| S_ACT
+```
+{% endraw %}
+
+#### Sulfur Cycle Pipeline (scycl)
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_SO2[("Historical CEDS SO2 NetCDFs<br><code>SO2_em_anthro (1849-2023)</code>")]:::inputStyle
             E_DMS[("Baseline CMIP6 DMS Ancillary<br><code>dms_1850.anc (12-month climatology)</code>")]:::inputStyle
             E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
         end
@@ -224,55 +348,45 @@ flowchart TD
         end
     end
 
-    %% Middle Level: Transformation Pipelines
-    subgraph S_ACT["2. Transformation Pipelines (prov:Activity)"]
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
         direction TB
-        subgraph S_SO2["Sulfur Cycle Time-Series Transformation"]
-            direction TB
-            A_Split["Split SO2 Sectors (High/Low)<br><i>High: STASH 126 | Low: STASH 58</i>"]:::activityStyle
-            A_Scale["Scale Mass of Sulfur<br><i>factor of 0.5 (SO2 -> S)</i>"]:::activityStyle
-            A_Tile["Time-Tile DMS Climatology<br><i>repeat 12 months across multi-decadal span</i>"]:::activityStyle
-            A_Mule_S["Pack Sulfur Time-Series Ancillaries<br><i>save_ancil([so2_low, so2_high, dms])</i>"]:::activityStyle
-            A_Split --> A_Scale --> A_Mule_S
-            A_Tile --> A_Mule_S
-        end
+        A_Split["Split SO2 Sectors (High/Low)<br><i>High: STASH 126 | Low: STASH 58</i>"]:::activityStyle
+        A_Scale["Scale Mass of Sulfur<br><i>factor of 0.5 (SO2 -> S)</i>"]:::activityStyle
+        A_Tile["Time-Tile DMS Climatology<br><i>repeat 12 months across 175 years (1849-2023)</i>"]:::activityStyle
+        A_Regrid["AreaWeighted Regrid and Zero Poles<br><i>AreaWeighted(mdtol=0.5) to N96</i>"]:::activityStyle
+        A_Mule_S["Pack Sulfur Time-Series Ancillary<br><i>save_ancil([so2_low, so2_high, dms])</i>"]:::activityStyle
 
-        subgraph S_Carb["Carbonaceous Time-Series Pipeline"]
-            direction TB
-            A_Comb["Sum Multi-Year Sectors and Regrid<br><i>AreaWeighted N96, zero_poles, timeline padding</i>"]:::activityStyle
-            A_Mule_C["Pack Single-Variable Ancillaries<br><i>STASH 57 (BC), 59 (OCFF), 86 (Bio)</i>"]:::activityStyle
-            A_Comb --> A_Mule_C
-        end
+        A_Split --> A_Scale --> A_Regrid --> A_Mule_S
+        A_Tile --> A_Mule_S
     end
 
     %% Lower Level: Output Entities
     subgraph Outputs["3. Output Entities (prov:Entity)"]
         direction TB
-        E_HI_Ancs[("Historical Ancillaries (1849-2023)<br><code>BC, Bio, OCFF, scycl_1849_2023_cmip7.anc</code>")]:::outputStyle
-        E_SM_Ancs[("ScenarioMIP Ancillaries (to 2150)<br><code>BC, Bio, OCFF, scycl_SCEN_cmip7.anc</code>")]:::outputStyle
+        E_HI_Scycl[("Historical Sulfur Cycle Ancillary<br><code>scycl_1849_2023_cmip7.anc (1849-2023)</code>")]:::outputStyle
     end
 
     %% Bottom Level: Model Target
     subgraph S_DEPLOY["4. Downstream Deployment"]
-        E_Model[["Model Modern Configurations<br><code>modern/{historical,scen7-*}/atmosphere/aerosol/</code>"]]:::targetStyle
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (historical)</code>"]]:::targetStyle
     end
 
     %% Relationships
-    E_HI_CEDS -->|prov:used| A_Split & A_Comb
-    E_HI_Bio -->|prov:used| A_Comb
+    E_HI_SO2 -->|prov:used| A_Split
+    E_Mask -->|prov:used| A_Regrid
     E_DMS -->|prov:used| A_Tile
-    E_Mask -->|prov:used| A_Comb & A_Scale
 
-    A_Mule_C -->|prov:wasGeneratedBy| E_HI_Ancs & E_SM_Ancs
-    A_Mule_S -->|prov:wasGeneratedBy| E_HI_Ancs & E_SM_Ancs
+    A_Mule_S -->|prov:wasGeneratedBy| E_HI_Scycl
 
-    E_HI_Ancs & E_SM_Ancs -->|staged for model execution| E_Model
+    E_HI_Scycl -->|staged for model execution| E_Model
 
     %% Agent Associations
     AgPy -.->|prov:wasAssociatedWith| A_Split
     AgPy -.->|prov:wasAssociatedWith| A_Scale
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
     AgPy -.->|prov:wasAssociatedWith| A_Tile
-    AgPy -.->|prov:wasAssociatedWith| A_Comb
+    AgPy -.->|prov:wasAssociatedWith| A_Mule_S
     AgCylc -.->|orchestrates| S_ACT
 ```
 {% endraw %}
@@ -326,8 +440,160 @@ The historical aerosol suite produces continuous time-series monthly ancillary f
 
 ## 3. ScenarioMIP Experiment (SM)
 
-> [!NOTE]
-> **Dataflow Architecture:** ScenarioMIP aerosol forcing generation uses the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
+<a id="sm-dataflow"></a>
+### Dataflow Architecture
+
+The ScenarioMIP aerosol suite manufactures future projection ancillaries across scenarios `h`, `hl`, `m`, and `vl` spanning 2022 to 2150 (when `--ext` is activated), structured into two distinct pipelines:
+1. **Carbonaceous & Biomass Particulate Pipeline:** Processes baseline (2022–2100) and extension (2101–2150) Black Carbon, Organic Carbon, and Biomass Burning emissions, concatenates chunks via `--ext`, and packages single-variable future ancillaries (`BC`, `OCFF`, `Bio`).
+2. **Sulfur Cycle Pipeline:** Ingests baseline and extension surface and aircraft $\text{SO}_2$ emissions, validates extension availability via `check_aerosol_ext_available`, splits high/low injection sectors, tiles marine DMS across 129 years (2022–2150), and writes multi-variable future ancillaries (`scycl_SCEN_2022_2150_cmip7.anc`).
+
+#### Carbonaceous & Biomass Particulate Pipeline (BC, OCFF, Bio)
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_Base_CEDS[("Base ScenarioMIP CEDS NetCDFs<br><code>IIASA-IAMC-SCEN-1-1-1 (BC, OC, 2022-2100)</code>")]:::inputStyle
+            E_Ext_CEDS[("Extension CEDS NetCDFs<br><code>IIASA-IAMC-SCEN-ext-1-1-1 (2101-2150)</code>")]:::inputStyle
+            E_Base_Bio[("Base BB4CMIP7 NetCDFs<br><code>BB4CMIP7-SCEN-1-0 (2022-2100)</code>")]:::inputStyle
+            E_Ext_Bio[("Extension BB4CMIP7 NetCDFs<br><code>BB4CMIP7-SCEN-ext-1-0 (2101-2150)</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.aerosol (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Validate["Validate Extension Availability<br><i>check_aerosol_ext_available (--ext)</i>"]:::activityStyle
+        A_Concat["Concatenate Time Chunks<br><i>CubeList.concatenate_cube (2022-2150)</i>"]:::activityStyle
+        A_Comb["Sum Multi-Year Sectors and Regrid<br><i>AreaWeighted N96, zero_poles</i>"]:::activityStyle
+        A_Mule_C["Pack Single-Variable Ancillaries<br><i>STASH 57 (BC), 59 (OCFF), 86 (Bio)</i>"]:::activityStyle
+
+        A_Validate --> A_Concat --> A_Comb --> A_Mule_C
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_SM_Part[("ScenarioMIP Particulate Ancillaries<br><code>BC, Bio, OCFF_SCEN_2022_2150_cmip7.anc</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (scen7-*)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_Base_CEDS & E_Ext_CEDS & E_Base_Bio & E_Ext_Bio -->|prov:used| A_Validate
+    E_Mask -->|prov:used| A_Comb
+
+    A_Mule_C -->|prov:wasGeneratedBy| E_SM_Part
+
+    E_SM_Part -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Validate
+    AgPy -.->|prov:wasAssociatedWith| A_Concat
+    AgPy -.->|prov:wasAssociatedWith| A_Comb
+    AgPy -.->|prov:wasAssociatedWith| A_Mule_C
+    AgCylc -.->|orchestrates| S_ACT
+```
+{% endraw %}
+
+#### Sulfur Cycle Pipeline (scycl)
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_Base_SO2[("Base ScenarioMIP SO2 NetCDFs<br><code>IIASA-IAMC-SCEN-1-1-1 (surface, 2022-2100)</code>")]:::inputStyle
+            E_Base_Air[("Base ScenarioMIP SO2 Aircraft<br><code>IIASA-IAMC-SCEN-1-1-2 (aircraft, 2022-2100)</code>")]:::inputStyle
+            E_Ext_SO2[("Extension SO2 NetCDF<br><code>IIASA-IAMC-SCEN-ext-1-1-1 (2101-2150)</code>")]:::inputStyle
+            E_DMS[("Baseline CMIP6 DMS Ancillary<br><code>dms_1850.anc (12-month climatology)</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.aerosol (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph S_ACT["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Validate["Validate Extension Availability<br><i>check_aerosol_ext_available (--ext)</i>"]:::activityStyle
+        A_Concat["Concatenate Time Chunks<br><i>CubeList.concatenate_cube (2022-2150)</i>"]:::activityStyle
+        A_Split["Split SO2 Sectors (High/Low)<br><i>High: STASH 126 | Low: STASH 58</i>"]:::activityStyle
+        A_Scale["Scale Mass of Sulfur<br><i>factor of 0.5 (SO2 -> S)</i>"]:::activityStyle
+        A_Tile["Time-Tile DMS Climatology<br><i>repeat 12 months across 129 years (2022-2150)</i>"]:::activityStyle
+        A_Regrid["AreaWeighted Regrid and Zero Poles<br><i>AreaWeighted(mdtol=0.5) to N96</i>"]:::activityStyle
+        A_Mule_S["Pack Sulfur Time-Series Ancillary<br><i>save_ancil([so2_low, so2_high, dms])</i>"]:::activityStyle
+
+        A_Validate --> A_Concat --> A_Split --> A_Scale --> A_Regrid --> A_Mule_S
+        A_Tile --> A_Mule_S
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_SM_Scycl[("ScenarioMIP Sulfur Cycle Ancillary<br><code>scycl_SCEN_2022_2150_cmip7.anc (items 58, 126, DMS)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (scen7-*)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_Base_SO2 & E_Base_Air & E_Ext_SO2 -->|prov:used| A_Validate
+    E_Mask -->|prov:used| A_Regrid
+    E_DMS -->|prov:used| A_Tile
+
+    A_Mule_S -->|prov:wasGeneratedBy| E_SM_Scycl
+
+    E_SM_Scycl -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Validate
+    AgPy -.->|prov:wasAssociatedWith| A_Concat
+    AgPy -.->|prov:wasAssociatedWith| A_Split
+    AgPy -.->|prov:wasAssociatedWith| A_Scale
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
+    AgPy -.->|prov:wasAssociatedWith| A_Tile
+    AgPy -.->|prov:wasAssociatedWith| A_Mule_S
+    AgCylc -.->|orchestrates| S_ACT
+```
+{% endraw %}
 
 The ScenarioMIP aerosol suite manufactures future projection ancillaries across scenarios `h`, `hl`, `m`, and `vl`. When extension is active (`EXTEND_SM_AEROSOL[SCEN] == True`, passing `--ext`), datasets concatenate extension files to span the full timeline to 2150.
 
