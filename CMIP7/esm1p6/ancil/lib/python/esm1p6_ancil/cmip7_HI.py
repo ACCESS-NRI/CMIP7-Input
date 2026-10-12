@@ -1,3 +1,7 @@
+"""Historical experiment (HI) configuration constants and ancillary date
+adjustments.
+"""
+
 import calendar
 from pathlib import Path
 
@@ -15,6 +19,17 @@ CMIP7_HI_NBR_YEARS = CMIP7_HI_END_YEAR + 1 - CMIP7_HI_BEG_YEAR
 
 
 def esm_hi_forcing_save_dirpath(args):
+    """Construct destination directory path for resolution-independent
+    historical forcing ancillaries.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI arguments containing
+            ``ancil_target_dirname``.
+
+    Returns:
+        pathlib.Path: Target directory path stamped with current generation
+            date token.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -27,13 +42,16 @@ def esm_hi_forcing_save_dirpath(args):
 
 
 def fix_esm15_hi_ancil_date(ifile, ofile):
-    """
-    Correct the dates of the ESM1.5 historical ancillaries
-    so that they can be read by Iris.
+    """Correct the dates of the ESM1.5 historical ancillaries so that they can
+    be read by Iris.
+
     These have field end dates appropriate to the 360 day calendar
     rather than Gregorian.
-    """
 
+    Args:
+        ifile (str or pathlib.Path): Input UM ancillary file path.
+        ofile (str or pathlib.Path): Output UM ancillary file destination path.
+    """
     sm = mule.STASHmaster.from_version(UM_VERSION)
     ff = mule.AncilFile.from_file(ifile, stashmaster=sm)
 

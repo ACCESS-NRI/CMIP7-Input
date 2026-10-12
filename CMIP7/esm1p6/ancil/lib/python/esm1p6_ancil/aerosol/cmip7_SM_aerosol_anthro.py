@@ -17,6 +17,15 @@ from iris.util import equalise_attributes, unify_time_units
 
 
 def parse_args(species):
+    """Parse command-line arguments for ScenarioMIP aerosol emission
+    interpolation.
+
+    Args:
+        species (str): Target aerosol species name.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments.
+    """
     parser = ArgumentParser(
         prog=f"cmip7_SM_{species}_interpolate",
         description=(
@@ -31,6 +40,18 @@ def parse_args(species):
 
 
 def _anthro_dirpath(source_dirname, dataset_version, dataset_vdate, variable):
+    """Construct the source directory path for ScenarioMIP anthropogenic
+    aerosol datasets.
+
+    Args:
+        source_dirname (str or pathlib.Path): Root input directory.
+        dataset_version (str): Dataset version string.
+        dataset_vdate (str): Dataset release date string.
+        variable (str): Emission variable name.
+
+    Returns:
+        pathlib.Path: Resolved directory path.
+    """
     return (
         Path(source_dirname)
         / "ScenarioMIP"
@@ -45,6 +66,17 @@ def _anthro_dirpath(source_dirname, dataset_version, dataset_vdate, variable):
 
 
 def cmip7_sm_aerosol_air_anthro_filepath(args, species, date_range):
+    """Construct the file path for ScenarioMIP aircraft anthropogenic
+    emissions.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        date_range (str): Date range string.
+
+    Returns:
+        pathlib.Path: Path to aircraft netCDF file.
+    """
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         args.dataset_air_version,
@@ -60,6 +92,16 @@ def cmip7_sm_aerosol_air_anthro_filepath(args, species, date_range):
 
 
 def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
+    """Construct the file path for ScenarioMIP surface anthropogenic emissions.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        date_range (str): Date range string.
+
+    Returns:
+        pathlib.Path: Path to surface netCDF file.
+    """
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         args.dataset_version,
@@ -77,6 +119,19 @@ def cmip7_sm_aerosol_anthro_filepath(args, species, date_range):
 def cmip7_sm_aerosol_ext_anthro_filepath(
     args, species, date_range, ext_version, ext_vdate
 ):
+    """Construct the file path for ScenarioMIP surface extension emissions
+    beyond 2100.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        date_range (str): Extension date range string.
+        ext_version (str): Extension dataset version.
+        ext_vdate (str): Extension dataset release date.
+
+    Returns:
+        pathlib.Path: Path to extension surface netCDF file.
+    """
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         ext_version,
@@ -94,6 +149,19 @@ def cmip7_sm_aerosol_ext_anthro_filepath(
 def cmip7_sm_aerosol_air_ext_anthro_filepath(
     args, species, date_range, ext_version, ext_vdate
 ):
+    """Construct the file path for ScenarioMIP aircraft extension emissions
+    beyond 2100.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        date_range (str): Extension date range string.
+        ext_version (str): Extension dataset version.
+        ext_vdate (str): Extension dataset release date.
+
+    Returns:
+        pathlib.Path: Path to extension aircraft netCDF file.
+    """
     dirpath = _anthro_dirpath(
         args.cmip7_source_data_dirname,
         ext_version,
@@ -109,6 +177,16 @@ def cmip7_sm_aerosol_air_ext_anthro_filepath(
 
 
 def load_cmip7_sm_aerosol_air_anthro(args, species):
+    """Load, vertically collapse, interpolate monthly, and extend ScenarioMIP
+    aircraft emissions.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+
+    Returns:
+        iris.cube.Cube: Processed monthly aircraft emissions cube.
+    """
     target_end_year = CMIP7_SM_END_YEAR
     ext_cube = None
 
@@ -152,6 +230,18 @@ def load_cmip7_sm_aerosol_air_anthro(args, species):
 
 
 def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
+    """Load, optionally collapse sectors, interpolate monthly, and extend
+    ScenarioMIP surface emissions.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        collapse_sector (bool, optional): Whether to sum over sector
+            coordinate. Defaults to False.
+
+    Returns:
+        iris.cube.Cube: Processed monthly surface emissions cube.
+    """
     target_end_year = CMIP7_SM_END_YEAR
     ext_cube = None
 
@@ -195,6 +285,14 @@ def load_cmip7_sm_aerosol_anthro(args, species, collapse_sector=False):
 
 
 def cmip7_sm_aerosol_anthro_interpolate(args, species, stash_item):
+    """Interpolate ScenarioMIP anthropogenic aerosol emissions and save to
+    ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        stash_item (int): UM STASH item number.
+    """
     cmip7_aerosol_anthro_interpolate(
         args,
         load_cmip7_sm_aerosol_anthro,

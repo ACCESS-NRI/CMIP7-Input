@@ -26,6 +26,12 @@ PG10_C = np.float64(2.2802997e-09)
 
 
 def parse_args():
+    """Parse command-line arguments for flat10-cdr CO2 emission generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing year_start,
+            nyear_zero, and output filename options.
+    """
     parser = argparse.ArgumentParser(
         prog="cmip7_F10CDR_CO2_generate",
         description=(
@@ -51,6 +57,17 @@ def parse_args():
 
 
 def f10cdr_co2_save_dirpath(args):
+    """Construct the destination directory path for flat10-cdr CO2 ancillary
+    files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under
+            modern/flat10-cdr/atmosphere/forcing/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -63,11 +80,21 @@ def f10cdr_co2_save_dirpath(args):
 
 
 def create_f10cdr_data(nyear_zero, esm_latitude, esm_longitude):
-    """
-    Create a numpy array of CO2 emissions following the flat10-cdr
+    """Create a numpy array of CO2 emissions following the flat10-cdr
     specification of linearly declining emissions from 10PgC to -10PgC
     over 100 years, followed by flat emissions of 10PgC for 100 years,
     and zero emissions for the remaining duration.
+
+    Args:
+        nyear_zero (int): Number of zero-emission years to append to the end.
+        esm_latitude (iris.coords.DimCoord): Latitude coordinate defining
+            spatial dimension.
+        esm_longitude (iris.coords.DimCoord): Longitude coordinate defining
+            spatial dimension.
+
+    Returns:
+        numpy.ndarray: 3D array of shaped (n_time, n_lat, n_lon) containing CO2
+            fluxes (kg CO2/m2/s).
     """
     # Emissions decline each January and remain flat for the rest of each year.
     yearly_vals = np.linspace(
@@ -111,8 +138,17 @@ def create_f10cdr_data(nyear_zero, esm_latitude, esm_longitude):
 
 
 def create_f10cdr_times(flat10_cdr_data, year_start):
-    """
-    Create a time dimension coordinate for the flat10-cdr CO2 emissions cube.
+    """Create a time dimension coordinate for the flat10-cdr CO2 emissions
+    cube.
+
+    Args:
+        flat10_cdr_data (numpy.ndarray): 3D emission flux array whose first
+            dimension is time.
+        year_start (int): Initial year of the flat10-cdr experiment.
+
+    Returns:
+        iris.coords.DimCoord: Time dimension coordinate with monthly intervals
+            and bounds.
     """
     time_units = cf_units.Unit(f"days since {year_start}-01-01")
     n_months = flat10_cdr_data.shape[0]
@@ -147,9 +183,19 @@ def create_f10cdr_times(flat10_cdr_data, year_start):
 def create_f10cdr_cube(
     flat10_cdr_data, flat10_cdr_times, esm_latitude, esm_longitude
 ):
-    """
-    Create an iris cube with data and coordinates for the flat10-cdr
+    """Create an iris cube with data and coordinates for the flat10-cdr
     CO2 emissions.
+
+    Args:
+        flat10_cdr_data (numpy.ndarray): 3D emission flux array.
+        flat10_cdr_times (iris.coords.DimCoord): Monthly time coordinate with
+            cell bounds.
+        esm_latitude (iris.coords.DimCoord): Target model latitude coordinate.
+        esm_longitude (iris.coords.DimCoord): Target model longitude
+            coordinate.
+
+    Returns:
+        iris.cube.Cube: Configured Iris cube with STASH item 251.
     """
     flat10_cdr_cube = iris.cube.Cube(flat10_cdr_data)
     flat10_cdr_cube.add_dim_coord(
@@ -172,6 +218,16 @@ def create_f10cdr_cube(
 
 
 def cmip7_f10cdr_co2_generate(args):
+    """Generate and write the flat10-cdr CO2 emission ancillary file.
+
+    Extracts grid coordinates from the target mask cube, constructs synthesized
+    declining/flat/zero emission arrays, creates a monthly Iris cube, and saves
+    the ancillary.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying
+            year_start, nyear_zero, grid configuration, and output filename.
+    """
     esm_longitude = esm_grid_mask_cube(args).coord("longitude")
     esm_latitude = esm_grid_mask_cube(args).coord("latitude")
     f10cdr_data = create_f10cdr_data(

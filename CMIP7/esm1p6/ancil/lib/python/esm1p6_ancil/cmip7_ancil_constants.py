@@ -1,3 +1,8 @@
+"""Physical constants, model versions, and formatting tokens for CMIP7
+ancillary
+generation.
+"""
+
 from datetime import datetime
 
 ANCIL_TODAY = datetime.now().strftime("%Y.%m.%d")

@@ -19,6 +19,13 @@ PI_DMS_ANCIL_FILENAME = "scycl_1850_ESM1_v4.anc"
 
 
 def parse_args():
+    """Parse command-line arguments for pre-industrial SO2 emission
+    interpolation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, DMS filename,
+            date range, and output filename parameters.
+    """
     parser = ArgumentParser(
         prog="cmip7_PI_SO2_interpolate",
         description=(
@@ -35,6 +42,15 @@ def parse_args():
 
 
 def load_pi_dms(args):
+    """Load pre-industrial CMIP6 DMS ancillary dataset with 360-day calendar
+    date fixes.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+
+    Returns:
+        iris.cube.Cube: Loaded DMS emissions cube.
+    """
     # Use the CMIP6 DMS
     dms_ancil_dirpath = (
         esm_pi_aerosol_ancil_dirpath(args.esm15_inputs_dirname)

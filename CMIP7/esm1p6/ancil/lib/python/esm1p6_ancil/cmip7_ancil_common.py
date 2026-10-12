@@ -1,3 +1,7 @@
+"""Common coordinate transformation, time interpolation, grid alignment, and
+ancillary save utilities.
+"""
+
 import tempfile
 from os import fsdecode
 from pathlib import Path
@@ -25,6 +29,17 @@ INTERPOLATION_SCHEME = iris.analysis.AreaWeighted(mdtol=0.5)
 
 
 def cmip7_date_constraint_from_years(beg_year, end_year):
+    """Create an Iris temporal constraint for CMIP6 and CMIP7 NoLeap calendar
+    datasets.
+
+    Args:
+        beg_year (int): Starting calendar year (inclusive).
+        end_year (int): Ending calendar year (inclusive).
+
+    Returns:
+        iris.Constraint: Time coordinate constraint spanning January 1 of
+            ``beg_year`` to December 31 of ``end_year`` on a NoLeap calendar.
+    """
     # For CMIP6 and CMIP7 data
     beg_date = cftime.DatetimeNoLeap(beg_year, 1, 1)
     end_date = cftime.DatetimeNoLeap(end_year, 12, 31)
@@ -32,6 +47,17 @@ def cmip7_date_constraint_from_years(beg_year, end_year):
 
 
 def esm_grid_mask_filepath(args):
+    """Construct the filesystem path to the ACCESS-ESM1.5 grid land-sea mask
+    file.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI arguments containing
+            ``esm15_inputs_dirname``, ``esm_grid_rel_dirname``, and
+            ``esm15_grid_version``.
+
+    Returns:
+        pathlib.Path: Full path to ``qrparm.mask``.
+    """
     return (
         Path(args.esm15_inputs_dirname)
         / "modern"
@@ -45,6 +71,16 @@ def esm_grid_mask_filepath(args):
 
 
 def esm_grid_mask_cube(args):
+    """Load the ACCESS-ESM1.5 target grid mask and construct coordinate bounds.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI arguments with grid
+            configuration.
+
+    Returns:
+        iris.cube.Cube: Land-sea mask cube with guessed latitude and longitude
+            bounds.
+    """
     cube = iris.load_cube(esm_grid_mask_filepath(args))
     cube.coord("latitude").guess_bounds()
     cube.coord("longitude").guess_bounds()
@@ -52,6 +88,16 @@ def esm_grid_mask_cube(args):
 
 
 def set_gregorian(var, replace_bounds=False):
+    """Convert an Iris cube's time coordinate and bounds to the Proleptic
+    Gregorian calendar.
+
+    Args:
+        var (iris.cube.Cube): Cube whose time coordinate will be converted in
+            place.
+        replace_bounds (bool, optional): If True, replaces existing monthly
+            bounds with reconstructed first-of-month to first-of-next-month
+            intervals. Defaults to False.
+    """
     # Change the calendar to Gregorian for the model
     time = var.coord("time")
     origin = time.units.origin
@@ -108,11 +154,19 @@ def set_gregorian(var, replace_bounds=False):
 
 
 def extend_years(cube):
-    """
-    Extend a cube representing a monthly time series by duplicating
-    and adjusting the first and last years.
+    """Extend a cube representing a monthly time series by duplicating and
+    adjusting the first and last years.
+
     Based on Crown copyright code from ozone_cmip6_ancillary_for_suite.py
     by Steven Hardiman of the UK Met Office.
+
+    Args:
+        cube (iris.cube.Cube): Input Iris cube containing a monthly time
+            series. Must contain at least two full years of monthly data.
+
+    Returns:
+        iris.cube.Cube: Concatenated cube with prepended preceding year and
+            appended following year with shifted time coordinates and bounds.
     """
     time_coord = cube.coord("time")
     time_points = time_coord.points
@@ -142,6 +196,17 @@ def extend_years(cube):
 
 
 def _extract_baseline_slice(cube, baseline_year):
+    """Extract 12 monthly slices for a designated baseline year.
+
+    Args:
+        cube (iris.cube.Cube): Source Iris cube.
+        baseline_year (int): Calendar year to extract.
+
+    Returns:
+        iris.cube.Cube: Slice containing 12 monthly points for
+            ``baseline_year``, falling back to the trailing 12 months if the
+            year is not explicitly found.
+    """
     year_constraint = iris.Constraint(
         time=lambda cell: cell.point.year == baseline_year
     )
@@ -158,11 +223,21 @@ def _extract_baseline_slice(cube, baseline_year):
 
 
 def tile_constant_years(cube, baseline_year, target_end_year):
-    """
-    Extend a monthly time series cube from baseline_year to target_end_year
+    """Extend a monthly time series cube from baseline_year to target_end_year
     by repeating the 12 monthly slices of baseline_year for subsequent years.
+
     Shifts time points and bounds using cftime year replacement to avoid
     leap-year calendar drift.
+
+    Args:
+        cube (iris.cube.Cube): Input monthly time series cube.
+        baseline_year (int): Calendar year whose 12 monthly slices are
+            replicated.
+        target_end_year (int): Terminal calendar year of the extended series.
+
+    Returns:
+        iris.cube.Cube: Extended cube tiled to ``target_end_year`` with
+            monotonic time bounds.
     """
     if target_end_year <= baseline_year:
         return cube
@@ -206,9 +281,20 @@ def tile_constant_years(cube, baseline_year, target_end_year):
 
 
 def _interpolate_months_separately(cube, tpoints):
-    """
-    Interpolate to monthly frequency by extracting and interpolating
+    """Interpolate to monthly frequency by extracting and interpolating
     separate time series for each month of the year.
+
+    Preserves seasonal cycles by avoiding inter-month smoothing across calendar
+    transitions.
+
+    Args:
+        cube (iris.cube.Cube): Input Iris cube sampled at multi-year or annual
+            intervals.
+        tpoints (numpy.ndarray): Target time coordinate sample points.
+
+    Returns:
+        iris.cube.Cube: Cube with month-by-month linearly interpolated values
+            interleaved.
     """
     new_cube = cube.interpolate([("time", tpoints)], iris.analysis.Linear())
     new_cube.data = np.ma.asarray(new_cube.data)
@@ -242,6 +328,24 @@ def _interpolate_months_separately(cube, tpoints):
 
 
 def interpolate_monthly(cube, beg_year, end_year):
+    """Interpolate a forcing cube to monthly frequency across a target span
+    [beg_year, end_year].
+
+    Applies separate month-by-month linear interpolation to preserve seasonal
+    cycles,
+    reconstructs continuous cell bounds, and re-inserts exact original slice
+    data
+    for existing months.
+
+    Args:
+        cube (iris.cube.Cube): Source forcing cube.
+        beg_year (int): Starting calendar year.
+        end_year (int): Ending calendar year.
+
+    Returns:
+        iris.cube.Cube: Monthly interpolated Iris cube with 12 time slices per
+            year and contiguous monthly coordinate bounds.
+    """
     # Get original time units and calendar
     time_coord = cube.coord("time")
     units = time_coord.units
@@ -314,12 +418,27 @@ def interpolate_monthly(cube, beg_year, end_year):
 
 
 def set_coord_system(cube):
+    """Assign a standard spherical Earth coordinate system (radius 6371229.0 m)
+    to horizontal coordinates.
+
+    Args:
+        cube (iris.cube.Cube): Cube to modify in place.
+    """
     coord_system = iris.coord_systems.GeogCS(6371229.0)
     cube.coord("latitude").coord_system = coord_system
     cube.coord("longitude").coord_system = coord_system
 
 
 def fix_coords(args, cube):
+    """Align cube horizontal coordinate systems with the target ACCESS-ESM1.5
+    grid mask.
+
+    Args:
+        args (argparse.Namespace): Parsed CLI arguments containing grid
+            configuration.
+        cube (iris.cube.Cube): Cube whose latitude and longitude coordinate
+            systems will be updated.
+    """
     esm_grid_mask = esm_grid_mask_cube(args)
     cube.coord("latitude").coord_system = esm_grid_mask.coord(
         "latitude"
@@ -330,6 +449,13 @@ def fix_coords(args, cube):
 
 
 def fix_poles(cube):
+    """Ensure polar values have no longitude dependence by setting them to the
+    zonal mean.
+
+    Args:
+        cube (iris.cube.Cube): 3D Iris cube with dimensions (time, latitude,
+            longitude).
+    """
     # Polar values should have no longitude dependence
     latdim = cube.coord_dims("latitude")
     assert latdim == (1,)
@@ -343,29 +469,38 @@ def fix_poles(cube):
 def save_ancil(
     cubes, save_dirpath, save_filename, gregorian=True, replace_bounds=False
 ):
-    """
-    Handle both a list and a single cube
+    """Save one or more Iris cubes to a binary Unified Model (UM) ancillary
+    file (.anc).
+
+    Handles both a list and a single cube. Sets the required cube grid
+    staggering
+    (staggering=3 for New Dynamics) and time attributes.
+
+    To resolve ANTS calendar header omission for monthly fields, writes first
+    to
+    a temporary directory, uses Mule to inject calendar=1 into the fixed-length
+    header,
+    and sets model_version to UM vn7.3 (703) to prevent the UM dump format
+    warning.
+
+    Args:
+        cubes (iris.cube.Cube or list of iris.cube.Cube): Cube(s) to serialize.
+        save_dirpath (pathlib.Path): Target directory path.
+        save_filename (str): Name of destination .anc file.
+        gregorian (bool, optional): If True, sets time_type=1 (Gregorian) and
+            converts time coordinates. Defaults to True.
+        replace_bounds (bool, optional): If True, reconstructs monthly bounds
+            intervals. Defaults to False.
     """
     if not isinstance(cubes, list):
         cubes = [cubes]
-    """
-    Set correct cube grid and time attributes
-    Single year creates file with correct time_type=2
-    """
+
     for cube in cubes:
         cube.attributes["grid_staggering"] = 3  # New dynamics
         if gregorian:
             cube.attributes["time_type"] = 1  # Gregorian
             set_gregorian(cube, replace_bounds=replace_bounds)
-    """
-    ANTS doesn't set the calendar header for monthly fields
-    See fileformats/ancil/time_headers.py
-    UM vn7.3 doesn't handle the missing value, so set the value with mule
-    Mule doesn't work in place on a file, so inital save to a temporary
-    ANTS creates files with the model_version header set to the ants version.
-    UM vn7.3 interprets 201 as an old unsupported dump format.
-    Need to reset to 703.
-    """
+
     ants.__version__ = UM_VERSION
     with tempfile.TemporaryDirectory() as temp_dirname:
         save_temp_pathname = fsdecode(Path(temp_dirname) / save_filename)
