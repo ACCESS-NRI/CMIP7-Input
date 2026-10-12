@@ -14,3 +14,4 @@ jobs:
       repository: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
       commit: ${{ github.event.pull_request.head.sha || github.sha }}
       rtd_project: 'cmip7-input'
+      lychee_config: 'documentation/lychee_config.toml'
