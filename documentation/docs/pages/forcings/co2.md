@@ -13,6 +13,14 @@ The carbon dioxide flux pipeline processes monthly gridded anthropogenic surface
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The carbon dioxide flux pipeline follows the W3C PROV framework, collapsing multi-sector surface emissions and vertical aircraft fluxes, regridding conservatively to the N96 grid, and manufacturing binary ancillaries for emission-driven experiments:
+* **Historical (`EH`) & ScenarioMIP (`ES`):** Sums anthropogenic surface and aircraft emissions, regrids conservatively to N96, and packages continuous monthly time-series ancillaries. See [Emission-Driven Historical & ScenarioMIP Dataflow Architecture](#eh-dataflow).
+* **Idealised CDR (`esm-flat10-cdr`):** Synthesizes an idealized carbon dioxide removal linear ramp from $+10\,\text{PgC}\,\text{yr}^{-1}$ to $-10\,\text{PgC}\,\text{yr}^{-1}$.
+
+---
+
 ## Controlling Suite Switches
 
 The execution, experiment inclusion, and temporal extension for interactive CO2 emissions fluxes are governed by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
@@ -31,6 +39,76 @@ The execution, experiment inclusion, and temporal extension for interactive CO2 
 ---
 
 ## 1. Emission-Driven Historical Experiment (EH)
+
+<a id="eh-dataflow"></a>
+### Dataflow Architecture
+
+The emissions-driven historical and ScenarioMIP workflows aggregate gridded surface and aircraft emissions, regrid conservatively to N96, and package monthly binary ancillaries:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_Anthro[("CEDS Anthropogenic CO2<br><code>CO2_em_anthro (surface sectors)</code>")]:::inputStyle
+            E_Air[("CEDS Aircraft CO2<br><code>CO2_em_AIR_anthro (vertical levels)</code>")]:::inputStyle
+            E_Mask[("Reference Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.co2 (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Sum["Sector and Aircraft Summation<br><i>collapse surface sectors and merge aircraft flux</i>"]:::activityStyle
+        A_Regrid["Conservative Regridding<br><i>AreaWeighted(mdtol=0.5) to N96 and zero_poles</i>"]:::activityStyle
+        A_Pack["Mule Ancillary Packaging<br><i>STASH m01s00i251 | calendar=1 | model_version=703</i>"]:::activityStyle
+
+        A_Sum --> A_Regrid --> A_Pack
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_EH_Anc[("Historical Emissions Ancillary<br><code>CO2_fluxes_1849_2023_cmip7.anc</code>")]:::outputStyle
+        E_ES_Anc[("Scenario Emissions Ancillaries<br><code>CO2_fluxes_SCEN_2022_2100_cmip7.anc</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_Anthro & E_Air -->|prov:used| A_Sum
+    E_Mask -->|prov:used| A_Regrid
+    A_Pack -->|EH experiment| E_EH_Anc
+    A_Pack -->|ES experiment| E_ES_Anc
+
+    E_EH_Anc & E_ES_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Sum
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
+    AgPy -.->|prov:wasAssociatedWith| A_Pack
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `EH_ancil_co2`
 
@@ -96,6 +174,9 @@ The execution, experiment inclusion, and temporal extension for interactive CO2 
 ---
 
 ## 2. Emission-Driven ScenarioMIP Experiment (ES)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP emission-driven $\text{CO}_2$ flux generation follows the same time-series dataflow architecture as the [Emission-Driven Historical Experiment (EH)](#eh-dataflow).
 
 ### `ES_{h,hl,m,vl}_ancil_co2`
 

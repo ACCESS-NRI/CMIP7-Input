@@ -15,6 +15,14 @@ The solar irradiance pipeline extracts and calculates Total Solar Irradiance (TS
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The solar irradiance pipeline follows the W3C PROV framework, separating into distinct dataflows based on experiment requirements:
+* **Pre-Industrial Control (`PI`):** Extracts the time-invariant solar constant and patches model coupling namelists. See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`) & ScenarioMIP (`SM`):** Extracts time-evolving annual means and generates multi-century padded ASCII tables. See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
+
+---
+
 ## Controlling Suite Switches
 
 The execution, experiment inclusion, and downstream configuration synchronization for solar irradiance are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
@@ -31,6 +39,67 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 ---
 
 ## 1. Pre-Industrial Experiment (PI)
+
+<a id="pi-dataflow"></a>
+### Dataflow Architecture
+
+The pre-industrial experiment extracts the time-invariant solar irradiance constant and patches the model namelist:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_Sol[("input4MIPs Solar NetCDF<br><code>SOLARIS-HEPPA/atmos/fx/multiple/gn</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.solar (Iris and f90nml)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Extract["1850 Annual Mean Extraction<br><i>iris.analysis.MEAN on solar_irradiance</i>"]:::activityStyle
+        A_Patch["Namelist Patching<br><i>f90nml: coupling:SC = 1361.603</i>"]:::activityStyle
+        A_Extract --> A_Patch
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_PI_Nml[["Pre-Industrial Model Namelist<br><code>atmosphere/input_atm.nml</code>"]]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_Sol -->|prov:used| A_Extract
+    A_Patch -->|prov:wasGeneratedBy| E_PI_Nml
+    E_PI_Nml -->|Git commit and push| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Extract
+    AgPy -.->|prov:wasAssociatedWith| A_Patch
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `PI_ancil_solar`
 
@@ -84,6 +153,70 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 
 ## 2. Historical Experiment (HI)
 
+<a id="hi-dataflow"></a>
+### Dataflow Architecture
+
+The historical and ScenarioMIP experiments follow a unified time-series dataflow architecture, extracting annual means from time-series NetCDF inputs, extending coverage across 1700–2300, and serializing to a 2-column ASCII forcing table:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_Sol[("input4MIPs Historical Solar NetCDF<br><code>SOLARIS-HEPPA/atmos/mon/multiple/gn</code>")]:::inputStyle
+            E_SM_Sol[("input4MIPs ScenarioMIP Solar NetCDF<br><code>SOLARIS-HEPPA-ScenarioMIP-4-6</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.solar (Iris)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Mean["Annual Mean Extraction<br><i>iris.analysis.MEAN on solar_irradiance</i>"]:::activityStyle
+        A_Pad["Climatological and Missing Flag Padding<br><i>1700-1849: 1850 mean | >end_year: -32768.0</i>"]:::activityStyle
+        A_Table["ASCII Serialization<br><i>format 2-column text table</i>"]:::activityStyle
+        A_Mean --> A_Pad --> A_Table
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_Dat[("ASCII Time-Series Table<br><code>TSI_CMIP7_ESM.dat (1700-2300)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["Model Modern Configurations<br><code>modern/{historical,scen7-h}/atmosphere/forcing/</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_Sol & E_SM_Sol -->|prov:used| A_Mean
+    A_Table -->|prov:wasGeneratedBy| E_Dat
+    E_Dat -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Mean
+    AgPy -.->|prov:wasAssociatedWith| A_Pad
+    AgPy -.->|prov:wasAssociatedWith| A_Table
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
+
 ### `HI_ancil_solar`
 
 * **1. Description & Purpose:**  
@@ -124,6 +257,9 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 ---
 
 ## 3. ScenarioMIP Experiment (SM)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP solar forcing generation uses the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
 
 ### `SM_ancil_solar`
 

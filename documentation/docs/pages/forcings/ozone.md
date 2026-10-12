@@ -15,6 +15,14 @@ The Ozone forcing pipeline ingests CMIP7 3D zonal-mean monthly atmospheric ozone
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The ozone pipeline follows the W3C PROV framework, coupling an upstream UKESM hybrid-height regridding engine with in-house Mule packaging to support perpetual 1850 cycles, PMIP multi-year averages, and multi-decadal time series:
+* **Pre-Industrial (`PI`) & Paleoclimate (`PM`):** Packages 1850 perpetual cyclic (`ozone_1850_cmip7.anc`) and 1850–1870 20-year climatological mean (`ozone_PI_mean_cmip7.anc`) ancillaries. See [Pre-Industrial & Paleoclimate Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`) & ScenarioMIP (`SM`):** Packages continuous monthly multi-decadal time-series ancillaries (`ozone_1849_2023_cmip7.anc` and scenario files extending to 2150). See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
+
+---
+
 ## Controlling Suite Switches
 
 The execution, experiment inclusion, and temporal extension for the 3D ozone pipeline are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
@@ -47,6 +55,76 @@ The execution, experiment inclusion, and temporal extension for the 3D ozone pip
 ---
 
 ## 2. Pre-Industrial Experiment (PI) & Paleoclimate (PM)
+
+<a id="pi-dataflow"></a>
+### Dataflow Architecture
+
+The pre-industrial and PMIP ozone workflows regrid 3D zonal mole fractions to N96 L85 hybrid heights and package 12-month cyclic ancillaries:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef intermediateStyle fill:#fffde7,stroke:#fbc02d,stroke-width:1.5px,color:#f57f17
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_O3[("input4MIPs Ozone NetCDF<br><code>FZJ zmta (1850 / 1850-1870)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgUK{{"UKESM Regridding Scripts"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.ozone (Iris, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Two-Stage Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_UKESM["Stage 1: UKESM Vertical Regridding<br><i>vertical pressure -> 85 hybrid-height levels</i>"]:::activityStyle
+        E_Zonal[("Intermediate NetCDF<br><code>${ROSE_DATA}/ozone/*.nc</code>")]:::intermediateStyle
+        A_Fix["Stage 2a: Coordinate Masking and Bounds<br><i>fix_coords and N96 grid masking</i>"]:::activityStyle
+        A_Mule["Stage 2b: Cyclic Mule Packing<br><i>STASH m01s00i060 | 12 monthly slices</i>"]:::activityStyle
+
+        A_UKESM --> E_Zonal --> A_Fix --> A_Mule
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_PI_Anc[("Pre-Industrial Cyclic Ancillary<br><code>ozone_1850_cmip7.anc</code>")]:::outputStyle
+        E_PM_Anc[("PMIP 20-Yr Mean Ancillary<br><code>ozone_PI_mean_cmip7.anc</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_O3 -->|prov:used| A_UKESM
+    A_Mule -->|PI experiment| E_PI_Anc
+    A_Mule -->|PM experiment| E_PM_Anc
+
+    E_PI_Anc & E_PM_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgUK -.->|prov:wasAssociatedWith| A_UKESM
+    AgPy -.->|prov:wasAssociatedWith| A_Fix
+    AgPy -.->|prov:wasAssociatedWith| A_Mule
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `PI_mean_ukesm_ancil_ozone` & `PI_mean_ancil_ozone`
 * **1. Description & Purpose:**  
@@ -87,6 +165,76 @@ The execution, experiment inclusion, and temporal extension for the 3D ozone pip
 
 ## 3. Historical Experiment (HI)
 
+<a id="hi-dataflow"></a>
+### Dataflow Architecture
+
+The historical and ScenarioMIP ozone pipelines regrid multi-decadal 3D ozone fields to N96 L85 hybrid heights and package continuous monthly time-series ancillaries:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef intermediateStyle fill:#fffde7,stroke:#fbc02d,stroke-width:1.5px,color:#f57f17
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_O3[("Historical Ozone NetCDF<br><code>FZJ zmta (1850-2022)</code>")]:::inputStyle
+            E_SM_O3[("ScenarioMIP Ozone NetCDFs<br><code>FZJ zmta (2022-2100)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgUK{{"UKESM Regridding Scripts"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.ozone (Iris, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Two-Stage Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_UKESM["Stage 1: UKESM Vertical Regridding<br><i>vertical pressure -> 85 hybrid-height levels</i>"]:::activityStyle
+        E_Zonal[("Intermediate NetCDFs<br><code>${ROSE_DATA}/ozone/*.nc</code>")]:::intermediateStyle
+        A_Pad["Stage 2a: Temporal Extension and Tiling<br><i>1849 padding (HI) | 2100-2151 tiling (SM)</i>"]:::activityStyle
+        A_Mule["Stage 2b: Time-Series Mule Packing<br><i>STASH m01s00i060 | continuous monthly slices</i>"]:::activityStyle
+
+        A_UKESM --> E_Zonal --> A_Pad --> A_Mule
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_HI_Anc[("Historical Ancillary<br><code>ozone_1849_2023_cmip7.anc</code>")]:::outputStyle
+        E_SM_Anc[("ScenarioMIP Ancillaries<br><code>ozone_SCEN_*.anc (to 2150)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["Model Modern Configurations<br><code>modern/{historical,scen7-*}/atmosphere/forcing/</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_O3 & E_SM_O3 -->|prov:used| A_UKESM
+    A_Mule -->|prov:wasGeneratedBy| E_HI_Anc & E_SM_Anc
+
+    E_HI_Anc & E_SM_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgUK -.->|prov:wasAssociatedWith| A_UKESM
+    AgPy -.->|prov:wasAssociatedWith| A_Pad
+    AgPy -.->|prov:wasAssociatedWith| A_Mule
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
+
 ### `HI_ukesm_ancil_ozone` & `HI_ancil_ozone`
 
 * **1. Description & Purpose:**  
@@ -123,6 +271,9 @@ The execution, experiment inclusion, and temporal extension for the 3D ozone pip
 ---
 
 ## 4. ScenarioMIP Experiment (SM)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP 3D ozone forcing generation uses the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
 
 ### `SM_{h,hl,m,vl}_ukesm_ancil_ozone` & `SM_{h,hl,m,vl}_ancil_ozone`
 

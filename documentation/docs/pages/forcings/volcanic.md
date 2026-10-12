@@ -1,6 +1,6 @@
 # Volcanic Optical Depth (SAOD) Forcing Specifications
 
-The volcanic optical depth pipeline extracts and integrates stratospheric aerosol optical depth (SAOD) at 550nm wavelength from the UOEXETER CMIP7 datasets, patching pre-industrial coupling namelists and manufacturing 4-band monthly ASCII tables for transient historical and scenario experiments.
+The volcanic optical depth pipeline extracts and integrates stratospheric aerosol optical depth (SAOD) at 550nm wavelength from the UOEXETER CMIP7 datasets, patching pre-industrial coupling namelists and manufacturing 4-band monthly ASCII tables for time-series historical and scenario experiments.
 
 ---
 
@@ -14,6 +14,14 @@ The volcanic optical depth pipeline extracts and integrates stratospheric aeroso
 * **Spatial Discretization:**
     * **Pre-Industrial (`PI`):** Globally integrated scalar SAOD constant patched into namelist variable `VOLCTS_val` in `&coupling` in `atmosphere/input_atm.nml`.
     * **Historical (`HI`) & ScenarioMIP (`SM`):** Integrated across 4 equal-area/latitude bands (`90°S–20°S`, `20°S–0°`, `0°–20°N`, `20°N–90°N`) for each month and output into ASCII data table `volcts_cmip7.dat`.
+
+---
+
+## Provenance & Dataflow Architecture
+
+The volcanic SAOD pipeline processes spectral extinction coefficients into model-ready boundary conditions, separating into distinct dataflows based on experiment requirements:
+* **Pre-Industrial Control (`PI`):** Derives a single background SAOD scalar and patches the model coupling namelist. See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`) & ScenarioMIP (`SM`):** Integrates stratospheric optical depth across 4 latitude bands and serializes to a monthly ASCII forcing table (`volcts_cmip7.dat`). See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
 
 ---
 
@@ -33,6 +41,71 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 ---
 
 ## 1. Pre-Industrial Experiment (PI)
+
+<a id="pi-dataflow"></a>
+### Dataflow Architecture
+
+The pre-industrial volcanic workflow integrates background stratospheric aerosol extinction into a single scalar value and patches the model namelist:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_Ext[("input4MIPs Volcanic NetCDF<br><code>UOEXETER-CMIP-1-2-0 (fx/climatology)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.volcanic (Iris and f90nml)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Filter["Spectral and Spatial Filtering<br><i>550nm wavelength extraction</i>"]:::activityStyle
+        A_Integ["Stratospheric Integration<br><i>layer-height weighted vertical summation</i>"]:::activityStyle
+        A_Scalar["Background Scalar Extraction<br><i>global mean optical depth</i>"]:::activityStyle
+        A_Patch["Namelist Patching<br><i>f90nml: RUN_Radiation:VOLCTS_val = 0.0</i>"]:::activityStyle
+        A_Filter --> A_Integ --> A_Scalar --> A_Patch
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_PI_Nml[["Pre-Industrial Model Namelist<br><code>atmosphere/input_atm.nml</code>"]]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_Ext -->|prov:used| A_Filter
+    A_Patch -->|prov:wasGeneratedBy| E_PI_Nml
+    E_PI_Nml -->|Git commit and push| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Filter
+    AgPy -.->|prov:wasAssociatedWith| A_Integ
+    AgPy -.->|prov:wasAssociatedWith| A_Scalar
+    AgPy -.->|prov:wasAssociatedWith| A_Patch
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `PI_ancil_volcanic`
 
@@ -89,6 +162,72 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 
 ## 2. Historical Experiment (HI)
 
+<a id="hi-dataflow"></a>
+### Dataflow Architecture
+
+The historical and ScenarioMIP volcanic pipelines integrate stratospheric aerosol extinction vertically, average across 4 latitude bands, scale values ($\times 10^4$), and serialize to monthly 4-column ASCII forcing tables:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_Ext[("Historical Volcanic NetCDF<br><code>UOEXETER-CMIP-1-2-0 (185001-202312)</code>")]:::inputStyle
+            E_SM_Ext[("ScenarioMIP Volcanic NetCDF<br><code>UOEXETER-ScenarioMIP-1-2-0 (202401-210012)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.volcanic (Iris)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Vert["Stratospheric Layer Integration<br><i>sigma-weighted sum across layers</i>"]:::activityStyle
+        A_Scale["Integer Scaling<br><i>multiply by 10000.0</i>"]:::activityStyle
+        A_Zonal["4-Band Latitudinal Cosine Averaging<br><i>90S-20S, 20S-0, 0-20N, 20N-90N</i>"]:::activityStyle
+        A_Table["ASCII Serialization<br><i>format 4-column monthly table</i>"]:::activityStyle
+        A_Vert --> A_Scale --> A_Zonal --> A_Table
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_Dat[("4-Band Monthly ASCII Table<br><code>volcts_cmip7.dat (1850-2300)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["Model Modern Configurations<br><code>modern/{historical,scen7-*}/atmosphere/forcing/</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_Ext & E_SM_Ext -->|prov:used| A_Vert
+    A_Table -->|prov:wasGeneratedBy| E_Dat
+    E_Dat -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Vert
+    AgPy -.->|prov:wasAssociatedWith| A_Scale
+    AgPy -.->|prov:wasAssociatedWith| A_Zonal
+    AgPy -.->|prov:wasAssociatedWith| A_Table
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
+
 ### `HI_ancil_volcanic`
 
 * **1. Description & Purpose:**  
@@ -131,6 +270,9 @@ The execution, experiment inclusion, and downstream configuration synchronizatio
 ---
 
 ## 3. ScenarioMIP Experiment (SM)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP volcanic forcing generation uses the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
 
 ### `SM_ancil_volcanic`
 

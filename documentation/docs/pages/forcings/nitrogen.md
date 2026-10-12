@@ -21,6 +21,14 @@ The Nitrogen deposition pipeline aggregates 4 atmospheric reactive nitrogen depo
 
 ---
 
+## Provenance & Dataflow Architecture
+
+The nitrogen deposition pipeline aggregates four distinct reactive nitrogen deposition species into a unified terrestrial biogeochemistry forcing, converting units, regridding onto the N96 grid, and packing via Mule. The pipeline separates by experiment:
+* **Pre-Industrial Control (`PI`):** Generates a 12-month perpetual cyclic ancillary (`Ndep_1850_cmip7.anc`). See [Pre-Industrial Experiment Dataflow Architecture](#pi-dataflow).
+* **Historical (`HI`) & ScenarioMIP (`SM`):** Generates continuous monthly multi-decadal time-series ancillaries (`Ndep_1849_2023_cmip7.anc` and scenario files extending to 2150). See [Historical & ScenarioMIP Dataflow Architecture](#hi-dataflow).
+
+---
+
 ## Controlling Suite Switches
 
 The execution, experiment inclusion, and temporal extension for reactive nitrogen deposition are controlled by parameters in [`rose-suite.conf`](../configuration/suite_objects.md):
@@ -39,6 +47,76 @@ The execution, experiment inclusion, and temporal extension for reactive nitroge
 ---
 
 ## 1. Pre-Industrial Experiment (PI)
+
+<a id="pi-dataflow"></a>
+### Dataflow Architecture
+
+The pre-industrial nitrogen deposition workflow sums the four reactive nitrogen species for 1850, regrids conservatively to N96, and packages into a 12-month cyclic ancillary:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E1[("drynhx (1850 Dry reduced N)")]:::inputStyle
+            E2[("drynoy (1850 Dry oxidized N)")]:::inputStyle
+            E3[("wetnhx (1850 Wet reduced N)")]:::inputStyle
+            E4[("wetnoy (1850 Wet oxidized N)")]:::inputStyle
+            E_Mask[("Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.nitrogen (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Sum["Multi-Species Summation<br><i>Flux_total = drynhx + drynoy + wetnhx + wetnoy</i>"]:::activityStyle
+        A_Unit["Unit Conversion<br><i>kg m-2 s-1 -> g m-2 day-1 (x 8.64e7)</i>"]:::activityStyle
+        A_Regrid["Spatial Regridding<br><i>AreaWeighted(mdtol=0.5) to N96 and fillna(0.0)</i>"]:::activityStyle
+        A_Mule["12-Month Cyclic Mule Packaging<br><i>STASH m01s00i884 | calendar=1 | 12 monthly slices</i>"]:::activityStyle
+        A_Sum --> A_Unit --> A_Regrid --> A_Mule
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_PI_Anc[("Pre-Industrial Ancillary<br><code>Ndep_1850_cmip7.anc (12-mo cyclic)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["ACCESS-ESM1.6 Configs<br><code>ACCESS-NRI/access-esm1.6-configs (piControl)</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E1 & E2 & E3 & E4 -->|prov:used| A_Sum
+    E_Mask -->|prov:used| A_Regrid
+    A_Mule -->|prov:wasGeneratedBy| E_PI_Anc
+    E_PI_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Sum
+    AgPy -.->|prov:wasAssociatedWith| A_Unit
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
+    AgPy -.->|prov:wasAssociatedWith| A_Mule
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
 
 ### `PI_ancil_nitrogen`
 
@@ -103,10 +181,79 @@ The execution, experiment inclusion, and temporal extension for reactive nitroge
 
 ## 2. Historical Experiment (HI)
 
+<a id="hi-dataflow"></a>
+### Dataflow Architecture
+
+The historical and ScenarioMIP nitrogen deposition pipelines sum multi-decadal flux fields across all 4 species, regrid to N96, and package continuous monthly time-series ancillaries:
+
+{% raw %}
+```mermaid
+flowchart TD
+    %% Custom Styles for W3C PROV Semantics
+    classDef inputStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:1.5px,color:#01579b
+    classDef activityStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:1.5px,color:#1b5e20
+    classDef outputStyle fill:#fff3e0,stroke:#e65100,stroke-width:1.5px,color:#bf360c
+    classDef agentStyle fill:#f3e5f5,stroke:#7b1fa2,stroke-width:1.5px,color:#4a148c
+    classDef targetStyle fill:#ede7f6,stroke:#4527a0,stroke-width:2px,color:#311b92
+
+    %% Top Level: Inputs and Agents
+    subgraph S_TOP["1. Source Inputs and Agents"]
+        direction LR
+        subgraph Inputs["Input Entities (prov:Entity)"]
+            direction TB
+            E_HI_N[("Historical CEDS NetCDFs<br><code>4 species (1849-2023)</code>")]:::inputStyle
+            E_SM_N[("ScenarioMIP CEDS NetCDFs<br><code>4 species (2022-2150)</code>")]:::inputStyle
+            E_Mask[("Grid Mask<br><code>qrparm.mask (N96)</code>")]:::inputStyle
+        end
+
+        subgraph Agents["Agents (prov:Agent)"]
+            direction TB
+            AgCylc{{"Cylc 8 Suite Scheduler"}}:::agentStyle
+            AgPy{{"esm1p6_ancil.nitrogen (Iris, Ants, Mule)"}}:::agentStyle
+        end
+    end
+
+    %% Middle Level: Transformation Pipeline
+    subgraph Activities["2. Transformation Pipeline (prov:Activity)"]
+        direction TB
+        A_Sum["Multi-Species Summation<br><i>Flux_total = drynhx + drynoy + wetnhx + wetnoy</i>"]:::activityStyle
+        A_Unit["Unit Conversion<br><i>kg m-2 s-1 -> g m-2 day-1 (x 8.64e7)</i>"]:::activityStyle
+        A_Regrid["Spatial Regridding<br><i>AreaWeighted(mdtol=0.5) to N96 and fillna(0.0)</i>"]:::activityStyle
+        A_Mule["Time-Series Mule Packaging<br><i>STASH m01s00i884 | continuous monthly slices</i>"]:::activityStyle
+        A_Sum --> A_Unit --> A_Regrid --> A_Mule
+    end
+
+    %% Lower Level: Output Entities
+    subgraph Outputs["3. Output Entities (prov:Entity)"]
+        direction TB
+        E_HI_Anc[("Historical Ancillary<br><code>Ndep_1849_2023_cmip7.anc</code>")]:::outputStyle
+        E_SM_Anc[("ScenarioMIP Ancillaries<br><code>Ndep_SCEN_*.anc (to 2150)</code>")]:::outputStyle
+    end
+
+    %% Bottom Level: Model Target
+    subgraph S_DEPLOY["4. Downstream Deployment"]
+        E_Model[["Model Modern Configurations<br><code>modern/{historical,scen7-*}/atmosphere/nitrogen/</code>"]]:::targetStyle
+    end
+
+    %% Relationships
+    E_HI_N & E_SM_N -->|prov:used| A_Sum
+    E_Mask -->|prov:used| A_Regrid
+    A_Mule -->|prov:wasGeneratedBy| E_HI_Anc & E_SM_Anc
+    E_HI_Anc & E_SM_Anc -->|staged for model execution| E_Model
+
+    %% Agent Associations
+    AgPy -.->|prov:wasAssociatedWith| A_Sum
+    AgPy -.->|prov:wasAssociatedWith| A_Unit
+    AgPy -.->|prov:wasAssociatedWith| A_Regrid
+    AgPy -.->|prov:wasAssociatedWith| A_Mule
+    AgCylc -.->|orchestrates| Activities
+```
+{% endraw %}
+
 ### `HI_ancil_nitrogen`
 
 * **1. Description & Purpose:**  
-  Ingests monthly transient nitrogen deposition fluxes from 1850 to 2022, pads timeline to span 1849–2023 for model spin-up/spin-down boundary compliance, regrids to N96, and produces `${ESM_HI_NITROGEN_SAVE_FILENAME}` (`Ndep_1849_2023_cmip7.anc`).
+  Ingests monthly time-series nitrogen deposition fluxes from 1850 to 2022, pads timeline to span 1849–2023 for model spin-up/spin-down boundary compliance, regrids to N96, and produces `${ESM_HI_NITROGEN_SAVE_FILENAME}` (`Ndep_1849_2023_cmip7.anc`).
 * **2. CLI Arguments Passed:**  
   ```bash
   python -m esm1p6_ancil.nitrogen.cmip7_HI_nitrogen_generate \
@@ -148,6 +295,9 @@ The execution, experiment inclusion, and temporal extension for reactive nitroge
 ---
 
 ## 3. ScenarioMIP Experiment (SM)
+
+> [!NOTE]
+> **Dataflow Architecture:** ScenarioMIP reactive nitrogen deposition processing follows the same time-series dataflow architecture as the [Historical Experiment (HI)](#hi-dataflow).
 
 ### `SM_{h,hl,m,vl}_ancil_nitrogen`
 
