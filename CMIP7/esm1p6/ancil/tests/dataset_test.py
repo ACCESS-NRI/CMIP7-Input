@@ -24,7 +24,7 @@ from dataset import (  # noqa: E402
 
 @pytest.fixture
 def nitrogen_pi_facets() -> dict:
-    """Fixture providing facets for Pre-Industrial Reactive Nitrogen."""
+    """Fixture providing facets for Pre-Industrial Nitrogen Deposition."""
     return {
         "root": "/g/data/qv56/replicas",
         "activity_id": "input4MIPs",
@@ -300,6 +300,48 @@ aircraft:
     assert ds_air.dirname.source_id == "IIASA-IAMC-h-1-1-2"
     assert "v20260409" in str(ds_surf.to_path())
     assert "v20260624" in str(ds_air.to_path())
+
+
+def test_dataset_config_from_yaml_with_section(tmp_path):
+    """Test loading specific section via from_yaml(..., section=...)."""
+    yaml_content = """
+surface:
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: ScenarioMIP
+  institution_id: IIASA-IAMC
+  source_id: IIASA-IAMC-h-1-1-1
+  realm: atmos
+  frequency: mon
+  variable_id: SO2
+  grid_label: gn
+  version: v20260409
+  dataset_category: emissions
+  time_range: 202201-210012
+aircraft:
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: ScenarioMIP
+  institution_id: IIASA-IAMC
+  source_id: IIASA-IAMC-h-1-1-2
+  realm: atmos
+  frequency: mon
+  variable_id: SO2
+  grid_label: gn
+  version: v20260624
+  dataset_category: emissions
+  time_range: 202201-210012
+"""
+    yaml_file = tmp_path / "datasetconfig.yaml"
+    yaml_file.write_text(yaml_content, encoding="utf-8")
+
+    surf_cfg = DatasetConfig.from_yaml(yaml_file, section="surface")
+    assert surf_cfg.dirname_facets["source_id"] == "IIASA-IAMC-h-1-1-1"
+
+    with pytest.raises(KeyError, match="Section 'unknown' not found"):
+        DatasetConfig.from_yaml(yaml_file, section="unknown")
 
 
 def test_dataset_config_errors(tmp_path):

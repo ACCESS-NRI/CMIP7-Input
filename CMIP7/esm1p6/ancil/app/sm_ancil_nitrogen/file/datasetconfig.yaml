@@ -1,0 +1,51 @@
+_defaults: &defaults
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: ScenarioMIP
+  institution_id: FZJ
+  realm: atmos
+  frequency: mon
+  grid_label: gn
+  dataset_category: surfaceFluxes
+  time_range: 202201-210012
+  variables:
+    - drynhx
+    - drynoy
+    - wetnhx
+    - wetnoy
+
+h:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-h-1-0
+  version: v20260409
+
+hl:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-hl-1-0
+  version: v20260706
+
+m:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-m-1-0
+  version: v20260706
+
+vl:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-vl-1-0
+  version: v20260409
+
+l:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-l-1-0
+  version: v20260930
+
+ln:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-ln-1-0
+  version: v20260930
+
+ml:
+  <<: *defaults
+  source_id: FZJ-CMIP-nitrogen-ml-1-0
+  version: v20260930

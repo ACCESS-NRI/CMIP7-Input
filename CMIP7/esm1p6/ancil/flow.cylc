@@ -694,49 +694,44 @@
       [[ANCIL_NITROGEN]]
           inherit = ESM1P6_ANCIL
 
+          [[[environment]]]
+              PATH_ARGS = "--ancil-target-dirname {{ quote(VAR.ANCIL_TARGET_PATH) }} --esm15-inputs-dirname {{ quote(VAR.ESM15_INPUTS_PATH) }}"
+              GRID_ARGS = "--esm-grid-rel-dirname {{ quote(ESM_GRID_DIRNAME) }} --esm15-grid-version {{ quote(ESM15_GRID_VERSION) }}"
+
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
       [[SM_{{SCEN}}_ancil_nitrogen]]
           inherit = ANCIL_NITROGEN, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              python_env python \
-                  -m nitrogen.cmip7_SM_nitrogen_generate \
-                  --scenario {{ SCEN }} \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SM_NITROGEN_VERSION[SCEN]) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_NITROGEN_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_NITROGEN_DATE_RANGE) }} \
-                  {% if EXTEND_SM_NITROGEN[SCEN] %}
-                  --ext \
-                  --save-filename {{ quote(ESM_SM_EXT_NITROGEN_SAVE_FILENAME[SCEN]) }}
-                  {% else %}
-                  --save-filename {{ quote(ESM_SM_NITROGEN_SAVE_FILENAME[SCEN]) }}
-                  {% endif %}
-              """
+          script = "rose task-run --app-key=sm_ancil_nitrogen"
+
+          [[[environment]]]
+              SCENARIO = {{ SCEN }}
+              {% if EXTEND_SM_NITROGEN[SCEN] %}
+              EXT_ARG = --ext
+              save_filename = {{ quote(ESM_SM_EXT_NITROGEN_SAVE_FILENAME[SCEN]) }}
+              {% else %}
+              EXT_ARG =
+              save_filename = {{ quote(ESM_SM_NITROGEN_SAVE_FILENAME[SCEN]) }}
+              {% endif %}
           {% endif %}
-    {% endfor %}
+        {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_nitrogen]]
           inherit = ANCIL_NITROGEN, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              python_env python \
-                  -m nitrogen.cmip7_{{EXP}}_nitrogen_generate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_NITROGEN_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_NITROGEN_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_NITROGEN_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_NITROGEN_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }}
-                  {% endif %}
-              """
+        {% if EXP == "HI" %}
+          script = "rose task-run --app-key=hi_ancil_nitrogen"
+
+          [[[environment]]]
+              save_filename = {{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }}
+        {% else %}
+          script = "rose task-run --app-key=pi_ancil_nitrogen"
+
+          [[[environment]]]
+              save_filename = {{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }}
+        {% endif %}
       {% endif %}
     {% endif %}
 

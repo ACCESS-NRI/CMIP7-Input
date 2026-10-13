@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
 from pathlib import Path
 
-from cmip7_ancil_argparse import common_parser, ext_parser
+from cmip7_ancil_argparse import ext_parser, grid_parser, path_parser
 from cmip7_ancil_common import extend_years, tile_constant_years
 from cmip7_ancil_constants import ANCIL_TODAY
 from cmip7_SM import CMIP7_SM_END_YEAR, CMIP7_SM_EXT_END_YEAR
+from dataset import DatasetConfig
 from nitrogen.cmip7_nitrogen import (
-    cmip7_nitrogen_dirpath,
+    NITROGEN_SPECIES,
     load_cmip7_nitrogen,
     regrid_cmip7_nitrogen,
     save_cmip7_nitrogen,
@@ -19,41 +20,24 @@ def parse_args():
 
     Returns:
         argparse.Namespace: Parsed CLI arguments containing path, grid,
-            dataset, extension, scenario, date range, and save filename
-            parameters.
+            extension, scenario, config, and save filename parameters.
     """
     parser = ArgumentParser(
-        parents=[common_parser(), ext_parser()],
+        parents=[path_parser(), grid_parser(), ext_parser()],
         prog="cmip7_SM_nitrogen_generate",
         description=(
             "Generate input files from CMIP7 ScenarioMIP nitrogen forcings"
         ),
     )
-    parser.add_argument("--scenario")
-    parser.add_argument("--dataset-date-range")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("datasetconfig.yaml"),
+        help="Path to dataset configuration YAML file",
+    )
+    parser.add_argument("--scenario", required=True)
     parser.add_argument("--save-filename")
     return parser.parse_args()
-
-
-def cmip7_sm_nitrogen_filepath(args, species):
-    """Construct the file path for a ScenarioMIP monthly nitrogen netCDF
-    dataset.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration.
-        species (str): Reactive nitrogen species identifier.
-
-    Returns:
-        pathlib.Path: File path to the monthly input4MIPs netCDF file.
-    """
-    dirpath = cmip7_nitrogen_dirpath(args, "ScenarioMIP", "mon", species)
-    filename = (
-        f"{species}_input4MIPs_surfaceFluxes_ScenarioMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{args.dataset_date_range}.nc"
-    )
-    return dirpath / filename
 
 
 def esm_sm_nitrogen_save_dirpath(args):
@@ -85,7 +69,9 @@ if __name__ == "__main__":
     args = parse_args()
 
     # Load the CMIP7 datasets
-    nitrogen_cube = load_cmip7_nitrogen(args, cmip7_sm_nitrogen_filepath)
+    config = DatasetConfig.from_yaml(args.config, section=args.scenario)
+    datasets = config.to_datasets_by_variable(NITROGEN_SPECIES)
+    nitrogen_cube = load_cmip7_nitrogen(datasets)
 
     # Regrid to match the ESM1.5 mask and extend the time series
     esm_cube = regrid_cmip7_nitrogen(args, nitrogen_cube)

@@ -456,13 +456,17 @@ class DatasetConfig:
 
     @classmethod
     def from_yaml(
-        cls, path: str | Path = "datasetconfig.yaml"
+        cls,
+        path: str | Path = "datasetconfig.yaml",
+        section: str | None = None,
     ) -> "DatasetConfig":
         """Load configuration from a YAML file.
 
         Args:
             path: Filesystem path to the YAML file. Defaults to
                 'datasetconfig.yaml'.
+            section: Optional section name to load from a multi-section YAML
+                file (e.g., scenario name 'h', 'ssp585').
 
         Returns:
             DatasetConfig: Instantiated configuration object.
@@ -470,6 +474,7 @@ class DatasetConfig:
         Raises:
             FileNotFoundError: If the specified file does not exist.
             ValueError: If the file contents cannot be parsed as a mapping.
+            KeyError: If the requested section is not present in the YAML file.
         """
         yaml_path = Path(path)
         if not yaml_path.is_file():
@@ -481,6 +486,16 @@ class DatasetConfig:
         if not isinstance(data, dict):
             raise ValueError(
                 f"YAML configuration at {yaml_path} must be a dictionary"
+            )
+        if section is not None:
+            if section in data:
+                return cls.from_dict(data[section])
+            if "source_id" in data or "root" in data or "dirname" in data:
+                return cls.from_dict(data)
+            valid_keys = [k for k in data.keys() if not k.startswith("_")]
+            raise KeyError(
+                f"Section '{section}' not found in {yaml_path}. "
+                f"Available sections: {valid_keys}"
             )
         return cls.from_dict(data)
 
