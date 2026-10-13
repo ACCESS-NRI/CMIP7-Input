@@ -1,0 +1,17 @@
+root: /g/data/qv56/replicas
+activity_id: input4MIPs
+mip_era: CMIP7
+target_mip: CMIP
+institution_id: FZJ
+source_id: FZJ-CMIP-nitrogen-1-2
+realm: atmos
+frequency: mon
+grid_label: gn
+version: v20251025
+dataset_category: surfaceFluxes
+time_range: 185001-202212
+variables:
+  - drynhx
+  - drynoy
+  - wetnhx
+  - wetnoy

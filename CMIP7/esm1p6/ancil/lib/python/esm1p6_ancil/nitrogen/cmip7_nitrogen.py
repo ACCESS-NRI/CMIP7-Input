@@ -1,4 +1,5 @@
-from pathlib import Path
+from collections.abc import Mapping
+from typing import Any
 
 import iris
 from cmip7_ancil_common import (
@@ -17,62 +18,30 @@ https://github.com/ACCESS-NRI/access-esm1.6-configs/blob/dev-preindustrial%2Bcon
 NITROGEN_STASH_ITEM = 884
 
 
-def cmip7_nitrogen_dirpath(args, activity, period, species):
-    """Construct the source directory path for CMIP7 nitrogen deposition
-    datasets.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration (cmip7_source_data_dirname, dataset_version,
-            dataset_vdate).
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
-        period (str): Temporal resolution/frequency ('mon' or 'monC').
-        species (str): Reactive nitrogen species identifier ('drynhx',
-            'drynoy', 'wetnhx', 'wetnoy').
-
-    Returns:
-        pathlib.Path: Source directory path under
-            FZJ/{dataset_version}/atmos/{period}/{species}/gn/{dataset_vdate}.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / activity
-        / "FZJ"
-        / args.dataset_version
-        / "atmos"
-        / period
-        / species
-        / "gn"
-        / args.dataset_vdate
-    )
-
-
-def load_cmip7_nitrogen(args, load_filepath_fn):
-    """Load and sum all 4 reactive nitrogen species, converting units to g m-2
+def load_cmip7_nitrogen(datasets: Mapping[str, Any]) -> iris.cube.Cube:
+    """Load and sum all 4 nitrogen deposition species, converting units to g m-2
     day-1.
 
     Loads the 4 nitrogen species ('drynhx', 'drynoy', 'wetnhx', 'wetnoy'),
-    equalizes cube
-    attributes, sums their fluxes into total nitrogen deposition, and converts
-    from
-    SI units (kg m-2 s-1) to model units (g m-2 day-1).
+    equalizes cube attributes, sums their fluxes into total nitrogen
+    deposition, and converts from SI units (kg m-2 s-1) to model units
+    (g m-2 day-1).
 
     Args:
-        args (argparse.Namespace): Command-line arguments specifying source
-            datasets.
-        load_filepath_fn (callable): Callback function returning a pathlib.Path
-            given (args, species).
+        datasets (Mapping[str, Any]): Mapping from species name to Dataset or
+            path-like objects.
 
     Returns:
-        iris.cube.Cube: Aggregated total nitrogen deposition cube with units 'g
-            m-2 day-1'.
+        iris.cube.Cube: Aggregated total nitrogen deposition cube with units
+            'g m-2 day-1'.
     """
-    # Load all of the PI nitrogen datasets into a CubeList
     nitrogen_cubes = iris.cube.CubeList()
     for species in NITROGEN_SPECIES:
-        species_filepath = load_filepath_fn(args, species)
-        species_cube = iris.load_cube(species_filepath)
+        ds = datasets[species]
+        filepath = str(ds.to_path()) if hasattr(ds, "to_path") else str(ds)
+        species_cube = iris.load_cube(filepath)
         nitrogen_cubes.append(species_cube)
+
     # Remove all attributes that differ between cubes
     equalise_attributes(nitrogen_cubes)
     # Add the cubes together
