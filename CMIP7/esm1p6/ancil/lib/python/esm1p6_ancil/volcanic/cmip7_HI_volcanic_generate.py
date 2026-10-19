@@ -1,15 +1,13 @@
 from argparse import ArgumentParser
 
 from cmip7_ancil_argparse import (
-    dataset_parser,
+    config_parser,
     pad_parser,
     path_parser,
 )
 from cmip7_HI import esm_hi_forcing_save_dirpath
-from volcanic.cmip7_volcanic import (
-    cmip7_volcanic_dirpath,
-    save_stratospheric_aerosol_optical_depth,
-)
+from dataset import DatasetConfig
+from volcanic.cmip7_volcanic import save_stratospheric_aerosol_optical_depth
 
 CMIP7_HI_VOLCANIC_BEG_YEAR = 1850
 CMIP7_HI_VOLCANIC_END_YEAR = 2023
@@ -19,8 +17,8 @@ def parse_args():
     """Parse command-line arguments for historical volcanic forcing generation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing dataset, pad, path,
-            date range, and save filename parameters.
+        argparse.Namespace: Parsed CLI arguments containing dataset config, pad,
+            path, and save filename parameters.
     """
     parser = ArgumentParser(
         prog="cmip7_HI_volcanic_generate",
@@ -28,32 +26,13 @@ def parse_args():
             "Generate input files from CMIP7 historical volcanic forcings"
         ),
         parents=[
-            dataset_parser(),
-            pad_parser(),
             path_parser(),
+            config_parser(),
+            pad_parser(),
         ],
     )
-    parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
-
-
-def cmip7_hi_volcanic_filename(dataset_version, dataset_date_range):
-    """Construct the standard input4MIPs netCDF filename for historical
-    volcanic extinction.
-
-    Args:
-        dataset_version (str): Version string of the volcanic dataset.
-        dataset_date_range (str): Date range string (e.g. '185001-202312').
-
-    Returns:
-        str: NetCDF filename for monthly zonal extinction properties.
-    """
-    return (
-        f"ext_input4MIPs_aerosolProperties_CMIP_"
-        f"{dataset_version}_gnz_"
-        f"{dataset_date_range}.nc"
-    )
 
 
 def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
@@ -64,7 +43,7 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
     Args:
         args (argparse.Namespace): Command-line arguments specifying pad and
             output options.
-        dataset_path (pathlib.Path): Path to the historical volcanic extinction
+        dataset_path (os.PathLike): Path to the historical volcanic extinction
             netCDF file.
     """
     if args.pad:
@@ -91,18 +70,8 @@ def save_hi_stratospheric_aerosol_optical_depth(args, dataset_path):
 if __name__ == "__main__":
     args = parse_args()
 
-    dirpath = cmip7_volcanic_dirpath(
-        args,
-        "CMIP",
-        "mon",
-        args.dataset_version,
-        args.dataset_vdate,
-    )
-    filename = cmip7_hi_volcanic_filename(
-        args.dataset_version,
-        args.dataset_date_range,
-    )
-    dataset_path = dirpath / filename
+    config = DatasetConfig.from_yaml(args.config)
+    dataset = config.to_dataset()
 
     # Calculate and save the average stratospheric aerosol optical depth.
-    save_hi_stratospheric_aerosol_optical_depth(args, dataset_path)
+    save_hi_stratospheric_aerosol_optical_depth(args, dataset)

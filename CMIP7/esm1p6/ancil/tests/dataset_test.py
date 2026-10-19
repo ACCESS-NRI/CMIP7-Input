@@ -677,3 +677,16 @@ def test_solar_app_configs():
             ds = cfg.to_dataset()
             assert ds.to_path().is_absolute()
             assert ds.filename.variable_id == "multiple"
+
+
+def test_volcanic_app_configs():
+    """Verify all sections of volcanic app configurations produce valid
+    Datasets.
+    """
+    for exp in ("pi", "hi", "sm"):
+        configs = _app_configs(f"{exp}_ancil_volcanic")
+        assert configs
+        for section, cfg in configs.items():
+            ds = cfg.to_dataset()
+            assert ds.to_path().is_absolute()
+            assert ds.filename.variable_id == "ext"

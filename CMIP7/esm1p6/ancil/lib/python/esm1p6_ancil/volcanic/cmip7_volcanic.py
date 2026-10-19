@@ -1,4 +1,4 @@
-from pathlib import Path
+import os
 
 import cftime
 import iris
@@ -13,40 +13,6 @@ SAOD_END_YEAR = 2300
 SAOD_WAVELENGTH = 550.0 * 1e-9
 # Scaling ratio to use with calculated SAOD
 SAOD_SCALING = 10000.0
-
-
-def cmip7_volcanic_dirpath(
-    args,
-    activity,
-    period,
-    dataset_version,
-    dataset_vdate,
-):
-    """Construct the source directory path for CMIP7 volcanic aerosol datasets.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing
-            cmip7_source_data_dirname.
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
-        period (str): Temporal frequency ('mon' or 'monC').
-        dataset_version (str): Version string for the volcanic dataset.
-        dataset_vdate (str): Dataset version date string.
-
-    Returns:
-        pathlib.Path: Directory path under
-            uoexeter/{dataset_version}/atmos/{period}/ext/gnz/{dataset_vdate}.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / activity
-        / "uoexeter"
-        / dataset_version
-        / "atmos"
-        / period
-        / "ext"
-        / "gnz"
-        / dataset_vdate
-    )
 
 
 def constrain_to_wavelength(cube, wavelength):
@@ -277,7 +243,7 @@ def save_stratospheric_aerosol_optical_depth(
             save_filename.
         volcanic_beg_year (int): Start year of dataset.
         volcanic_end_year (int): End year of dataset.
-        dataset_path (pathlib.Path): Path to raw netCDF input file.
+        dataset_path (os.PathLike): Path to raw netCDF input file.
         save_dirpath (pathlib.Path): Destination directory path.
         pi_mean_saod (float, optional): Pre-industrial mean SAOD for padding
             early years. Defaults to None.
@@ -289,7 +255,7 @@ def save_stratospheric_aerosol_optical_depth(
     """
 
     # Load the dataset into an Iris cube.
-    cube = iris.load_cube(dataset_path)
+    cube = iris.load_cube(os.fspath(dataset_path))
 
     # Constrain to just the CMIP7 prescribed wavelength.
     cube = constrain_to_wavelength(cube, SAOD_WAVELENGTH)

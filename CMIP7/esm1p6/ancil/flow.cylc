@@ -770,48 +770,30 @@
       [[SM_ancil_volcanic]]
           inherit = ANCIL_VOLCANIC, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              python_env python \
-                  -m volcanic.cmip7_SM_volcanic_generate \
-                  --scenario h \
-                  {{ PATH_ARGS }} \
-                  --pi-dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
-                  --pi-dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
-                  --pi-dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }} \
-                  --dataset-version {{ quote(CMIP7_SM_VOLCANIC_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_VOLCANIC_VDATE) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_VOLCANIC_DATE_RANGE) }} \
-                  {% if EXTEND_SM_VOLCANIC %}
-                  --ext \
-                  {% endif %}
-                  --save-filename {{ quote(ESM_SM_VOLCANIC_SAVE_FILENAME) }}
-              """
+          script = "rose task-run --app-key=sm_ancil_volcanic"
+
+          [[[environment]]]
+              SCENARIO = h
+              {% if EXTEND_SM_VOLCANIC %}
+              EXT_ARG = --ext
+              {% else %}
+              EXT_ARG = ""
+              {% endif %}
+              save_filename = {{ quote(ESM_SM_VOLCANIC_SAVE_FILENAME) }}
       {% else %}
       [[{{EXP}}_ancil_volcanic]]
         {% if EXP == "HI" %}
           inherit = ANCIL_VOLCANIC, SHORT_TIME_LOW_MEM_JOB
+
+          script = "rose task-run --app-key=hi_ancil_volcanic"
+
+          [[[environment]]]
+              save_filename = {{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }}
         {% else %}
           inherit = ANCIL_VOLCANIC, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
-        {% endif %}
 
-          script = """
-            {% if EXP == "HI" %}
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-            {% else %}
-              cd $GIT_{{EXP}}_CONFIG_DIR
-            {% endif %}
-              python_env python \
-                  -m volcanic.cmip7_{{EXP}}_volcanic_generate \
-                  {{ PATH_ARGS }}
-                  --dataset-version {{ quote(CMIP7_VOLCANIC_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_VOLCANIC_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_VOLCANIC_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_VOLCANIC_SAVE_FILENAME) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_VOLCANIC_DATE_RANGE) }}
-                  {% endif %}
-              """
+          script = "rose task-run --app-key=pi_ancil_volcanic"
+        {% endif %}
       {% endif %}
     {% endif %}
 
