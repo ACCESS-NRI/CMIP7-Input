@@ -3,6 +3,25 @@ tasks.
 """
 
 from argparse import ArgumentParser
+from pathlib import Path
+
+
+def config_parser():
+    """Create an argument parser for the dataset configuration file.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining the ``--config`` argument,
+            the path of the ``datasetconfig.yaml`` file that identifies the
+            input4MIPs datasets (default ``datasetconfig.yaml``).
+    """
+    parser = ArgumentParser(add_help=False)
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("datasetconfig.yaml"),
+        help="Path to dataset configuration YAML file",
+    )
+    return parser
 
 
 def dataset_parser():

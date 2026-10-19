@@ -109,6 +109,11 @@ class DatasetFilename:
         time_range: Optional date range string (e.g., '185001-202312').
         activity_id: Activity identifier (default: 'input4MIPs').
         extension: File extension without dot (default: 'nc').
+        hyphenate_variable: Whether the filename spells variable_id with
+            hyphens in place of underscores (e.g. variable_id
+            'BC_em_anthro' appears as 'BC-em-anthro' in the filename of
+            the input4MIPs emissions datasets). The directory facet is
+            unaffected. Default: False.
     """
 
     variable_id: str
@@ -119,6 +124,7 @@ class DatasetFilename:
     time_range: str | None = None
     activity_id: str = "input4MIPs"
     extension: str = "nc"
+    hyphenate_variable: bool = False
 
     def to_path(self) -> Path:
         """Assemble and return the DRS-compliant filename.
@@ -126,8 +132,13 @@ class DatasetFilename:
         Returns:
             Path: Single-element Path representing the filename.
         """
+        variable = (
+            self.variable_id.replace("_", "-")
+            if self.hyphenate_variable
+            else self.variable_id
+        )
         parts = [
-            self.variable_id,
+            variable,
             self.activity_id,
             self.dataset_category,
             self.target_mip,
@@ -290,6 +301,7 @@ class Dataset(os.PathLike):
         time_range: str | None = None,
         activity_id: str = "input4MIPs",
         extension: str = "nc",
+        hyphenate_variable: bool = False,
     ) -> "Dataset":
         """Construct a Dataset from unified DRS facets.
 
@@ -308,6 +320,8 @@ class Dataset(os.PathLike):
             time_range: Optional date range string.
             activity_id: Activity identifier (default: 'input4MIPs').
             extension: File extension (default: 'nc').
+            hyphenate_variable: Spell variable_id with hyphens in the
+                filename (default: False).
 
         Returns:
             Dataset: Instantiated Dataset.
@@ -333,6 +347,7 @@ class Dataset(os.PathLike):
             time_range=time_range,
             activity_id=activity_id,
             extension=extension,
+            hyphenate_variable=hyphenate_variable,
         )
         return cls(root=Path(root), dirname=dirname, filename=filename)
 
@@ -365,6 +380,7 @@ class Dataset(os.PathLike):
         dataset_category = data_dict.pop("dataset_category")
         time_range = data_dict.pop("time_range", None)
         extension = data_dict.pop("extension", "nc")
+        hyphenate_variable = bool(data_dict.pop("hyphenate_variable", False))
 
         dirname = DatasetDirname(
             mip_era=data_dict["mip_era"],
@@ -387,6 +403,7 @@ class Dataset(os.PathLike):
             time_range=time_range,
             activity_id=activity_id,
             extension=extension,
+            hyphenate_variable=hyphenate_variable,
         )
         return cls(root=root, dirname=dirname, filename=filename)
 
@@ -431,6 +448,7 @@ class DatasetConfig:
         "time_range",
         "activity_id",
         "extension",
+        "hyphenate_variable",
     }
 
     @classmethod
@@ -655,13 +673,17 @@ class DatasetConfig:
             )
 
     def to_dataset_sequence(
-        self, time_ranges: Iterable[str] | None = None
+        self,
+        time_ranges: Iterable[str] | None = None,
+        variable_id: str | None = None,
     ) -> list[Dataset]:
         """Produce an ordered list of Datasets for sequential time chunks.
 
         Args:
             time_ranges: Optional time range strings. Defaults to
                 self.time_ranges.
+            variable_id: Optional variable identifier override, for
+                configurations shared by several variables.
 
         Returns:
             list[Dataset]: Ordered list of Datasets.
@@ -678,4 +700,7 @@ class DatasetConfig:
             raise ValueError(
                 "No time ranges specified in config or method call"
             )
-        return [self.to_dataset(time_range=tr) for tr in trs]
+        return [
+            self.to_dataset(variable_id=variable_id, time_range=tr)
+            for tr in trs
+        ]

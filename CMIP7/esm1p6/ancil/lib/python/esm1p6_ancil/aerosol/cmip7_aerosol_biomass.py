@@ -1,6 +1,5 @@
 import concurrent.futures as cf
 from datetime import datetime
-from pathlib import Path
 
 import iris
 from aerosol.cmip7_aerosol_common import (
@@ -16,91 +15,43 @@ from cmip7_ancil_common import (
 )
 
 
-def _biomass_dirpath(args, species):
-    """Construct the source directory path for CMIP7 biomass burning datasets.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Species name (e.g. 'BC', 'OC', or percentage variable).
-
-    Returns:
-        pathlib.Path: Source directory path.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / "CMIP"
-        / "DRES"
-        / args.dataset_version
-        / "atmos"
-        / "mon"
-        / species
-        / "gn"
-        / args.dataset_vdate
-    )
-
-
-def cmip7_aerosol_biomass_filepath(args, species, date_range):
-    """Construct the file path for a CMIP7 biomass burning netCDF file.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Species or percentage variable name.
-        date_range (str): Date range string.
-
-    Returns:
-        pathlib.Path: NetCDF file path.
-    """
-    dirpath = _biomass_dirpath(args, species)
-    filename = (
-        f"{species}_input4MIPs_emissions_CMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{date_range}.nc"
-    )
-    return dirpath / filename
-
-
-def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
+def load_cmip7_aerosol_biomass(config, variable, constraint):
     """Load a biomass burning emission or percentage cube, zero-filling missing
     ocean values.
 
     Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Species or percentage variable name.
-        date_range (str): Date range string.
+        config (dataset.DatasetConfig): Configuration of the dataset, with a
+            single time range.
+        variable (str): Species or percentage variable name (e.g. 'BC' or
+            'BCpercentageAGRI').
         constraint (iris.Constraint or None): Loading constraint.
 
     Returns:
         iris.cube.Cube: Loaded and zero-filled Iris cube.
     """
-    cube = load_cmip7_aerosol(
-        args, cmip7_aerosol_biomass_filepath, species, date_range, constraint
-    )
+    dataset = config.to_dataset(variable_id=variable)
+    cube = load_cmip7_aerosol(dataset, constraint)
     # This data is missing over oceans,
     # so needs to be filled with zero for the model
     cube.data = cube.data.filled(0.0)
     return cube
 
 
-def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
+def load_cmip7_aerosol_biomass_list(config, variable, constraint):
     """Load, concatenate, and zero-fill biomass burning cubes across multiple
     date range files.
 
     Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Species or percentage variable name.
-        date_range_list (list of str): List of date range strings.
+        config (dataset.DatasetConfig): Configuration of the dataset, with
+            one or more time ranges.
+        variable (str): Species or percentage variable name.
         constraint (iris.Constraint or None): Loading constraint.
 
     Returns:
         iris.cube.Cube: Concatenated and zero-filled continuous Iris cube.
     """
-    cube = load_cmip7_aerosol_list(
-        args,
-        cmip7_aerosol_biomass_filepath,
-        species,
-        date_range_list,
-        constraint,
-    )
+    datasets = config.to_dataset_sequence(variable_id=variable)
+    cube = load_cmip7_aerosol_list(datasets, constraint)
     # This data is missing over oceans,
     # so needs to be filled with zero for the model
     cube.data = cube.data.filled(0.0)
@@ -110,7 +61,7 @@ def load_cmip7_aerosol_biomass_list(args, species, date_range_list, constraint):
 force_load = True
 
 
-def split_frac_low_high(args, load_pc_fn, species):
+def split_frac_low_high(load_pc_fn, species):
     """Compute low-level and high-level biomass emission fraction cubes using
     concurrent loading.
 
@@ -121,8 +72,8 @@ def split_frac_low_high(args, load_pc_fn, species):
     following the UK Met Office CMIP6 methodology.
 
     Args:
-        args (argparse.Namespace): Command-line arguments.
-        load_pc_fn (callable): Callback to load percentage cubes.
+        load_pc_fn (callable): Picklable callback that loads a percentage
+            cube given its variable name.
         species (str): Species name ('BC' or 'OC').
 
     Returns:
@@ -136,7 +87,7 @@ def split_frac_low_high(args, load_pc_fn, species):
     with cf.ProcessPoolExecutor(max_workers=max_workers) as ex:
         for source in sources:
             futures[source] = ex.submit(
-                load_pc_fn, args, f"{species}percentage{source}"
+                load_pc_fn, f"{species}percentage{source}"
             )
         for source in sources:
             pc[source] = futures[source].result()
@@ -166,16 +117,18 @@ def save_cmip7_aerosol_biomass(args, load_pc_fn, load_fn, save_dirpath):
 
     Args:
         args (argparse.Namespace): Command-line arguments.
-        load_pc_fn (callable): Callback to load percentage source fractions.
-        load_fn (callable): Callback to load total species emissions.
+        load_pc_fn (callable): Picklable callback that loads a percentage
+            source fraction given its variable name.
+        load_fn (callable): Callback that loads total species emissions
+            given the species name.
         save_dirpath (pathlib.Path): Destination directory for the ancillary
             file.
     """
-    bc_frac_low, bc_frac_high = split_frac_low_high(args, load_pc_fn, "BC")
-    oc_frac_low, oc_frac_high = split_frac_low_high(args, load_pc_fn, "OC")
+    bc_frac_low, bc_frac_high = split_frac_low_high(load_pc_fn, "BC")
+    oc_frac_low, oc_frac_high = split_frac_low_high(load_pc_fn, "OC")
 
-    bc = load_fn(args, "BC")
-    oc = load_fn(args, "OC")
+    bc = load_fn("BC")
+    oc = load_fn("OC")
 
     low = bc * bc_frac_low + oc * oc_frac_low
     high = bc * bc_frac_high + oc * oc_frac_high

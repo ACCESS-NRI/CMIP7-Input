@@ -1,22 +1,23 @@
 # Interpolate CMIP7 SM SO2 emissions to ESM1.6 grid
 
 from argparse import ArgumentParser
+from functools import partial
 
+from aerosol.cmip7_aerosol_anthro import anthro_variable
 from aerosol.cmip7_PI_aerosol import esm_pi_aerosol_ancil_dirpath
 from aerosol.cmip7_PI_SO2_interpolate import PI_DMS_ANCIL_FILENAME
-from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
-from aerosol.cmip7_SM_aerosol_anthro import (
-    cmip7_sm_aerosol_anthro_filepath,
-    load_cmip7_sm_aerosol_anthro,
-)
+from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath, sm_configs
+from aerosol.cmip7_SM_aerosol_anthro import load_cmip7_sm_aerosol_anthro
 from aerosol.cmip7_SO2_interpolate import (
     load_dms,
     save_cmip7_so2_aerosol_anthro,
 )
 from cmip7_ancil_argparse import (
-    common_parser,
+    config_parser,
     dms_filename_parser,
     ext_parser,
+    grid_parser,
+    path_parser,
 )
 from cmip7_PI import fix_esm15_pi_ancil_date
 
@@ -25,8 +26,8 @@ def parse_args():
     """Parse command-line arguments for ScenarioMIP SO2 emission interpolation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path, ext, DMS
-            filename, scenario, date range, and save filename parameters.
+        argparse.Namespace: Parsed CLI arguments containing path, config,
+            ext, DMS filename, scenario, and save filename parameters.
     """
     parser = ArgumentParser(
         prog="cmip7_SM_SO2_interpolate",
@@ -34,29 +35,34 @@ def parse_args():
             "Generate input files from CMIP7 ScenarioMIP SO2 forcings"
         ),
         parents=[
-            common_parser(),
+            path_parser(),
+            grid_parser(),
+            config_parser(),
             ext_parser(),
             dms_filename_parser(dms_ancil_filename=PI_DMS_ANCIL_FILENAME),
         ],
     )
     parser.add_argument("--scenario")
-    parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
-def load_cmip7_sm_so2_aerosol_anthro(args, species):
+def load_cmip7_sm_so2_aerosol_anthro(args, config, ext_config, species):
     """Load ScenarioMIP anthropogenic SO2 emissions covering the simulation
     period.
 
     Args:
         args (argparse.Namespace): Command-line arguments.
+        config (dataset.DatasetConfig): Configuration of the surface
+            emissions dataset.
+        ext_config (dataset.DatasetConfig or None): Configuration of the
+            surface emissions extension dataset, or None.
         species (str): Target species ('SO2').
 
     Returns:
         iris.cube.Cube: Loaded monthly SO2 emissions cube.
     """
-    return load_cmip7_sm_aerosol_anthro(args, species)
+    return load_cmip7_sm_aerosol_anthro(args, config, ext_config, species)
 
 
 def load_sm_dms(args):
@@ -79,12 +85,12 @@ def load_sm_dms(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    config, ext_config = sm_configs(args)
 
     save_cmip7_so2_aerosol_anthro(
         args,
-        load_cmip7_sm_so2_aerosol_anthro,
-        cmip7_sm_aerosol_anthro_filepath,
-        args.dataset_date_range,
+        partial(load_cmip7_sm_so2_aerosol_anthro, args, config, ext_config),
+        config.to_dataset(variable_id=anthro_variable("SO2")),
         load_sm_dms,
         esm_sm_aerosol_save_dirpath(args),
     )

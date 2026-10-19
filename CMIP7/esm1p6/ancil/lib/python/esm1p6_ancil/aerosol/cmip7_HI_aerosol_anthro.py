@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from ast import literal_eval
+from functools import partial
 
 from aerosol.cmip7_aerosol_anthro import (
     cmip7_aerosol_anthro_interpolate,
@@ -11,8 +11,9 @@ from aerosol.cmip7_HI_aerosol import (
     CMIP7_HI_AEROSOL_END_YEAR,
     esm_hi_aerosol_save_dirpath,
 )
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import config_parser, grid_parser, path_parser
 from cmip7_ancil_common import cmip7_date_constraint_from_years
+from dataset import DatasetConfig
 
 
 def parse_args(species):
@@ -30,15 +31,15 @@ def parse_args(species):
         description=(
             f"Generate input files from CMIP7 historical {species} forcings"
         ),
-        parents=[common_parser()],
+        parents=[path_parser(), grid_parser(), config_parser()],
     )
-    parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
 def load_cmip7_hi_aerosol_air_anthro(
     args,
+    config,
     species,
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
@@ -48,6 +49,8 @@ def load_cmip7_hi_aerosol_air_anthro(
 
     Args:
         args (argparse.Namespace): Command-line arguments.
+        config (dataset.DatasetConfig): Configuration of the emissions
+            dataset, with its time range chunks.
         species (str): Aerosol species name.
         beg_year (int, optional): Start year. Defaults to 1849.
         end_year (int, optional): End year. Defaults to 2024.
@@ -57,14 +60,15 @@ def load_cmip7_hi_aerosol_air_anthro(
     """
     return load_cmip7_aerosol_air_anthro_list(
         args,
+        config,
         species,
-        args.dataset_date_range_list,
         cmip7_date_constraint_from_years(beg_year, end_year),
     )
 
 
 def load_cmip7_hi_aerosol_anthro(
     args,
+    config,
     species,
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
@@ -74,6 +78,8 @@ def load_cmip7_hi_aerosol_anthro(
 
     Args:
         args (argparse.Namespace): Command-line arguments.
+        config (dataset.DatasetConfig): Configuration of the emissions
+            dataset, with its time range chunks.
         species (str): Aerosol species name.
         beg_year (int, optional): Start year. Defaults to 1849.
         end_year (int, optional): End year. Defaults to 2024.
@@ -83,8 +89,8 @@ def load_cmip7_hi_aerosol_anthro(
     """
     return load_cmip7_aerosol_anthro_list(
         args,
+        config,
         species,
-        args.dataset_date_range_list,
         cmip7_date_constraint_from_years(beg_year, end_year),
     )
 
@@ -98,9 +104,10 @@ def cmip7_hi_aerosol_anthro_interpolate(args, species, stash_item):
         species (str): Aerosol species name.
         stash_item (int): UM STASH item number.
     """
+    config = DatasetConfig.from_yaml(args.config, section="anthro")
     cmip7_aerosol_anthro_interpolate(
         args,
-        load_cmip7_hi_aerosol_anthro,
+        partial(load_cmip7_hi_aerosol_anthro, args, config),
         species,
         stash_item,
         esm_hi_aerosol_save_dirpath(args),

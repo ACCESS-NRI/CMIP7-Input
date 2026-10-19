@@ -104,6 +104,50 @@ def test_dataset_filename_assembly():
     assert fn_no_time.to_path() == Path(expected_solar)
 
 
+def test_dataset_filename_hyphenate_variable():
+    """Test filename hyphenation replaces underscores in variable_id."""
+    fn = DatasetFilename(
+        variable_id="BC_em_anthro",
+        dataset_category="emissions",
+        target_mip="CMIP",
+        source_id="CEDS-CMIP-2025-04-18",
+        grid_label="gn",
+        time_range="200001-202312",
+        hyphenate_variable=True,
+    )
+    expected_fn = (
+        "BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_"
+        "200001-202312.nc"
+    )
+    assert fn.to_path() == Path(expected_fn)
+
+
+def test_dataset_hyphenate_variable_path_resolution():
+    """Test directory retains underscores while filename is hyphenated."""
+    ds = Dataset.from_facets(
+        root="/g/data/qv56/replicas",
+        mip_era="CMIP7",
+        target_mip="CMIP",
+        institution_id="PNNL-JGCRI",
+        source_id="CEDS-CMIP-2025-04-18",
+        realm="atmos",
+        frequency="mon",
+        variable_id="BC_em_anthro",
+        grid_label="gn",
+        version="v20250421",
+        dataset_category="emissions",
+        time_range="200001-202312",
+        hyphenate_variable=True,
+    )
+    expected_path = Path(
+        "/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/PNNL-JGCRI/"
+        "CEDS-CMIP-2025-04-18/atmos/mon/BC_em_anthro/gn/v20250421/"
+        "BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_"
+        "200001-202312.nc"
+    )
+    assert ds.to_path() == expected_path
+
+
 def test_dataset_path_resolution(nitrogen_pi_facets):
     """Test complete dataset path resolution and duplicate root prevention."""
     ds1 = Dataset.from_dict(nitrogen_pi_facets)
@@ -555,3 +599,53 @@ def test_app_configs_match_code_species(app_prefix, relpath, constant):
                 config.check_variables(species)
             except ValueError as err:
                 pytest.fail(f"{exp}_ancil_{app_prefix} [{section}]: {err}")
+
+
+def test_to_dataset_sequence_variable_id_override(tmp_path):
+    """to_dataset_sequence respects a variable_id parameter override."""
+    yaml_content = """
+root: /g/data/qv56/replicas
+activity_id: input4MIPs
+mip_era: CMIP7
+target_mip: CMIP
+institution_id: PNNL-JGCRI
+source_id: CEDS-CMIP-2025-04-18
+realm: atmos
+frequency: mon
+grid_label: gn
+version: v20250421
+dataset_category: emissions
+hyphenate_variable: true
+time_ranges:
+  - 180001-184912
+  - 185001-189912
+"""
+    yaml_file = tmp_path / "datasetconfig.yaml"
+    yaml_file.write_text(yaml_content, encoding="utf-8")
+    config = DatasetConfig.from_yaml(yaml_file)
+    seq = config.to_dataset_sequence(variable_id="BC_em_anthro")
+    assert len(seq) == 2
+    assert seq[0].filename.variable_id == "BC_em_anthro"
+    assert seq[0].filename.hyphenate_variable is True
+    expected_name = (
+        "BC-em-anthro_input4MIPs_emissions_CMIP_CEDS-CMIP-2025-04-18_gn_"
+        "180001-184912.nc"
+    )
+    assert seq[0].filename.to_path().name == expected_name
+
+
+def test_aerosol_app_configs():
+    """Verify all sections of aerosol app configurations produce valid
+    Datasets.
+    """
+    for exp in ("pi", "hi", "sm"):
+        configs = _app_configs(f"{exp}_ancil_aerosol")
+        assert configs
+        for section, cfg in configs.items():
+            if cfg.time_ranges:
+                datasets = cfg.to_dataset_sequence(variable_id="BC_em_anthro")
+                assert datasets
+                assert datasets[0].to_path().is_absolute()
+            else:
+                ds = cfg.to_dataset(variable_id="BC_em_anthro")
+                assert ds.to_path().is_absolute()

@@ -502,154 +502,78 @@
     {% if ANCIL_CREATE_AEROSOL %}
       [[ANCIL_AEROSOL]]
           inherit = ESM1P6_ANCIL
+
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
       [[SM_{{SCEN}}_ancil_aerosol]]
           inherit = ANCIL_AEROSOL, SHORT_TIME_HIGH_MEM_JOB
-        {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
+
+          script = "rose task-run --app-key=sm_ancil_aerosol"
+
+          [[[environment]]]
+              SCENARIO = {{ SCEN }}
+              {% if EXTEND_SM_AEROSOL[SCEN] %}
+              EXT_ARG = --ext
+              {% else %}
+              EXT_ARG = ""
+              {% endif %}
+              SPECIES_ARGS = ""
+
+            {% for SPECIES in CMIP7_AEROSOL_SPECIES + ['Bio', 'SO2'] %}
       [[SM_{{SCEN}}_ancil_aerosol_{{SPECIES}}]]
           inherit = SM_{{SCEN}}_ancil_aerosol
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_SM_{{SPECIES}}_interpolate \
-                  --scenario {{ SCEN }} \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
-                  {% if EXTEND_SM_AEROSOL[SCEN] %}
-                  --ext \
-                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
-                  {% else %}
-                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
-                  {% endif %}
-              """
-        {% endfor %}
 
-      [[SM_{{SCEN}}_ancil_aerosol_Bio]]
-          inherit = SM_{{SCEN}}_ancil_aerosol
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_SM_Bio_interpolate \
-                  --scenario {{ SCEN }} \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
-                  {% if EXTEND_SM_AEROSOL[SCEN] %}
-                  --ext \
-                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN]['Bio']) }}
-                  {% else %}
-                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['Bio']) }}
-                  {% endif %}
-              """
+          [[[environment]]]
+              SPECIES = {{ SPECIES }}
+              {% if EXTEND_SM_AEROSOL[SCEN] %}
+              save_filename = {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
+              {% else %}
+              save_filename = {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN][SPECIES]) }}
+              {% endif %}
+              {% if SPECIES == "SO2" %}
+              SPECIES_ARGS = --esm15-aerosol-version {{ ESM15_AEROSOL_VERSION['PI'] }}
+              {% endif %}
 
-      [[SM_{{SCEN}}_ancil_aerosol_SO2]]
-          inherit = SM_{{SCEN}}_ancil_aerosol
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_SM_SO2_interpolate \
-                  --scenario {{ SCEN }} \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
-                  --esm15-aerosol-version {{ quote(ESM15_AEROSOL_VERSION['PI']) }} \
-                  {% if EXTEND_SM_AEROSOL[SCEN] %}
-                  --ext \
-                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
-                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
-                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_SM_EXT_AEROSOL_SAVE_FILENAME[SCEN]['SO2']) }}
-                  {% else %}
-                  --save-filename {{ quote(ESM_SM_AEROSOL_SAVE_FILENAME[SCEN]['SO2']) }}
-                  {% endif %}
-              """
+            {% endfor %}
           {% endif %}
-    {% endfor %}
+        {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_aerosol]]
-        {% if EXP == "HI" %}
           inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
-        {% else %}
-          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
-        {% endif %}
+
+          script = "rose task-run --app-key={{ EXP | lower }}_ancil_aerosol"
+
+          [[[environment]]]
+              SPECIES_ARGS = ""
+
         {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
       [[{{EXP}}_ancil_aerosol_{{SPECIES}}]]
           inherit = {{EXP}}_ancil_aerosol
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_{{EXP}}_{{SPECIES}}_interpolate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
-                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME[SPECIES]) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME[SPECIES]) }}
-                  {% endif %}
-              """
+
+          [[[environment]]]
+              SPECIES = {{ SPECIES }}
+              save_filename = {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME[SPECIES] if EXP == "HI" else ESM_PI_AEROSOL_SAVE_FILENAME[SPECIES]) }}
+
         {% endfor %}
       [[{{EXP}}_ancil_aerosol_Bio]]
         {% if EXP == "HI" %}
-          inherit = ANCIL_AEROSOL, MED_TIME_MAX_MEM_JOB
+          inherit = {{EXP}}_ancil_aerosol, MED_TIME_MAX_MEM_JOB
         {% else %}
-          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
+          inherit = {{EXP}}_ancil_aerosol
         {% endif %}
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_{{EXP}}_Bio_interpolate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_AEROSOL_BIOMASS_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_AEROSOL_BIOMASS_VDATE) }} \
-                  --percent-date-range {{ quote(CMIP7_AEROSOL_BIOMASS_PERCENTAGE_DATE_RANGE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_BIOMASS_DATE_RANGE_LIST) }} \
-                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['Bio']) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_BIOMASS_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME['Bio']) }}
-                  {% endif %}
-              """
+
+          [[[environment]]]
+              SPECIES = Bio
+              save_filename = {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['Bio'] if EXP == "HI" else ESM_PI_AEROSOL_SAVE_FILENAME['Bio']) }}
 
       [[{{EXP}}_ancil_aerosol_SO2]]
           inherit = {{EXP}}_ancil_aerosol
-          script = """
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-              python_env python \
-                  -m aerosol.cmip7_{{EXP}}_SO2_interpolate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
-                  --esm15-aerosol-version {{ quote(ESM15_AEROSOL_VERSION[EXP]) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
-                  --save-filename {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['SO2']) }}
-                  {% else %}
-                  --dataset-date-range {{ quote(CMIP7_PI_AEROSOL_ANTHRO_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_PI_AEROSOL_SAVE_FILENAME['SO2']) }}
-                  {% endif %}
-              """
+
+          [[[environment]]]
+              SPECIES = SO2
+              save_filename = {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['SO2'] if EXP == "HI" else ESM_PI_AEROSOL_SAVE_FILENAME['SO2']) }}
+              SPECIES_ARGS = --esm15-aerosol-version {{ ESM15_AEROSOL_VERSION[EXP] }}
       {% endif %}
     {% endif %}
 
