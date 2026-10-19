@@ -215,6 +215,10 @@
         inherit = CMIP7, ANTS
 
         [[[environment]]]
+            ANCIL_TARGET_DIRNAME = {{ quote(VAR.ANCIL_TARGET_PATH) }}
+            ESM15_INPUTS_DIRNAME = {{ quote(VAR.ESM15_INPUTS_PATH) }}
+            ESM_GRID_REL_DIRNAME = {{ quote(ESM_GRID_DIRNAME) }}
+            ESM15_GRID_VERSION = {{ quote(ESM15_GRID_VERSION) }}
             PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/esm1p6_ancil:${PYTHONPATH}
 
     [[UKESM_ANCIL]]
@@ -693,12 +697,6 @@
     {% if ANCIL_CREATE_NITROGEN %}
       [[ANCIL_NITROGEN]]
           inherit = ESM1P6_ANCIL
-
-          [[[environment]]]
-              ANCIL_TARGET_DIRNAME = {{ quote(VAR.ANCIL_TARGET_PATH) }}
-              ESM15_INPUTS_DIRNAME = {{ quote(VAR.ESM15_INPUTS_PATH) }}
-              ESM_GRID_REL_DIRNAME = {{ quote(ESM_GRID_DIRNAME) }}
-              ESM15_GRID_VERSION = {{ quote(ESM15_GRID_VERSION) }}
 
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
