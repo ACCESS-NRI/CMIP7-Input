@@ -67,7 +67,8 @@ if __name__ == "__main__":
 
     # Load the CMIP7 datasets
     config = DatasetConfig.from_yaml(args.config)
-    datasets = config.to_datasets_by_variable(NITROGEN_SPECIES)
+    config.check_variables(NITROGEN_SPECIES)
+    datasets = config.to_datasets_by_variable()
     nitrogen_cube = load_cmip7_nitrogen(datasets)
 
     # Regrid to match the ESM1.5 mask and extend the time series

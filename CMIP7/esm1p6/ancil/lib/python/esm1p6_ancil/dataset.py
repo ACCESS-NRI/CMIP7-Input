@@ -1,12 +1,35 @@
 """Data Reference Syntax (DRS) dataset abstractions for input4MIPs forcings."""
 
 import os
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+
+def _as_name_list(values: Iterable[str], what: str) -> list[str]:
+    """Return a collection of names as a list, rejecting a bare string.
+
+    A str is itself an iterable of str, so without this check a single name
+    such as "co2" would silently be split into ["c", "o", "2"].
+
+    Args:
+        values: Collection of names (list, tuple, set, dict keys, etc.).
+        what: Description of the argument, used in the error message.
+
+    Returns:
+        list[str]: The names, in iteration order.
+
+    Raises:
+        TypeError: If values is a str.
+    """
+    if isinstance(values, str):
+        raise TypeError(
+            f"{what} must be a collection of names, not the string {values!r}"
+        )
+    return [str(value) for value in values]
 
 
 @dataclass(frozen=True)
@@ -222,27 +245,33 @@ class Dataset(os.PathLike):
             root=self.root, dirname=new_dirname, filename=new_filename
         )
 
-    def for_variables(self, variables: Sequence[str]) -> dict[str, "Dataset"]:
+    def for_variables(self, variables: Iterable[str]) -> dict[str, "Dataset"]:
         """Return a dictionary of Datasets keyed by variable_id.
 
         Args:
-            variables: Sequence of variable identifiers.
+            variables: Sequence or iterable of variable identifiers.
 
         Returns:
             dict[str, Dataset]: Mapping of variable_id to updated Dataset.
         """
-        return {var: self.for_variable(var) for var in variables}
+        return {
+            var: self.for_variable(var)
+            for var in _as_name_list(variables, "variables")
+        }
 
-    def for_time_ranges(self, time_ranges: Sequence[str]) -> list["Dataset"]:
+    def for_time_ranges(self, time_ranges: Iterable[str]) -> list["Dataset"]:
         """Return an ordered list of Datasets for sequential time chunks.
 
         Args:
-            time_ranges: Ordered sequence of time range strings.
+            time_ranges: Ordered sequence or iterable of time range strings.
 
         Returns:
             list[Dataset]: Ordered list of updated Datasets.
         """
-        return [self.for_time_range(tr) for tr in time_ranges]
+        return [
+            self.for_time_range(tr)
+            for tr in _as_name_list(time_ranges, "time_ranges")
+        ]
 
     @classmethod
     def from_facets(
@@ -416,8 +445,10 @@ class DatasetConfig:
         """
         data_dict = dict(data)
         root = Path(data_dict.pop("root", "."))
-        variables = list(data_dict.pop("variables", []))
-        time_ranges = list(data_dict.pop("time_ranges", []))
+        variables = _as_name_list(data_dict.pop("variables", []), "variables")
+        time_ranges = _as_name_list(
+            data_dict.pop("time_ranges", []), "time_ranges"
+        )
 
         if "variable_id" in data_dict and not variables:
             variables = [str(data_dict["variable_id"])]
@@ -574,7 +605,7 @@ class DatasetConfig:
         return Dataset(root=self.root, dirname=dirname, filename=filename)
 
     def to_datasets_by_variable(
-        self, variables: Sequence[str] | None = None
+        self, variables: Iterable[str] | None = None
     ) -> dict[str, Dataset]:
         """Produce a dictionary of Datasets keyed by variable_id.
 
@@ -588,14 +619,43 @@ class DatasetConfig:
         Raises:
             ValueError: If no variables are specified.
         """
-        target_vars = variables if variables is not None else self.variables
-        if not target_vars:
+        names = (
+            self.variables
+            if variables is None
+            else _as_name_list(variables, "variables")
+        )
+        if not names:
             raise ValueError("No variables specified in config or method call")
-        base_ds = self.to_dataset(variable_id=target_vars[0])
-        return base_ds.for_variables(target_vars)
+        return {var: self.to_dataset(variable_id=var) for var in names}
+
+    def check_variables(self, expected: Iterable[str]) -> None:
+        """Check that the configured variables match the expected set.
+
+        Generator scripts own the list of species they need (e.g. because
+        molar masses or namelist layouts depend on it), while the YAML
+        configuration lists the variables it provides. This check makes any
+        disagreement between the two fail fast instead of being silently
+        ignored.
+
+        Args:
+            expected: Variable identifiers required by the caller.
+
+        Raises:
+            ValueError: If variables are missing from, or unexpected in, the
+                configuration.
+        """
+        expected_set = set(_as_name_list(expected, "expected"))
+        configured_set = set(self.variables)
+        missing = sorted(expected_set - configured_set)
+        unexpected = sorted(configured_set - expected_set)
+        if missing or unexpected:
+            raise ValueError(
+                "Dataset configuration variables do not match the expected "
+                f"species: missing {missing}, unexpected {unexpected}"
+            )
 
     def to_dataset_sequence(
-        self, time_ranges: Sequence[str] | None = None
+        self, time_ranges: Iterable[str] | None = None
     ) -> list[Dataset]:
         """Produce an ordered list of Datasets for sequential time chunks.
 
@@ -609,12 +669,13 @@ class DatasetConfig:
         Raises:
             ValueError: If no time ranges are specified.
         """
-        target_trs = (
-            time_ranges if time_ranges is not None else self.time_ranges
+        trs = (
+            self.time_ranges
+            if time_ranges is None
+            else _as_name_list(time_ranges, "time_ranges")
         )
-        if not target_trs:
+        if not trs:
             raise ValueError(
                 "No time ranges specified in config or method call"
             )
-        base_ds = self.to_dataset(time_range=target_trs[0])
-        return base_ds.for_time_ranges(target_trs)
+        return [self.to_dataset(time_range=tr) for tr in trs]

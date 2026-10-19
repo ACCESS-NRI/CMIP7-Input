@@ -7,6 +7,7 @@ from cmip7_PI import CMIP7_PI_YEAR
 from dataset import DatasetConfig
 from ghg.cmip7_ghg import (
     GHG_MOLAR_MASS,
+    GHG_SPECIES,
     cmip7_ghg_mmr,
     cmip7_pro_greg_date_constraint_from_years,
 )
@@ -134,7 +135,8 @@ if __name__ == "__main__":
     args = parse_args()
 
     config = DatasetConfig.from_yaml(args.config)
-    datasets = config.to_datasets_by_variable(GHG_MOLAR_MASS.keys())
+    config.check_variables(GHG_SPECIES)
+    datasets = config.to_datasets_by_variable()
 
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:

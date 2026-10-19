@@ -15,3 +15,10 @@ repos:
         args: ['--fix']
     -   id: ruff-format
         types_or: [ python, pyi ] # Exclude jupyter notebooks
+# Static type checking of the DRS dataset layer and the generators using it.
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v2.4.0
+    hooks:
+    -   id: mypy
+        files: ^CMIP7/esm1p6/ancil/lib/python/esm1p6_ancil/(dataset\.py|ghg/|nitrogen/)
+        additional_dependencies: [types-PyYAML]

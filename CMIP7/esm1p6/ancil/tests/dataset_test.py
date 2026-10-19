@@ -1,11 +1,13 @@
 """Unit tests for input4MIPs DRS Dataset and DatasetConfig abstractions."""
 
+import ast
 import os
 import sys
 from dataclasses import FrozenInstanceError
 from pathlib import Path
 
 import pytest
+import yaml
 
 # Ensure esm1p6_ancil is in sys.path for test execution
 _LIB_DIR = Path(__file__).resolve().parent.parent / "lib" / "python"
@@ -422,3 +424,134 @@ def test_ghg_dataset_config_scenariomip():
         "2022-2100.nc"
     )
     assert h_path == expected_h
+
+
+def test_dataset_config_iterable_support():
+    """Verify to_datasets_by_variable supports dict_keys, sets, and tuples."""
+    app_dir = Path(__file__).resolve().parent.parent / "app"
+    yaml_path = app_dir / "pi_ancil_ghg" / "file" / "datasetconfig.yaml"
+    config = DatasetConfig.from_yaml(yaml_path)
+
+    # Test with dict_keys
+    species_dict = {"co2": 1, "ch4": 2, "n2o": 3}
+    ds_dict_keys = config.to_datasets_by_variable(species_dict.keys())
+    assert set(ds_dict_keys.keys()) == {"co2", "ch4", "n2o"}
+
+    # Test with a set
+    ds_set = config.to_datasets_by_variable({"co2", "cfc11"})
+    assert set(ds_set.keys()) == {"co2", "cfc11"}
+
+    # Test to_dataset_sequence with dict_keys
+    seq_cfg = DatasetConfig.from_dict(
+        {
+            "root": "/tmp",
+            "activity_id": "input4MIPs",
+            "mip_era": "CMIP7",
+            "target_mip": "CMIP",
+            "institution_id": "CEDS",
+            "source_id": "CEDS-CMIP-aerosol-1-0",
+            "realm": "atmos",
+            "frequency": "mon",
+            "variable_id": "SO2",
+            "grid_label": "gn",
+            "version": "v20250228",
+            "dataset_category": "emissions",
+            "time_ranges": ["1850-1899", "1900-1949"],
+        }
+    )
+    time_keys = {"1850-1899": 1, "1900-1949": 2}.keys()
+    seq_list = seq_cfg.to_dataset_sequence(time_keys)
+    assert len(seq_list) == 2
+
+
+def test_bare_string_rejected(tmp_path):
+    """A bare str must not be silently split into single characters."""
+    app_dir = Path(__file__).resolve().parent.parent / "app"
+    yaml_path = app_dir / "pi_ancil_ghg" / "file" / "datasetconfig.yaml"
+    config = DatasetConfig.from_yaml(yaml_path)
+
+    with pytest.raises(TypeError, match="not the string 'co2'"):
+        config.to_datasets_by_variable("co2")
+    with pytest.raises(TypeError, match="not the string"):
+        config.to_dataset_sequence("1750-2022")
+    with pytest.raises(TypeError, match="not the string"):
+        config.check_variables("co2")
+    with pytest.raises(TypeError, match="not the string"):
+        config.to_dataset().for_variables("co2")
+
+    # A scalar 'variables:' entry in YAML is also rejected
+    bad_yaml = tmp_path / "datasetconfig.yaml"
+    bad_yaml.write_text("root: /tmp\nvariables: co2\n", encoding="utf-8")
+    with pytest.raises(TypeError, match="not the string 'co2'"):
+        DatasetConfig.from_yaml(bad_yaml)
+
+
+def test_check_variables():
+    """check_variables reports both missing and unexpected variables."""
+    config = DatasetConfig.from_dict(
+        {"root": "/tmp", "variables": ["co2", "ch4", "extra"]}
+    )
+    config.check_variables(["extra", "ch4", "co2"])  # order is irrelevant
+    with pytest.raises(
+        ValueError, match=r"missing \['n2o'\], unexpected \['extra'\]"
+    ):
+        config.check_variables(("co2", "ch4", "n2o"))
+
+
+def _module_constant(relpath: str, name: str):
+    """Read a literal module-level constant from source without importing.
+
+    The generator modules import iris, which is not available everywhere
+    tests run, so the constant is extracted with ast.literal_eval instead.
+    """
+    tree = ast.parse((_ANCIL_DIR / relpath).read_text(encoding="utf-8"))
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(
+            isinstance(t, ast.Name) and t.id == name for t in node.targets
+        ):
+            return ast.literal_eval(node.value)
+    raise LookupError(f"{name} not found in {relpath}")
+
+
+def _app_configs(app_name: str) -> dict[str, DatasetConfig]:
+    """Load every runnable section of an app's datasetconfig.yaml.
+
+    Single-section files are returned under the key ''. Sections whose
+    names start with '_' are YAML anchor templates and are skipped.
+    """
+    yaml_path = (
+        Path(__file__).resolve().parent.parent
+        / "app"
+        / app_name
+        / "file"
+        / "datasetconfig.yaml"
+    )
+    data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
+    if "root" in data:
+        return {"": DatasetConfig.from_dict(data)}
+    return {
+        sec: DatasetConfig.from_dict(sec_data)
+        for sec, sec_data in data.items()
+        if not sec.startswith("_")
+    }
+
+
+@pytest.mark.parametrize(
+    ("app_prefix", "relpath", "constant"),
+    [
+        ("nitrogen", "nitrogen/cmip7_nitrogen.py", "NITROGEN_SPECIES"),
+        ("ghg", "ghg/cmip7_ghg.py", "GHG_MOLAR_MASS"),
+    ],
+)
+def test_app_configs_match_code_species(app_prefix, relpath, constant):
+    """Every section of every app config provides exactly the species the
+    generator code requires, so check_variables cannot fail on Gadi."""
+    species = _module_constant(relpath, constant)
+    for exp in ("pi", "hi", "sm"):
+        configs = _app_configs(f"{exp}_ancil_{app_prefix}")
+        assert configs
+        for section, config in configs.items():
+            try:
+                config.check_variables(species)
+            except ValueError as err:
+                pytest.fail(f"{exp}_ancil_{app_prefix} [{section}]: {err}")

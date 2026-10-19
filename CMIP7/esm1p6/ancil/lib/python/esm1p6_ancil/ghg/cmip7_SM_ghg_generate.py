@@ -8,7 +8,7 @@ from cmip7_SM import (
     CMIP7_SM_EXT_END_YEAR,
 )
 from dataset import DatasetConfig
-from ghg.cmip7_ghg import GHG_MOLAR_MASS
+from ghg.cmip7_ghg import GHG_MOLAR_MASS, GHG_SPECIES
 from ghg.cmip7_ghg_series import (
     cmip7_ghg_update_namelists_file,
     load_cmip7_ghg_series_mmr,
@@ -57,13 +57,15 @@ if __name__ == "__main__":
     )
 
     config = DatasetConfig.from_yaml(args.config, section=args.scenario)
-    datasets = config.to_datasets_by_variable(GHG_MOLAR_MASS.keys())
+    config.check_variables(GHG_SPECIES)
+    datasets = config.to_datasets_by_variable()
 
     ext_datasets = None
     if args.ext:
         ext_section = f"{args.scenario}-ext"
         ext_config = DatasetConfig.from_yaml(args.config, section=ext_section)
-        ext_datasets = ext_config.to_datasets_by_variable(GHG_MOLAR_MASS.keys())
+        ext_config.check_variables(GHG_SPECIES)
+        ext_datasets = ext_config.to_datasets_by_variable()
 
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
