@@ -521,7 +521,7 @@
         {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_aerosol]]
-          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
+          inherit = ANCIL_AEROSOL
 
           script = "rose task-run --app-key={{ EXP | lower }}_ancil_aerosol"
 
@@ -530,7 +530,7 @@
 
         {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
       [[{{EXP}}_ancil_aerosol_{{SPECIES}}]]
-          inherit = {{EXP}}_ancil_aerosol
+          inherit = {{EXP}}_ancil_aerosol, SHORT_TIME_LOW_MEM_JOB
 
           [[[environment]]]
               SPECIES = {{ SPECIES }}
@@ -541,7 +541,7 @@
         {% if EXP == "HI" %}
           inherit = {{EXP}}_ancil_aerosol, MED_TIME_MAX_MEM_JOB
         {% else %}
-          inherit = {{EXP}}_ancil_aerosol
+          inherit = {{EXP}}_ancil_aerosol, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
 
           [[[environment]]]
@@ -549,7 +549,7 @@
               save_filename = {{ quote(ESM_HI_AEROSOL_SAVE_FILENAME['Bio'] if EXP == "HI" else ESM_PI_AEROSOL_SAVE_FILENAME['Bio']) }}
 
       [[{{EXP}}_ancil_aerosol_SO2]]
-          inherit = {{EXP}}_ancil_aerosol
+          inherit = {{EXP}}_ancil_aerosol, SHORT_TIME_LOW_MEM_JOB
 
           [[[environment]]]
               SPECIES = SO2
