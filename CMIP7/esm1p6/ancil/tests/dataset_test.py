@@ -649,3 +649,18 @@ def test_aerosol_app_configs():
             else:
                 ds = cfg.to_dataset(variable_id="BC_em_anthro")
                 assert ds.to_path().is_absolute()
+
+
+def test_co2_app_configs():
+    """Verify all sections of CO2 app configurations produce valid Datasets."""
+    for app in ("eh_ancil_co2", "es_ancil_co2"):
+        configs = _app_configs(app)
+        assert configs
+        for section, cfg in configs.items():
+            if cfg.time_ranges:
+                datasets = cfg.to_dataset_sequence(variable_id="CO2_em_anthro")
+                assert datasets
+                assert datasets[0].to_path().is_absolute()
+            else:
+                ds = cfg.to_dataset(variable_id="CO2_em_anthro")
+                assert ds.to_path().is_absolute()

@@ -337,50 +337,31 @@
   {% if USE_EXP["EH"] %}
     [[EH_ancil_co2]]
         inherit = ANCIL_CO2, SHORT_TIME_LOW_MEM_JOB
-        script = """
-            mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-            python_env python \
-                -m co2.cmip7_EH_CO2_interpolate \
-                {{ PATH_ARGS }}
-                {{ GRID_ARGS }}
-                --dataset-version {{ quote(CMIP7_AEROSOL_ANTHRO_VERSION) }} \
-                --dataset-vdate {{ quote(CMIP7_AEROSOL_ANTHRO_VDATE) }} \
-                --dataset-date-range-list {{ qlist(CMIP7_HI_AEROSOL_ANTHRO_DATE_RANGE_LIST) }} \
-                --save-filename {{ quote(ESM_EH_CO2_SAVE_FILENAME) }}
+
+        script = "rose task-run --app-key=eh_ancil_co2"
+
+        [[[environment]]]
+            save_filename = {{ quote(ESM_EH_CO2_SAVE_FILENAME) }}
   {% endif %}
-            """
 
   {% if USE_EXP["ES"] %}
     {% for SCEN in SCENARIOS %}
       {% if USE_SCEN[SCEN] %}
     [[ES_{{SCEN}}_ancil_co2]]
         inherit = ANCIL_CO2, SHORT_TIME_MED_MEM_JOB
-        script = """
-            mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-            export PYTHONUNBUFFERED=1
-            python_env python \
-                -m co2.cmip7_ES_CO2_interpolate \
-                --scenario {{ SCEN }} \
-                {{ PATH_ARGS }}
-                {{ GRID_ARGS }}
-                --dataset-version {{ quote(CMIP7_SM_AEROSOL_VERSION[SCEN]) }} \
-                --dataset-vdate {{ quote(CMIP7_SM_AEROSOL_VDATE[SCEN]) }} \
-                --dataset-air-version {{ quote(CMIP7_SM_AEROSOL_AIR_VERSION[SCEN]) }} \
-                --dataset-air-vdate {{ quote(CMIP7_SM_AEROSOL_AIR_VDATE[SCEN]) }} \
-                --dataset-date-range {{ quote(CMIP7_SM_AEROSOL_DATE_RANGE) }} \
-                {% if EXTEND_SM_CO2[SCEN] %}
-                --ext \
-                --dataset-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_VERSION[SCEN]) }} \
-                --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_VDATE[SCEN]) }} \
-                --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_DATE_RANGE) }} \
-                --dataset-air-ext-version {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_VERSION[SCEN]) }} \
-                --dataset-air-ext-vdate {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_VDATE[SCEN]) }} \
-                --dataset-air-ext-date-range {{ quote(CMIP7_SM_EXT_AEROSOL_AIR_DATE_RANGE) }} \
-                --save-filename {{ quote(ESM_ES_EXT_CO2_SAVE_FILENAME[SCEN]) }}
-                {% else %}
-                --save-filename {{ quote(ESM_ES_CO2_SAVE_FILENAME[SCEN]) }}
-                {% endif %}
-            """
+
+        script = "rose task-run --app-key=es_ancil_co2"
+
+        [[[environment]]]
+            PYTHONUNBUFFERED = 1
+            SCENARIO = {{ SCEN }}
+            {% if EXTEND_SM_CO2[SCEN] %}
+            EXT_ARG = --ext
+            save_filename = {{ quote(ESM_ES_EXT_CO2_SAVE_FILENAME[SCEN]) }}
+            {% else %}
+            EXT_ARG = ""
+            save_filename = {{ quote(ESM_ES_CO2_SAVE_FILENAME[SCEN]) }}
+            {% endif %}
       {% endif %}
     {% endfor %}
   {% endif %}

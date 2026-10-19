@@ -1,0 +1,164 @@
+_defaults: &defaults
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: ScenarioMIP
+  institution_id: IIASA-IAMC
+  realm: atmos
+  frequency: mon
+  grid_label: gn
+  dataset_category: emissions
+  # Emission filenames spell variable_id with hyphens (BC_em_anthro ->
+  # BC-em-anthro), while the directory name keeps the underscores.
+  hyphenate_variable: true
+  time_range: 202201-210012
+
+_ext_defaults: &ext_defaults
+  <<: *defaults
+  time_range: 210501-250012
+
+# For each scenario <s>:
+#   <s>          surface emissions (stream -1-1-1), 2022-2100
+#   <s>-ext      surface emissions extension, 2105-2500
+#   <s>-air      aircraft emissions (stream -1-1-2), 2022-2100
+#   <s>-air-ext  aircraft emissions extension, 2105-2500
+
+h:
+  <<: *defaults
+  source_id: IIASA-IAMC-h-1-1-1
+  version: v20260409
+
+h-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-h-ext-1-1-1
+  version: v20260713
+
+h-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-h-1-1-2
+  version: v20260624
+
+h-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-h-ext-1-1-2
+  version: v20260804
+
+hl:
+  <<: *defaults
+  source_id: IIASA-IAMC-hl-1-1-1
+  version: v20260327
+
+hl-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-hl-ext-1-1-1
+  version: v20260713
+
+hl-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-hl-1-1-2
+  version: v20260624
+
+hl-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-hl-ext-1-1-2
+  version: v20260804
+
+m:
+  <<: *defaults
+  source_id: IIASA-IAMC-m-1-1-1
+  version: v20260327
+
+m-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-m-ext-1-1-1
+  version: v20260713
+
+m-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-m-1-1-2
+  version: v20260624
+
+m-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-m-ext-1-1-2
+  version: v20260804
+
+vl:
+  <<: *defaults
+  source_id: IIASA-IAMC-vl-1-1-1
+  version: v20260409
+
+vl-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-vl-ext-1-1-1
+  version: v20260713
+
+vl-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-vl-1-1-2
+  version: v20260624
+
+vl-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-vl-ext-1-1-2
+  version: v20260804
+
+l:
+  <<: *defaults
+  source_id: IIASA-IAMC-l-1-1-1
+  version: v20260410
+
+l-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-l-ext-1-1-1
+  version: v20260713
+
+l-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-l-1-1-2
+  version: v20260624
+
+l-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-l-ext-1-1-2
+  version: v20260804
+
+ln:
+  <<: *defaults
+  source_id: IIASA-IAMC-ln-1-1-1
+  version: v20260410
+
+ln-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-ln-ext-1-1-1
+  version: v20260713
+
+ln-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-ln-1-1-2
+  version: v20260624
+
+ln-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-ln-ext-1-1-2
+  version: v20260804
+
+ml:
+  <<: *defaults
+  source_id: IIASA-IAMC-ml-1-1-1
+  version: v20260410
+
+ml-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-ml-ext-1-1-1
+  version: v20260713
+
+ml-air:
+  <<: *defaults
+  source_id: IIASA-IAMC-ml-1-1-2
+  version: v20260624
+
+ml-air-ext:
+  <<: *ext_defaults
+  source_id: IIASA-IAMC-ml-ext-1-1-2
+  version: v20260804
