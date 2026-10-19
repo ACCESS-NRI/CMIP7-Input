@@ -695,8 +695,10 @@
           inherit = ESM1P6_ANCIL
 
           [[[environment]]]
-              PATH_ARGS = "--ancil-target-dirname {{ quote(VAR.ANCIL_TARGET_PATH) }} --esm15-inputs-dirname {{ quote(VAR.ESM15_INPUTS_PATH) }}"
-              GRID_ARGS = "--esm-grid-rel-dirname {{ quote(ESM_GRID_DIRNAME) }} --esm15-grid-version {{ quote(ESM15_GRID_VERSION) }}"
+              ANCIL_TARGET_DIRNAME = {{ quote(VAR.ANCIL_TARGET_PATH) }}
+              ESM15_INPUTS_DIRNAME = {{ quote(VAR.ESM15_INPUTS_PATH) }}
+              ESM_GRID_REL_DIRNAME = {{ quote(ESM_GRID_DIRNAME) }}
+              ESM15_GRID_VERSION = {{ quote(ESM15_GRID_VERSION) }}
 
       {% if EXP == "SM" %}
         {% for SCEN in SCENARIOS %}
@@ -712,7 +714,7 @@
               EXT_ARG = --ext
               save_filename = {{ quote(ESM_SM_EXT_NITROGEN_SAVE_FILENAME[SCEN]) }}
               {% else %}
-              EXT_ARG =
+              EXT_ARG = ""
               save_filename = {{ quote(ESM_SM_NITROGEN_SAVE_FILENAME[SCEN]) }}
               {% endif %}
           {% endif %}
