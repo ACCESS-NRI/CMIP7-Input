@@ -363,3 +363,62 @@ def test_dataset_config_errors(tmp_path):
 
     with pytest.raises(ValueError, match="No time ranges specified"):
         empty_config.to_dataset_sequence()
+
+
+def test_ghg_dataset_config_pi_hi():
+    """Verify PI and HI GHG dataset configs produce expected DRS paths."""
+    app_dir = Path(__file__).resolve().parent.parent / "app"
+    for app_name in ("pi_ancil_ghg", "hi_ancil_ghg"):
+        yaml_path = app_dir / app_name / "file" / "datasetconfig.yaml"
+        config = DatasetConfig.from_yaml(yaml_path)
+        assert len(config.variables) == 9
+        assert "co2" in config.variables
+        assert "ch4" in config.variables
+        assert "n2o" in config.variables
+
+        datasets = config.to_datasets_by_variable()
+        assert len(datasets) == 9
+
+        co2_path = datasets["co2"].to_path()
+        expected = Path(
+            "/g/data/qv56/replicas/input4MIPs/CMIP7/CMIP/CR/CR-CMIP-1-0-0/"
+            "atmos/yr/co2/gm/v20250228/"
+            "co2_input4MIPs_GHGConcentrations_CMIP_CR-CMIP-1-0-0_gm_"
+            "1750-2022.nc"
+        )
+        assert co2_path == expected
+
+
+def test_ghg_dataset_config_scenariomip():
+    """Verify ScenarioMIP GHG dataset config loads all 7 scenarios and
+    extensions."""
+    yaml_path = (
+        Path(__file__).resolve().parent.parent
+        / "app"
+        / "sm_ancil_ghg"
+        / "file"
+        / "datasetconfig.yaml"
+    )
+    scenarios = ("h", "hl", "m", "vl", "l", "ln", "ml")
+    for scen in scenarios:
+        cfg = DatasetConfig.from_yaml(yaml_path, section=scen)
+        datasets = cfg.to_datasets_by_variable()
+        assert len(datasets) == 9
+        assert datasets["co2"].filename.time_range == "2022-2100"
+        assert datasets["co2"].dirname.source_id == f"CR-{scen}-1-1-0"
+
+        ext_cfg = DatasetConfig.from_yaml(yaml_path, section=f"{scen}-ext")
+        ext_datasets = ext_cfg.to_datasets_by_variable()
+        assert len(ext_datasets) == 9
+        assert ext_datasets["co2"].filename.time_range == "2101-2200"
+        assert ext_datasets["co2"].dirname.source_id == f"CR-{scen}-ext-1-1-0"
+
+    h_cfg = DatasetConfig.from_yaml(yaml_path, section="h")
+    h_path = h_cfg.to_datasets_by_variable()["co2"].to_path()
+    expected_h = Path(
+        "/g/data/qv56/replicas/input4MIPs/CMIP7/ScenarioMIP/CR/CR-h-1-1-0/"
+        "atmos/yr/co2/gm/v20260327/"
+        "co2_input4MIPs_GHGConcentrations_ScenarioMIP_CR-h-1-1-0_gm_"
+        "2022-2100.nc"
+    )
+    assert h_path == expected_h

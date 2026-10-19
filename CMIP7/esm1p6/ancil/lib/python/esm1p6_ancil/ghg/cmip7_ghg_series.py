@@ -8,63 +8,46 @@ import iris.cube
 import iris.util
 import numpy as np
 from ghg.cmip7_ghg import (
-    cmip7_ghg_dirpath,
-    cmip7_ghg_filename,
     cmip7_ghg_mmr,
     cmip7_pro_greg_date_constraint_from_years,
 )
 
 
 def load_cmip7_ghg_series_mmr(
-    args, activity, ghg, beg_year, end_year, ext=False
+    dataset, ghg, beg_year, end_year, ext_dataset=None
 ):
     """Load and process a greenhouse gas annual time series as mass mixing
     ratios.
 
     Linearly interpolates annual data to January 1 to ensure standard UM linear
     interpolation reproduces annual means. Supports temporal extension datasets
-    beyond 2100 when available.
+    beyond 2100 when provided.
 
     Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration.
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
+        dataset (Dataset or Path or str): Baseline input4MIPs dataset for the
+            greenhouse gas.
         ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4', 'n2o').
         beg_year (int): Start year of the desired output series.
         end_year (int): End year of the desired output series.
-        ext (bool, optional): Whether to include ScenarioMIP extension dataset
-            beyond 2100. Defaults to False.
+        ext_dataset (Dataset or Path or str, optional): Optional extension
+            input4MIPs dataset beyond 2100. Defaults to None.
 
     Returns:
         list: List of annual mass mixing ratios (kg gas / kg dry air) spanning
             each year from beg_year to end_year.
     """
-    dirpath = cmip7_ghg_dirpath(args, activity, ghg)
-    filename = cmip7_ghg_filename(args, activity, ghg)
-    cmip7_filepath = dirpath / filename
+    filepath = (
+        str(dataset.to_path()) if hasattr(dataset, "to_path") else str(dataset)
+    )
 
     # Read in the CMIP7 cube.
-    full_cube = iris.load_cube(cmip7_filepath)
+    full_cube = iris.load_cube(filepath)
 
-    if ext:
-        ext_version = args.dataset_ext_version
-        ext_vdate = args.dataset_ext_vdate
-        ext_date_range = args.dataset_ext_date_range
-        ext_filename = (
-            f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
-            f"{ext_version}_gm_{ext_date_range}.nc"
-        )
+    if ext_dataset is not None:
         ext_filepath = (
-            Path(args.cmip7_source_data_dirname)
-            / activity
-            / "CR"
-            / ext_version
-            / "atmos"
-            / "yr"
-            / ghg
-            / "gm"
-            / ext_vdate
-            / ext_filename
+            str(ext_dataset.to_path())
+            if hasattr(ext_dataset, "to_path")
+            else str(ext_dataset)
         )
         ext_cube = iris.load_cube(ext_filepath)
         cubelist = iris.cube.CubeList([full_cube, ext_cube])
@@ -261,7 +244,9 @@ def cmip7_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name, beg_year, end_year):
     return str(row_major_patch_namelist)
 
 
-def cmip7_ghg_update_namelists_file(ghg_mmr_dict, beg_year, end_year):
+def cmip7_ghg_update_namelists_file(
+    ghg_mmr_dict, beg_year, end_year, config_dir=None
+):
     """Use the greenhouse gas mass mixing ratios in ghg_mmr_dict
     to replace the greenhouse gas namelist in the relevant namelists file.
 
@@ -270,8 +255,12 @@ def cmip7_ghg_update_namelists_file(ghg_mmr_dict, beg_year, end_year):
             ratios.
         beg_year (int): Start year of the forcing series.
         end_year (int): End year of the forcing series.
+        config_dir (pathlib.Path or str, optional): Configuration repository
+            working directory containing atmosphere/namelists. Defaults to
+            Path.cwd().
     """
-    namelists_filepath = Path("atmosphere") / "namelists"
+    config_dir_path = Path(config_dir) if config_dir is not None else Path.cwd()
+    namelists_filepath = config_dir_path / "atmosphere" / "namelists"
     ghg_namelist_name = "clmchfcg"
     # Read the original namelists file up to ghg_namelist_name.
     namelists_str = read_namelists_lines_up_to(

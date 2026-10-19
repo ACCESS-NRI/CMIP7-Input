@@ -1,0 +1,22 @@
+root: /g/data/qv56/replicas
+activity_id: input4MIPs
+mip_era: CMIP7
+target_mip: CMIP
+institution_id: CR
+source_id: CR-CMIP-1-0-0
+realm: atmos
+frequency: yr
+grid_label: gm
+version: v20250228
+dataset_category: GHGConcentrations
+time_range: 1750-2022
+variables:
+  - cfc11
+  - cfc12
+  - cfc113
+  - ch4
+  - co2
+  - hcfc22
+  - hfc125
+  - hfc134a
+  - n2o

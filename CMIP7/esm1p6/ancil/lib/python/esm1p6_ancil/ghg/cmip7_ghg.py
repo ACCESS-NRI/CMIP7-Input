@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import cftime
 import iris
 
@@ -52,53 +50,8 @@ def cmip7_ghg_mmr(cube, ghg):
     return conc * ghg_scale * GHG_MOLAR_MASS[ghg] / DRY_AIR_MOLAR_MASS
 
 
-def cmip7_ghg_dirpath(args, activity, ghg):
-    """Construct the source directory path for CMIP7 greenhouse gas forcing
-    files.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration (cmip7_source_data_dirname, dataset_version,
-            dataset_vdate).
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
-        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4').
-
-    Returns:
-        pathlib.Path: Directory path containing the raw netCDF input4MIPs GHG
-            forcing file.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / activity
-        / "CR"
-        / args.dataset_version
-        / "atmos"
-        / "yr"
-        / ghg
-        / "gm"
-        / args.dataset_vdate
-    )
-
-
-def cmip7_ghg_filename(args, activity, ghg):
-    """Construct the standard input4MIPs netCDF filename for greenhouse gas
-    forcings.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration (dataset_version, dataset_date_range).
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
-        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4').
-
-    Returns:
-        str: Filename for the global-mean annual greenhouse gas concentration
-            dataset.
-    """
-    return (
-        f"{ghg}_input4MIPs_GHGConcentrations_{activity}_"
-        f"{args.dataset_version}_gm_"
-        f"{args.dataset_date_range}.nc"
-    )
+# Define ordered tuple of supported greenhouse gas species
+GHG_SPECIES = tuple(GHG_MOLAR_MASS.keys())
 
 
 def cmip7_pro_greg_date_constraint_from_years(beg_year, end_year):

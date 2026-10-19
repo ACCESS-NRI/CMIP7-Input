@@ -460,6 +460,7 @@
 
         [[[environment]]]
             GIT_SM_{{SCEN}}_CONFIG_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/SM_{{SCEN}}_{{GIT_CONFIG_REPO}}
+            GIT_CONFIG_DIR = ${GIT_SM_{{SCEN}}_CONFIG_DIR}
             GIT_CONFIG_REPO_URL = {{GIT_REPO_URL(GIT_CONFIG_REPO)}}
             GIT_SM_{{SCEN}}_OLD_BRANCH = {{GIT_CONFIG_BRANCH_PRE[EXP]}}-{{GIT_SM_CONFIG_BRANCH_SUF[SCEN]}}
             GIT_SM_{{SCEN}}_NEW_BRANCH = gen-{{GIT_SM_CONFIG_BRANCH_SUF[SCEN]}}-{{UNIQUE_NAME}}
@@ -481,6 +482,7 @@
 
         [[[environment]]]
             GIT_{{EXP}}_CONFIG_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{EXP}}_{{GIT_CONFIG_REPO}}
+            GIT_CONFIG_DIR = ${GIT_{{EXP}}_CONFIG_DIR}
             GIT_CONFIG_REPO_URL = {{GIT_REPO_URL(GIT_CONFIG_REPO)}}
             GIT_{{EXP}}_OLD_BRANCH = {{GIT_CONFIG_BRANCH_PRE[EXP]}}-{{GIT_CONFIG_BRANCH_SUF[EXP]}}
             GIT_{{EXP}}_NEW_BRANCH = gen-{{GIT_CONFIG_BRANCH_SUF[EXP]}}-{{UNIQUE_NAME}}
@@ -661,36 +663,26 @@
       [[SM_{{SCEN}}_ancil_ghg]]
           inherit = ANCIL_GHG, SM_{{SCEN}}_GIT, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              cd $GIT_SM_{{SCEN}}_CONFIG_DIR
-              python_env python \
-                  -m ghg.cmip7_SM_ghg_generate \
-                  {{ PATH_ARGS }} \
-                  --dataset-version {{ quote(CMIP7_SM_GHG_VERSION[SCEN]) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_GHG_VDATE[SCEN]) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_GHG_DATE_RANGE) }} \
-                  {% if EXTEND_SM_GHG[SCEN] %}
-                  --ext \
-                  --dataset-ext-version {{ quote(CMIP7_SM_EXT_GHG_VERSION[SCEN]) }} \
-                  --dataset-ext-vdate {{ quote(CMIP7_SM_EXT_GHG_VDATE[SCEN]) }} \
-                  --dataset-ext-date-range {{ quote(CMIP7_SM_EXT_GHG_DATE_RANGE) }}
-                  {% endif %}
-          """
+          script = "rose task-run --app-key=sm_ancil_ghg"
+
+          [[[environment]]]
+              SCENARIO = {{ SCEN }}
+              {% if EXTEND_SM_GHG[SCEN] %}
+              EXT_ARG = --ext
+              {% else %}
+              EXT_ARG = ""
+              {% endif %}
           {% endif %}
-    {% endfor %}
+        {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_ghg]]
           inherit = ANCIL_GHG, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              cd $GIT_{{EXP}}_CONFIG_DIR
-              python_env python \
-                  -m ghg.cmip7_{{EXP}}_ghg_generate \
-                  {{ PATH_ARGS }}
-                  --dataset-version {{ quote(CMIP7_GHG_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_GHG_VDATE) }} \
-                  --dataset-date-range {{ quote(CMIP7_GHG_DATE_RANGE) }}
-              """
+          {% if EXP == "HI" %}
+          script = "rose task-run --app-key=hi_ancil_ghg"
+          {% else %}
+          script = "rose task-run --app-key=pi_ancil_ghg"
+          {% endif %}
       {% endif %}
     {% endif %}
 
