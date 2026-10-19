@@ -735,43 +735,30 @@
       [[SM_ancil_solar]]
           inherit = ANCIL_SOLAR, SHORT_TIME_LOW_MEM_JOB
 
-          script = """
-              python_env python \
-                  -m solar.cmip7_SM_solar_generate \
-                  --scenario h \
-                  {{ PATH_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SM_SOLAR_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_SM_SOLAR_VDATE) }} \
-                  --dataset-date-range {{ quote(CMIP7_SM_SOLAR_DATE_RANGE) }} \
-                  {% if EXTEND_SM_SOLAR %}
-                  --ext \
-                  {% endif %}
-                  --save-filename {{ quote(ESM_SM_SOLAR_SAVE_FILENAME) }}
-              """
+          script = "rose task-run --app-key=sm_ancil_solar"
+
+          [[[environment]]]
+              SCENARIO = h
+              {% if EXTEND_SM_SOLAR %}
+              EXT_ARG = --ext
+              {% else %}
+              EXT_ARG = ""
+              {% endif %}
+              save_filename = {{ quote(ESM_SM_SOLAR_SAVE_FILENAME) }}
       {% else %}
       [[{{EXP}}_ancil_solar]]
         {% if EXP == "HI" %}
           inherit = ANCIL_SOLAR, SHORT_TIME_LOW_MEM_JOB
+
+          script = "rose task-run --app-key=hi_ancil_solar"
+
+          [[[environment]]]
+              save_filename = {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }}
         {% else %}
           inherit = ANCIL_SOLAR, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
+
+          script = "rose task-run --app-key=pi_ancil_solar"
         {% endif %}
-          script = """
-            {% if EXP == "HI" %}
-              mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
-            {% else %}
-              cd $GIT_{{EXP}}_CONFIG_DIR
-            {% endif %}
-              python_env python \
-                  -m solar.cmip7_{{EXP}}_solar_generate \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
-                  --dataset-version {{ quote(CMIP7_SOLAR_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_SOLAR_VDATE) }} \
-                  {% if EXP == "HI" %}
-                  --dataset-date-range {{ quote(CMIP7_HI_SOLAR_DATE_RANGE) }} \
-                  --save-filename {{ quote(ESM_HI_SOLAR_SAVE_FILENAME) }}
-                  {% endif %}
-              """
       {% endif %}
     {% endif %}
 

@@ -664,3 +664,16 @@ def test_co2_app_configs():
             else:
                 ds = cfg.to_dataset(variable_id="CO2_em_anthro")
                 assert ds.to_path().is_absolute()
+
+
+def test_solar_app_configs():
+    """Verify all sections of solar app configurations produce valid
+    Datasets.
+    """
+    for exp in ("pi", "hi", "sm"):
+        configs = _app_configs(f"{exp}_ancil_solar")
+        assert configs
+        for section, cfg in configs.items():
+            ds = cfg.to_dataset()
+            assert ds.to_path().is_absolute()
+            assert ds.filename.variable_id == "multiple"

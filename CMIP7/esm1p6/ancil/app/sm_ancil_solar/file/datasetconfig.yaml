@@ -1,0 +1,13 @@
+root: /g/data/qv56/replicas
+activity_id: input4MIPs
+mip_era: CMIP7
+target_mip: ScenarioMIP
+institution_id: SOLARIS-HEPPA
+source_id: SOLARIS-HEPPA-ScenarioMIP-4-6
+realm: atmos
+frequency: mon
+grid_label: gn
+version: v20260115
+dataset_category: solar
+variable_id: multiple
+time_range: 202201-229912

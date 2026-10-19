@@ -2,8 +2,9 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
-from cmip7_ancil_argparse import common_parser
-from solar.cmip7_solar import cmip7_solar_dirpath, load_cmip7_solar_cube
+from cmip7_ancil_argparse import config_parser
+from dataset import DatasetConfig
+from solar.cmip7_solar import load_cmip7_solar_cube
 
 
 def parse_args():
@@ -11,25 +12,32 @@ def parse_args():
     generation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path and dataset
-            parameters.
+        argparse.Namespace: Parsed CLI arguments containing the dataset
+            configuration file and the configuration repository directory.
     """
     parser = ArgumentParser(
-        parents=[common_parser()],
+        parents=[config_parser()],
         prog="cmip7_PI_solar_generate",
         description=(
             "Generate input files from CMIP7 pre-industrial solar forcings"
         ),
     )
+    parser.add_argument(
+        "--config-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="Path to configuration repository containing atmosphere/",
+    )
     return parser.parse_args()
 
 
-def cmip7_pi_solar_patch(solar_irradiance):
+def cmip7_pi_solar_patch(solar_irradiance, config_dir):
     """Patch the SC variable in the coupling namelist.
 
     Args:
         solar_irradiance (float): Pre-industrial solar constant irradiance
             value (W/m2).
+        config_dir (pathlib.Path): Configuration repository directory.
     """
     patch = {"coupling": {"SC": solar_irradiance}}
     patch_namelist = f90nml.namelist.Namelist(patch)
@@ -42,7 +50,7 @@ def cmip7_pi_solar_patch(solar_irradiance):
     patch_str_namelist = parser.reads(patch_str)
 
     # Create a new namelist by patching the original namelist
-    pi_solar_namelist_filepath = Path("atmosphere") / "input_atm.nml"
+    pi_solar_namelist_filepath = config_dir / "atmosphere" / "input_atm.nml"
 
     new_namelist_filepath = pi_solar_namelist_filepath.with_suffix(
         ".nml.patched"
@@ -58,12 +66,9 @@ def cmip7_pi_solar_patch(solar_irradiance):
 if __name__ == "__main__":
     args = parse_args()
 
-    dirpath = cmip7_solar_dirpath(args, "CMIP", "fx")
-    filename = f"multiple_input4MIPs_solar_CMIP_{args.dataset_version}_gn.nc"
-    dataset_path = dirpath / filename
-
-    solar_irradiance_cube = load_cmip7_solar_cube(dataset_path)
+    config = DatasetConfig.from_yaml(args.config)
+    solar_irradiance_cube = load_cmip7_solar_cube(config.to_dataset())
     solar_irradiance = solar_irradiance_cube[0].data
 
     # Patch the SC variable in the coupling namelist
-    cmip7_pi_solar_patch(solar_irradiance)
+    cmip7_pi_solar_patch(solar_irradiance, args.config_dir)
