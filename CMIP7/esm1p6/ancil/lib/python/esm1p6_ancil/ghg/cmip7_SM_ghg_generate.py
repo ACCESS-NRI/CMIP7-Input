@@ -12,6 +12,9 @@ from ghg.cmip7_ghg_series import (
     load_cmip7_ghg_series_mmr,
 )
 
+# Model time interpolation requires an extra year
+CMIP7_SM_EXT_GHG_END_YEAR = CMIP7_SM_EXT_END_YEAR + 1
+
 
 def parse_args():
     parser = ArgumentParser(
@@ -30,7 +33,7 @@ if __name__ == "__main__":
     args = parse_args()
 
     target_end_year = (
-        (args.end_year or CMIP7_SM_EXT_END_YEAR)
+        (args.end_year or CMIP7_SM_EXT_GHG_END_YEAR)
         if args.ext
         else CMIP7_SM_END_YEAR
     )
