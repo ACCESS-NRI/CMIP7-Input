@@ -13,6 +13,13 @@ from ghg.cmip7_ghg_series import (
 
 
 def parse_args():
+    """Parse command-line arguments for CMIP7 historical greenhouse gas
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, dataset, and
+            date range parameters.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
         prog="cmip7_HI_ghg_generate",

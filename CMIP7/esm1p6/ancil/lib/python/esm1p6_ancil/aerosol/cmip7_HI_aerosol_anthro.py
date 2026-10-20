@@ -16,6 +16,15 @@ from cmip7_ancil_common import cmip7_date_constraint_from_years
 
 
 def parse_args(species):
+    """Parse command-line arguments for historical aerosol emission
+    interpolation.
+
+    Args:
+        species (str): Target aerosol species name.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments.
+    """
     parser = ArgumentParser(
         prog=f"cmip7_HI_{species}_interpolate",
         description=(
@@ -34,6 +43,18 @@ def load_cmip7_hi_aerosol_air_anthro(
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
 ):
+    """Load historical aircraft emissions for a given species constrained to
+    year range.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        beg_year (int, optional): Start year. Defaults to 1849.
+        end_year (int, optional): End year. Defaults to 2024.
+
+    Returns:
+        iris.cube.Cube: Loaded aircraft emissions cube.
+    """
     return load_cmip7_aerosol_air_anthro_list(
         args,
         species,
@@ -48,6 +69,18 @@ def load_cmip7_hi_aerosol_anthro(
     beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
     end_year=CMIP7_HI_AEROSOL_END_YEAR,
 ):
+    """Load historical surface emissions for a given species constrained to
+    year range.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        beg_year (int, optional): Start year. Defaults to 1849.
+        end_year (int, optional): End year. Defaults to 2024.
+
+    Returns:
+        iris.cube.Cube: Loaded surface emissions cube.
+    """
     return load_cmip7_aerosol_anthro_list(
         args,
         species,
@@ -57,6 +90,14 @@ def load_cmip7_hi_aerosol_anthro(
 
 
 def cmip7_hi_aerosol_anthro_interpolate(args, species, stash_item):
+    """Interpolate historical anthropogenic aerosol emissions and save to
+    ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments.
+        species (str): Aerosol species name.
+        stash_item (int): UM STASH item number.
+    """
     cmip7_aerosol_anthro_interpolate(
         args,
         load_cmip7_hi_aerosol_anthro,

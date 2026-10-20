@@ -17,6 +17,13 @@ from volcanic.cmip7_volcanic import (
 
 
 def parse_args():
+    """Parse command-line arguments for pre-industrial volcanic forcing
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, dataset, and
+            date range parameters.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
         prog="cmip7_PI_volcanic_generate",
@@ -29,6 +36,18 @@ def parse_args():
 
 
 def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
+    """Construct the standard input4MIPs netCDF filename for pre-industrial
+    climatological volcanic extinction.
+
+    Args:
+        dataset_version (str): Version string of the volcanic dataset.
+        dataset_date_range (str): Climatology date range string (e.g.
+            '185001-185012').
+
+    Returns:
+        str: NetCDF filename for monthly climatological zonal extinction
+            properties.
+    """
     return (
         f"ext_input4MIPs_aerosolProperties_CMIP_"
         f"{dataset_version}_gnz_"
@@ -37,9 +56,16 @@ def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
 
 
 def mean_over_pi_months(cube):
-    """
-    Find the time average SAOD by averaging over months
+    """Find the time average SAOD by averaging over months
     in the pre-industrial year, weighted by month length.
+
+    Args:
+        cube (iris.cube.Cube): Climatological 12-month volcanic extinction
+            cube.
+
+    Returns:
+        iris.cube.Cube: Collapsed single-slice cube averaged over the 12
+            calendar months.
     """
     time_coord = next(c for c in cube.coords() if c.standard_name == "time")
     # Iris emits a UserWarning when collapsing unbounded coordinates;
@@ -54,10 +80,17 @@ def mean_over_pi_months(cube):
 
 
 def average_stratospheric_aerosol_optical_depth(dataset_path):
-    """
-    Calculate the average stratospheric optical depth (SAOD)
+    """Calculate the average stratospheric optical depth (SAOD)
     by averaging extinction over both time and latitude,
     and summing over stratospheric layers.
+
+    Args:
+        dataset_path (pathlib.Path): Path to the climatological volcanic
+            extinction dataset.
+
+    Returns:
+        float or numpy.ndarray: Globally averaged, vertically integrated SAOD
+            value.
     """
     # Load the dataset into an Iris cube.
     cube = iris.load_cube(dataset_path)
@@ -83,8 +116,11 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
 
 
 def cmip7_pi_volcanic_patch(average_saod):
-    """
-    Patch the VOLCTS_val variable in the coupling namelist
+    """Patch the VOLCTS_val variable in the coupling namelist.
+
+    Args:
+        average_saod (float): Unscaled pre-industrial average SAOD (scaled by
+            SAOD_SCALING inside).
     """
     namelist_dict = dict()
     namelist_dict["VOLCTS_val"] = average_saod * SAOD_SCALING

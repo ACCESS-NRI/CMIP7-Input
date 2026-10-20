@@ -8,6 +8,16 @@ CMIP7_HI_AEROSOL_END_YEAR = CMIP7_HI_END_YEAR + 1
 
 
 def esm_hi_aerosol_ancil_dirpath(ancil_root_dirname):
+    """Construct the base directory path for historical aerosol ancillaries.
+
+    Args:
+        ancil_root_dirname (str or pathlib.Path): Root ancillary output
+            directory.
+
+    Returns:
+        pathlib.Path: Directory path under
+            modern/historical/atmosphere/aerosol.
+    """
     return (
         Path(ancil_root_dirname)
         / "modern"
@@ -18,6 +28,16 @@ def esm_hi_aerosol_ancil_dirpath(ancil_root_dirname):
 
 
 def esm_hi_aerosol_save_dirpath(args):
+    """Construct the target directory path for saving historical aerosol
+    ancillary files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing
+            ancil_target_dirname and esm_grid_rel_dirname.
+
+    Returns:
+        pathlib.Path: Target directory path with resolution and date stamps.
+    """
     return (
         esm_hi_aerosol_ancil_dirpath(args.ancil_target_dirname)
         / args.esm_grid_rel_dirname
