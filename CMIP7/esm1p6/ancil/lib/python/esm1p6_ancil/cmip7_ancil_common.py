@@ -54,11 +54,14 @@ def esm_grid_mask_cube(args):
 def set_gregorian(var, replace_bounds=False):
     # Change the calendar to Gregorian for the model
     time = var.coord("time")
+    print('set gregorian', time)
     origin = time.units.origin
     newunits = cf_units.Unit(origin, calendar="proleptic_gregorian")
 
     tvals = np.array(time.points)
     tbnds = np.array(time.bounds)
+    print("TIME Bounds", time.bounds, tbnds.shape)
+    # Convert each time point to Gregorian and update the time points and bounds
     for i in range(len(time.points)):
         date = time.units.num2date(tvals[i])
         newdate = cftime.DatetimeProlepticGregorian(
@@ -70,9 +73,9 @@ def set_gregorian(var, replace_bounds=False):
                 date.year,
                 date.month,
                 1,
-                date.hour,
-                date.minute,
-                date.second,
+                0,
+                0,
+                0,
             )
             tbnds[i][0] = newunits.date2num(beg_date)
             if date.month == 12:
@@ -85,9 +88,9 @@ def set_gregorian(var, replace_bounds=False):
                 end_year,
                 end_month,
                 1,
-                date.hour,
-                date.minute,
-                date.second,
+                0,
+                0,
+                0,
             )
             tbnds[i][1] = newunits.date2num(end_date)
         else:
@@ -105,6 +108,8 @@ def set_gregorian(var, replace_bounds=False):
     time.points = tvals
     time.bounds = tbnds
     time.units = newunits
+    print('set gregorian end', time)
+
 
 
 def extend_years(cube):
@@ -367,8 +372,12 @@ def save_ancil(
     Need to reset to 703.
     """
     ants.__version__ = UM_VERSION
-    with tempfile.TemporaryDirectory() as temp_dirname:
+    # with tempfile.TemporaryDirectory() as temp_dirname:
+    for temp_dirname in ["/scratch/tm70/mrd599/tmpdir"]:
         save_temp_pathname = fsdecode(Path(temp_dirname) / save_filename)
+        print(cubes)
+        print(cubes[0].coord('time'))
+        save.netcdf(cubes, f'{save_temp_pathname}.nc')
         save.ancil(cubes, save_temp_pathname)
         sm = mule.STASHmaster.from_version(UM_VERSION)
         ff = mule.AncilFile.from_file(save_temp_pathname, stashmaster=sm)

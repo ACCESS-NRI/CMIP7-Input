@@ -30,7 +30,7 @@
             -l storage = {{NCI_STORAGE}}
             -W umask = 0022
 
-    {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
+    {% if (ANCIL_CREATE_AMIP or ANCIL_CREATE_PICLIM) and USE_EXP["AM"] %}
     [[COMPILER]]
         pre-script = """
 	module load binutils/2.44
@@ -48,6 +48,13 @@
         [[[directives]]]
             -l mem = 64gb
             -l ncpus = 3
+
+    [[TINY_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT10M
+        [[[directives]]]
+            -l mem = 8gb
+            -l ncpus = 1
 
     [[MEDIUM_JOB]]
         inherit = HOST_HPC
