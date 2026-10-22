@@ -1,0 +1,38 @@
+_defaults: &defaults
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: CMIP
+  realm: atmos
+  frequency: mon
+  grid_label: gn
+  dataset_category: emissions
+  # Emission filenames spell variable_id with hyphens (BC_em_anthro ->
+  # BC-em-anthro), while the directory name keeps the underscores.
+  hyphenate_variable: true
+
+# Surface anthropogenic emissions (CEDS), variable_id <species>_em_anthro
+anthro:
+  <<: *defaults
+  institution_id: PNNL-JGCRI
+  source_id: CEDS-CMIP-2025-04-18
+  version: v20250421
+  time_range: 185001-189912
+
+# Open-burning emissions (BB4CMIP7), variable_id <species>
+biomass:
+  <<: *defaults
+  institution_id: DRES
+  source_id: DRES-CMIP-BB4CMIP7-2-0
+  version: v20250227
+  hyphenate_variable: false
+  time_range: 175001-189912
+
+# Open-burning source percentages, variable_id <species>percentage<source>
+biomass-percentage:
+  <<: *defaults
+  institution_id: DRES
+  source_id: DRES-CMIP-BB4CMIP7-2-0
+  version: v20250227
+  hyphenate_variable: false
+  time_range: 175001-202312

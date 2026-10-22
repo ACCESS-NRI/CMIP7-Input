@@ -15,6 +15,7 @@ from cmip7_ancil_common import (
 )
 from cmip7_ancil_constants import ANCIL_TODAY
 from cmip7_HI import CMIP7_HI_BEG_YEAR, CMIP7_HI_END_YEAR
+from dataset import DatasetConfig
 
 SPECIES = "CO2"
 STASH_ITEM = 251
@@ -58,11 +59,13 @@ def cmip7_eh_co2_anthro_interpolate(args):
     assigns UM STASH item 251, and writes the output ancillary file.
 
     Args:
-        args (argparse.Namespace): Command-line arguments specifying dataset
-            sources, grid, and output filenames.
+        args (argparse.Namespace): Command-line arguments specifying the
+            dataset configuration file, grid, and output filename.
     """
+    config = DatasetConfig.from_yaml(args.config, section="anthro")
     cube = load_cmip7_hi_aerosol_anthro(
         args,
+        config,
         SPECIES,
         beg_year=CMIP7_HI_CO2_BEG_YEAR,
         end_year=CMIP7_HI_CO2_END_YEAR,
@@ -72,6 +75,7 @@ def cmip7_eh_co2_anthro_interpolate(args):
         cube.remove_coord("sector")
     cube_air = load_cmip7_hi_aerosol_air_anthro(
         args,
+        config,
         SPECIES,
         beg_year=CMIP7_HI_CO2_BEG_YEAR,
         end_year=CMIP7_HI_CO2_END_YEAR,

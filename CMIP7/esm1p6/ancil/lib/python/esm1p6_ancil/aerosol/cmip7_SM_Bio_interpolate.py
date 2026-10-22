@@ -1,26 +1,33 @@
 from argparse import ArgumentParser
 from datetime import datetime
-from pathlib import Path
+from functools import partial
 
 import iris
-import netCDF4
 from aerosol.cmip7_aerosol_common import (
-    load_cmip7_aerosol,
+    load_sector_dict,
     zero_poles,
 )
-from aerosol.cmip7_SM_aerosol import esm_sm_aerosol_save_dirpath
-from cmip7_ancil_argparse import common_parser, ext_parser
+from aerosol.cmip7_SM_aerosol import (
+    esm_sm_aerosol_save_dirpath,
+    load_cmip7_sm_aerosol_series,
+    sm_configs,
+    sm_target_end_year,
+)
+from cmip7_ancil_argparse import (
+    config_parser,
+    ext_parser,
+    grid_parser,
+    path_parser,
+)
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
-    cmip7_date_constraint_from_years,
     esm_grid_mask_cube,
     extend_years,
     interpolate_monthly,
     save_ancil,
     set_coord_system,
 )
-from cmip7_SM import CMIP7_SM_BEG_YEAR, CMIP7_SM_END_YEAR, CMIP7_SM_EXT_END_YEAR
-from iris.util import equalise_attributes, unify_time_units
+from cmip7_SM import CMIP7_SM_BEG_YEAR
 
 
 def parse_args():
@@ -28,18 +35,17 @@ def parse_args():
     interpolation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path, ext,
-            scenario, date range, and save filename parameters.
+        argparse.Namespace: Parsed CLI arguments containing path, config,
+            ext, scenario, and save filename parameters.
     """
     parser = ArgumentParser(
         prog="cmip7_SM_Bio_interpolate",
         description=(
             "Generate input files from CMIP7 ScenarioMIP biomass forcings"
         ),
-        parents=[common_parser(), ext_parser()],
+        parents=[path_parser(), grid_parser(), config_parser(), ext_parser()],
     )
     parser.add_argument("--scenario")
-    parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
@@ -51,132 +57,9 @@ def _biomass_variable(species):
         species (str): Aerosol species name ('BC' or 'OC').
 
     Returns:
-        str: Variable name (e.g. 'BC-em-openburning').
+        str: Variable name (e.g. 'BC_em_openburning').
     """
-    return f"{species}-em-openburning"
-
-
-def _biomass_dirpath(args, species):
-    """Construct the source directory path for ScenarioMIP open-burning
-    emissions.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Aerosol species name ('BC' or 'OC').
-
-    Returns:
-        pathlib.Path: Source directory path.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / "ScenarioMIP"
-        / "IIASA-IAMC"
-        / args.dataset_version
-        / "atmos"
-        / "mon"
-        / _biomass_variable(species).replace("-", "_")
-        / "gn"
-        / args.dataset_vdate
-    )
-
-
-def cmip7_sm_aerosol_biomass_filepath(args, species, date_range):
-    """Construct the file path for ScenarioMIP biomass burning netCDF files.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Aerosol species name.
-        date_range (str): Date range string.
-
-    Returns:
-        pathlib.Path: NetCDF file path.
-    """
-    dirpath = _biomass_dirpath(args, species)
-    filename = (
-        f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
-        f"{args.dataset_version}_gn_"
-        f"{date_range}.nc"
-    )
-    return dirpath / filename
-
-
-def cmip7_sm_aerosol_biomass_ext_filepath(
-    args, species, date_range, ext_version, ext_vdate
-):
-    """Construct the file path for ScenarioMIP extension biomass burning netCDF
-    files beyond 2100.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Aerosol species name.
-        date_range (str): Extension date range string.
-        ext_version (str): Extension dataset version.
-        ext_vdate (str): Extension dataset release date.
-
-    Returns:
-        pathlib.Path: Extension netCDF file path.
-    """
-    dirpath = (
-        Path(args.cmip7_source_data_dirname)
-        / "ScenarioMIP"
-        / "IIASA-IAMC"
-        / ext_version
-        / "atmos"
-        / "mon"
-        / _biomass_variable(species).replace("-", "_")
-        / "gn"
-        / ext_vdate
-    )
-    filename = (
-        f"{_biomass_variable(species)}_input4MIPs_emissions_ScenarioMIP_"
-        f"{ext_version}_gn_"
-        f"{date_range}.nc"
-    )
-    return dirpath / filename
-
-
-def load_cmip7_aerosol_biomass(args, species, date_range, constraint):
-    """Load ScenarioMIP biomass burning emissions and zero-fill missing ocean
-    values.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        species (str): Aerosol species name.
-        date_range (str): Date range string.
-        constraint (iris.Constraint or None): Loading constraint.
-
-    Returns:
-        iris.cube.Cube: Loaded and zero-filled Iris cube.
-    """
-    cube = load_cmip7_aerosol(
-        args, cmip7_sm_aerosol_biomass_filepath, species, date_range, constraint
-    )
-    # This data is missing over oceans,
-    # so needs to be filled with zero for the model
-    cube.data = cube.data.filled(0.0)
-    return cube
-
-
-def load_sector_dict(args, filepath_fn):
-    """Parse netCDF sector attribute to map fire sector names to integer
-    indices.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        filepath_fn (callable): Callback to resolve file path.
-
-    Returns:
-        dict: Mapping of fire sector names to integer index.
-    """
-    # Iris doesn't read the sector coordinate so use netCDF4
-    date_range = args.dataset_date_range
-    d = netCDF4.Dataset(filepath_fn(args, "BC", date_range))
-    sectord = dict()
-    for s in d["sector"].ids.split(";"):
-        i, name = s.split(":")
-        sectord[name.strip()] = int(i)
-    d.close()
-    return sectord
+    return f"{species}_em_openburning"
 
 
 force_load = True
@@ -231,7 +114,7 @@ def split_sm_low_high(bc_cube, oc_cube, sector_dict):
     return low, high
 
 
-def save_cmip7_sm_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
+def save_cmip7_sm_aerosol_biomass(args, load_fn, sector_dataset, save_dirpath):
     """Partition ScenarioMIP biomass emissions into low/high injection heights,
     regrid, and save.
 
@@ -242,14 +125,17 @@ def save_cmip7_sm_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
 
     Args:
         args (argparse.Namespace): Command-line arguments.
-        filepath_fn (callable): Callback to resolve netCDF file paths.
-        load_fn (callable): Callback to load species cubes.
+        load_fn (callable): Callback that loads species cubes given the
+            species name.
+        sector_dataset (os.PathLike): Dataset of a source file whose sector
+            attribute defines the fire sector indices.
         save_dirpath (pathlib.Path): Target directory for ancillary file.
     """
-    bc = load_fn(args, "BC")
-    oc = load_fn(args, "OC")
+    bc = load_fn("BC")
+    oc = load_fn("OC")
 
-    sector_dict = load_sector_dict(args, filepath_fn)
+    # Iris doesn't read the sector coordinate
+    sector_dict = load_sector_dict(sector_dataset)
 
     low, high = split_sm_low_high(bc, oc, sector_dict)
 
@@ -292,67 +178,43 @@ def save_cmip7_sm_aerosol_biomass(args, filepath_fn, load_fn, save_dirpath):
     print(f"{now}: save_ancil done")
 
 
-def load_cmip7_sm_aerosol_biomass(args, species):
+def load_cmip7_sm_aerosol_biomass(args, config, ext_config, species):
     """Load, optionally extend beyond 2100, interpolate monthly, and extend
     time boundaries.
 
     Args:
         args (argparse.Namespace): Command-line arguments.
+        config (dataset.DatasetConfig): Configuration of the open-burning
+            emissions dataset.
+        ext_config (dataset.DatasetConfig or None): Configuration of the
+            open-burning emissions extension dataset, or None.
         species (str): Aerosol species name ('BC' or 'OC').
 
     Returns:
         iris.cube.Cube: Processed monthly biomass emissions cube.
     """
-    target_end_year = CMIP7_SM_END_YEAR
-    ext_cube = None
-
-    if args.ext:
-        ext_version = args.dataset_ext_version
-        ext_vdate = args.dataset_ext_vdate
-        ext_date_range = args.dataset_ext_date_range
-        target_end_year = args.end_year or CMIP7_SM_EXT_END_YEAR
-        ext_filepath = cmip7_sm_aerosol_biomass_ext_filepath(
-            args, species, ext_date_range, ext_version, ext_vdate
-        )
-        ext_cube = load_cmip7_aerosol(
-            args,
-            lambda a, s, dr: ext_filepath,
-            species,
-            ext_date_range,
-            cmip7_date_constraint_from_years(
-                CMIP7_SM_END_YEAR + 1, target_end_year
-            ),
-        )
-        ext_cube.data = ext_cube.data.filled(0.0)
-
-    base_cube = load_cmip7_aerosol_biomass(
+    # This data is missing over oceans,
+    # so needs to be filled with zero for the model
+    cube = load_cmip7_sm_aerosol_series(
         args,
-        species,
-        args.dataset_date_range,
-        cmip7_date_constraint_from_years(
-            CMIP7_SM_BEG_YEAR,
-            CMIP7_SM_END_YEAR,
-        ),
+        config,
+        ext_config,
+        _biomass_variable(species),
+        fill_masked=True,
     )
-
-    if ext_cube is not None:
-        cubelist = iris.cube.CubeList([base_cube, ext_cube])
-        equalise_attributes(cubelist)
-        unify_time_units(cubelist)
-        cube = cubelist.concatenate_cube()
-    else:
-        cube = base_cube
-
-    interpolated = interpolate_monthly(cube, CMIP7_SM_BEG_YEAR, target_end_year)
+    interpolated = interpolate_monthly(
+        cube, CMIP7_SM_BEG_YEAR, sm_target_end_year(args)
+    )
     return extend_years(interpolated)
 
 
 if __name__ == "__main__":
     args = parse_args()
+    config, ext_config = sm_configs(args)
 
     save_cmip7_sm_aerosol_biomass(
         args,
-        cmip7_sm_aerosol_biomass_filepath,
-        load_cmip7_sm_aerosol_biomass,
+        partial(load_cmip7_sm_aerosol_biomass, args, config, ext_config),
+        config.to_dataset(variable_id=_biomass_variable("BC")),
         esm_sm_aerosol_save_dirpath(args),
     )

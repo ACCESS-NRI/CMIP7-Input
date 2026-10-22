@@ -1,4 +1,4 @@
-from pathlib import Path
+import os
 
 import iris
 import numpy as np
@@ -10,43 +10,17 @@ SOLAR_ARRAY_END_YEAR = 2300
 SOLAR_PI_DEFAULT_YEAR_MEAN = 1361.603
 
 
-def cmip7_solar_dirpath(args, activity, period):
-    """Construct the source directory path for CMIP7 solar irradiance datasets.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration (cmip7_source_data_dirname, dataset_version,
-            dataset_vdate).
-        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
-        period (str): Temporal frequency ('mon' or 'fx').
-
-    Returns:
-        pathlib.Path: Directory path under SOLARIS-
-            HEPPA/{dataset_version}/atmos/{period}/multiple/gn/{dataset_vdate}.
-    """
-    return (
-        Path(args.cmip7_source_data_dirname)
-        / activity
-        / "SOLARIS-HEPPA"
-        / args.dataset_version
-        / "atmos"
-        / period
-        / "multiple"
-        / "gn"
-        / args.dataset_vdate
-    )
-
-
-def load_cmip7_solar_cube(path):
+def load_cmip7_solar_cube(dataset):
     """Load the solar irradiance cube from an input4MIPs netCDF file.
 
     Args:
-        path (pathlib.Path): Path to the input4MIPs solar dataset.
+        dataset (os.PathLike): Dataset (or path) of the input4MIPs solar
+            file.
 
     Returns:
         iris.cube.Cube: Solar irradiance Iris cube.
     """
-    cubelist = iris.load(path)
+    cubelist = iris.load(os.fspath(dataset))
     name_constraint = iris.Constraint(name="solar_irradiance")
     return cubelist.extract_cube(name_constraint)
 

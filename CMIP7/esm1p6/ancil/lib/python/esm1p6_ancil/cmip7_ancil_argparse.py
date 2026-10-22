@@ -3,18 +3,24 @@ tasks.
 """
 
 from argparse import ArgumentParser
+from pathlib import Path
 
 
-def dataset_parser():
-    """Create an argument parser for CMIP7 input4MIPs dataset identification.
+def config_parser():
+    """Create an argument parser for the dataset configuration file.
 
     Returns:
-        argparse.ArgumentParser: Parser defining ``--dataset-version`` and
-            ``--dataset-vdate`` arguments.
+        argparse.ArgumentParser: Parser defining the ``--config`` argument,
+            the path of the ``datasetconfig.yaml`` file that identifies the
+            input4MIPs datasets (default ``datasetconfig.yaml``).
     """
     parser = ArgumentParser(add_help=False)
-    parser.add_argument("--dataset-version")
-    parser.add_argument("--dataset-vdate")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("datasetconfig.yaml"),
+        help="Path to dataset configuration YAML file",
+    )
     return parser
 
 
@@ -77,43 +83,13 @@ def path_parser():
     return parser
 
 
-def percent_parser():
-    """Create an argument parser for percentage-based emission distribution
-    datasets.
-
-    Returns:
-        argparse.ArgumentParser: Parser defining ``--percent-version``,
-            ``--percent-vdate``, and ``--percent-date-range`` arguments.
-    """
-    parser = ArgumentParser(add_help=False)
-    parser.add_argument("--percent-version")
-    parser.add_argument("--percent-vdate")
-    parser.add_argument("--percent-date-range")
-    return parser
-
-
-def common_parser():
-    """Create a composite argument parser combining path, grid, and dataset
-    options.
-
-    Returns:
-        argparse.ArgumentParser: Composite parent parser combining
-       :func:`path_parser`, :func:`grid_parser`, and :func:`dataset_parser`.
-    """
-    parser = ArgumentParser(
-        parents=[path_parser(), grid_parser(), dataset_parser()], add_help=False
-    )
-    return parser
-
-
 def ext_parser():
     """Create an argument parser for ScenarioMIP timeline extension (2022-2150)
     parameters.
 
     Returns:
-        argparse.ArgumentParser: Parser defining extension toggles (``--ext``),
-            override targets (``--end-year``), and extension dataset
-            coordinates for surface and aircraft emissions.
+        argparse.ArgumentParser: Parser defining extension toggles (``--ext``)
+            and override targets (``--end-year``).
     """
     parser = ArgumentParser(add_help=False)
     parser.add_argument(
@@ -127,26 +103,5 @@ def ext_parser():
     )
     parser.add_argument(
         "--end-year", type=int, default=None, help="Override target end year"
-    )
-    parser.add_argument(
-        "--dataset-ext-version", help="Version of extension dataset"
-    )
-    parser.add_argument(
-        "--dataset-ext-vdate", help="Version date of extension dataset"
-    )
-    parser.add_argument(
-        "--dataset-ext-date-range", help="Date range of extension dataset"
-    )
-    parser.add_argument(
-        "--dataset-air-ext-version",
-        help="Version of aircraft extension dataset",
-    )
-    parser.add_argument(
-        "--dataset-air-ext-vdate",
-        help="Version date of aircraft extension dataset",
-    )
-    parser.add_argument(
-        "--dataset-air-ext-date-range",
-        help="Date range of aircraft extension dataset",
     )
     return parser

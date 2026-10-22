@@ -1,9 +1,9 @@
 # Interpolate CMIP7 HI SO2 emissions to ESM1.6 grid
 
 from argparse import ArgumentParser
-from ast import literal_eval
+from functools import partial
 
-from aerosol.cmip7_aerosol_anthro import cmip7_aerosol_anthro_filepath
+from aerosol.cmip7_aerosol_anthro import anthro_variable
 from aerosol.cmip7_HI_aerosol import (
     CMIP7_HI_AEROSOL_BEG_YEAR,
     CMIP7_HI_AEROSOL_END_YEAR,
@@ -16,10 +16,13 @@ from aerosol.cmip7_SO2_interpolate import (
     save_cmip7_so2_aerosol_anthro,
 )
 from cmip7_ancil_argparse import (
-    common_parser,
+    config_parser,
     dms_filename_parser,
+    grid_parser,
+    path_parser,
 )
 from cmip7_HI import fix_esm15_hi_ancil_date
+from dataset import DatasetConfig
 
 HI_DMS_ANCIL_FILENAME = "scycl_1849_2015_ESM1_v4.anc"
 
@@ -28,27 +31,30 @@ def parse_args():
     """Parse command-line arguments for historical SO2 emission interpolation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path, DMS filename,
-            date range list, and output filename parameters.
+        argparse.Namespace: Parsed CLI arguments containing path, config,
+            DMS filename, and output filename parameters.
     """
     parser = ArgumentParser(
         prog="cmip7_HI_SO2_interpolate",
         description=("Generate input files from CMIP7 historical SO2 forcings"),
         parents=[
-            common_parser(),
+            path_parser(),
+            grid_parser(),
+            config_parser(),
             dms_filename_parser(dms_ancil_filename=HI_DMS_ANCIL_FILENAME),
         ],
     )
-    parser.add_argument("--dataset-date-range-list", type=literal_eval)
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
 
-def load_cmip7_hi_so2_aerosol_anthro(args, species):
+def load_cmip7_hi_so2_aerosol_anthro(args, config, species):
     """Load historical anthropogenic SO2 emissions covering the baseline years.
 
     Args:
         args (argparse.Namespace): Command-line arguments.
+        config (dataset.DatasetConfig): Configuration of the surface
+            emissions dataset, with its time range chunks.
         species (str): Target species ('SO2').
 
     Returns:
@@ -56,6 +62,7 @@ def load_cmip7_hi_so2_aerosol_anthro(args, species):
     """
     return load_cmip7_hi_aerosol_anthro(
         args,
+        config,
         species,
         beg_year=CMIP7_HI_AEROSOL_BEG_YEAR,
         end_year=CMIP7_HI_AEROSOL_END_YEAR,
@@ -83,12 +90,12 @@ def load_hi_dms(args):
 
 if __name__ == "__main__":
     args = parse_args()
+    config = DatasetConfig.from_yaml(args.config, section="anthro")
 
     save_cmip7_so2_aerosol_anthro(
         args,
-        load_cmip7_hi_so2_aerosol_anthro,
-        cmip7_aerosol_anthro_filepath,
-        args.dataset_date_range_list,
+        partial(load_cmip7_hi_so2_aerosol_anthro, args, config),
+        config.to_dataset(variable_id=anthro_variable("SO2")),
         load_hi_dms,
         esm_hi_aerosol_save_dirpath(args),
     )

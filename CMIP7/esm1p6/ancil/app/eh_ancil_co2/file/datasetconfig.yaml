@@ -1,0 +1,22 @@
+anthro:
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: CMIP
+  institution_id: PNNL-JGCRI
+  source_id: CEDS-CMIP-2025-04-18
+  realm: atmos
+  frequency: mon
+  grid_label: gn
+  version: v20250421
+  dataset_category: emissions
+  # Emission filenames spell variable_id with hyphens (CO2_em_anthro ->
+  # CO2-em-anthro), while the directory name keeps the underscores.
+  hyphenate_variable: true
+  # Provides both CO2_em_anthro (surface) and CO2_em_AIR_anthro (aircraft).
+  time_ranges:
+    - 180001-184912
+    - 185001-189912
+    - 190001-194912
+    - 195001-199912
+    - 200001-202312

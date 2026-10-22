@@ -5,9 +5,8 @@ from os import fsdecode
 from pathlib import Path
 
 import iris
-import netCDF4
 import numpy as np
-from aerosol.cmip7_aerosol_common import zero_poles
+from aerosol.cmip7_aerosol_common import load_sector_dict, zero_poles
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
@@ -18,38 +17,6 @@ DMS_NAME_CONSTRAINT = iris.Constraint(
     name="tendency_of_atmosphere_mass_content_of_"
     "dimethyl_sulfide_expressed_as_sulfur_due_to_emission"
 )
-
-
-def load_sector_dict(args, filepath_fn, date_range_maybe_list):
-    """Parse netCDF sector attributes to map sector names to integer indices.
-
-    Uses netCDF4 to extract the sector string attribute ('id: name; ...') since
-    Iris does not parse sector coordinates by default.
-
-    Args:
-        args (argparse.Namespace): Command-line arguments.
-        filepath_fn (callable): Callback function returning dataset path given
-            (args, species, date_range).
-        date_range_maybe_list (str or list of str): Single date range string or
-            list of chunks.
-
-    Returns:
-        dict: Mapping of sector name (e.g. 'Energy', 'Industrial') to integer
-            index.
-    """
-    date_range = (
-        date_range_maybe_list[0]
-        if isinstance(date_range_maybe_list, list)
-        else date_range_maybe_list
-    )
-    # Iris doesn't read the sector coordinate so use netCDF4
-    d = netCDF4.Dataset(filepath_fn(args, "SO2", date_range))
-    sectord = dict()
-    for s in d["sector"].ids.split(";"):
-        i, name = s.split(":")
-        sectord[name.strip()] = int(i)
-    d.close()
-    return sectord
 
 
 def load_dms(args, dms_ancil_dirpath, fix_ancil_date_fn):
@@ -101,7 +68,7 @@ def tile_yearly_data(from_cube, to_cube):
 
 
 def save_cmip7_so2_aerosol_anthro(
-    args, cmip7_load_fn, filepath_fn, date_range, dms_load_fn, save_dirpath
+    args, cmip7_load_fn, sector_dataset, dms_load_fn, save_dirpath
 ):
     """Partition SO2 into low/high level emissions, combine with DMS, and save
     multi-variable ancillary.
@@ -114,16 +81,17 @@ def save_cmip7_so2_aerosol_anthro(
 
     Args:
         args (argparse.Namespace): Command-line arguments.
-        cmip7_load_fn (callable): Callback to load the raw SO2 cube.
-        filepath_fn (callable): Callback to determine source netCDF path.
-        date_range (str or list of str): Date range string or chunk list.
+        cmip7_load_fn (callable): Callback that loads the raw SO2 cube given
+            the species name.
+        sector_dataset (os.PathLike): Dataset of a source file whose sector
+            attribute defines the sector indices.
         dms_load_fn (callable): Callback to load the DMS cube.
         save_dirpath (pathlib.Path): Target directory for the ancillary output.
     """
-    cmip7_so2 = cmip7_load_fn(args, "SO2")
+    cmip7_so2 = cmip7_load_fn("SO2")
 
     # Iris doesn't read the sector coordinate
-    sectord = load_sector_dict(args, filepath_fn, date_range)
+    sectord = load_sector_dict(sector_dataset)
 
     cmip7_so2_high = (
         cmip7_so2[:, sectord["Energy"]]

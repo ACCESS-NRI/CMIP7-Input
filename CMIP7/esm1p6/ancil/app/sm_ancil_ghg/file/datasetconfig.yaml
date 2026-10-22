@@ -1,0 +1,82 @@
+_defaults: &defaults
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  target_mip: ScenarioMIP
+  institution_id: CR
+  realm: atmos
+  frequency: yr
+  grid_label: gm
+  version: v20260327
+  dataset_category: GHGConcentrations
+  time_range: 2022-2100
+  variables:
+    - cfc11
+    - cfc12
+    - cfc113
+    - ch4
+    - co2
+    - hcfc22
+    - hfc125
+    - hfc134a
+    - n2o
+
+_ext_defaults: &ext_defaults
+  <<: *defaults
+  time_range: 2101-2200
+
+h:
+  <<: *defaults
+  source_id: CR-h-1-1-0
+
+h-ext:
+  <<: *ext_defaults
+  source_id: CR-h-ext-1-1-0
+
+hl:
+  <<: *defaults
+  source_id: CR-hl-1-1-0
+
+hl-ext:
+  <<: *ext_defaults
+  source_id: CR-hl-ext-1-1-0
+
+m:
+  <<: *defaults
+  source_id: CR-m-1-1-0
+
+m-ext:
+  <<: *ext_defaults
+  source_id: CR-m-ext-1-1-0
+
+vl:
+  <<: *defaults
+  source_id: CR-vl-1-1-0
+
+vl-ext:
+  <<: *ext_defaults
+  source_id: CR-vl-ext-1-1-0
+
+l:
+  <<: *defaults
+  source_id: CR-l-1-1-0
+
+l-ext:
+  <<: *ext_defaults
+  source_id: CR-l-ext-1-1-0
+
+ln:
+  <<: *defaults
+  source_id: CR-ln-1-1-0
+
+ln-ext:
+  <<: *ext_defaults
+  source_id: CR-ln-ext-1-1-0
+
+ml:
+  <<: *defaults
+  source_id: CR-ml-1-1-0
+
+ml-ext:
+  <<: *ext_defaults
+  source_id: CR-ml-ext-1-1-0

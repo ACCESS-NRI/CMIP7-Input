@@ -4,11 +4,17 @@ from pathlib import Path
 
 import iris
 from aerosol.cmip7_aerosol_common import zero_poles
+from aerosol.cmip7_SM_aerosol import sm_configs
 from aerosol.cmip7_SM_aerosol_anthro import (
     load_cmip7_sm_aerosol_air_anthro,
     load_cmip7_sm_aerosol_anthro,
 )
-from cmip7_ancil_argparse import common_parser, ext_parser
+from cmip7_ancil_argparse import (
+    config_parser,
+    ext_parser,
+    grid_parser,
+    path_parser,
+)
 from cmip7_ancil_common import (
     INTERPOLATION_SCHEME,
     esm_grid_mask_cube,
@@ -24,20 +30,17 @@ def parse_args():
     """Parse command-line arguments for ScenarioMIP CO2 emission interpolation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing grid, dataset,
-            scenario, and output filename options.
+        argparse.Namespace: Parsed CLI arguments containing path, grid,
+            config, extension, scenario, and output filename options.
     """
     parser = ArgumentParser(
         prog=f"cmip7_ES_{SPECIES}_interpolate",
         description=(
             f"Generate input files from CMIP7 ScenarioMIP {SPECIES} forcings"
         ),
-        parents=[common_parser(), ext_parser()],
+        parents=[path_parser(), grid_parser(), config_parser(), ext_parser()],
     )
-    parser.add_argument("--dataset-air-version")
-    parser.add_argument("--dataset-air-vdate")
     parser.add_argument("--scenario")
-    parser.add_argument("--dataset-date-range")
     parser.add_argument("--save-filename")
     return parser.parse_args()
 
@@ -76,10 +79,17 @@ def cmip7_es_co2_anthro_interpolate(args):
 
     Args:
         args (argparse.Namespace): Command-line arguments specifying scenario,
-            datasets, grid configuration, and output filename.
+            dataset configuration file, grid configuration, and output
+            filename.
     """
-    cube = load_cmip7_sm_aerosol_anthro(args, SPECIES, collapse_sector=True)
-    cube_air = load_cmip7_sm_aerosol_air_anthro(args, SPECIES)
+    config, ext_config = sm_configs(args)
+    air_config, air_ext_config = sm_configs(args, aircraft=True)
+    cube = load_cmip7_sm_aerosol_anthro(
+        args, config, ext_config, SPECIES, collapse_sector=True
+    )
+    cube_air = load_cmip7_sm_aerosol_air_anthro(
+        args, air_config, air_ext_config, SPECIES
+    )
     cube_tot = cube + cube_air
 
     esm_cube = cube_tot.regrid(esm_grid_mask_cube(args), INTERPOLATION_SCHEME)

@@ -1,15 +1,16 @@
+import os
 from argparse import ArgumentParser
 from pathlib import Path
 
 import f90nml
 import iris
 import numpy as np
-from cmip7_ancil_argparse import dataset_parser, path_parser
+from cmip7_ancil_argparse import config_parser
 from cmip7_PI import DAYS_IN_CMIP7_PI_YEAR
+from dataset import DatasetConfig
 from volcanic.cmip7_volcanic import (
     SAOD_SCALING,
     SAOD_WAVELENGTH,
-    cmip7_volcanic_dirpath,
     constrain_to_wavelength,
     mean_over_latitudes,
     sum_over_height_layers,
@@ -21,38 +22,23 @@ def parse_args():
     generation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path, dataset, and
-            date range parameters.
+        argparse.Namespace: Parsed CLI arguments containing dataset config and
+            configuration directory.
     """
     parser = ArgumentParser(
-        parents=[path_parser(), dataset_parser()],
+        parents=[config_parser()],
         prog="cmip7_PI_volcanic_generate",
         description=(
             "Generate input files from CMIP7 pre-industrial volcanic forcings"
         ),
     )
-    parser.add_argument("--dataset-date-range")
-    return parser.parse_args()
-
-
-def cmip7_pi_volcanic_filename(dataset_version, dataset_date_range):
-    """Construct the standard input4MIPs netCDF filename for pre-industrial
-    climatological volcanic extinction.
-
-    Args:
-        dataset_version (str): Version string of the volcanic dataset.
-        dataset_date_range (str): Climatology date range string (e.g.
-            '185001-185012').
-
-    Returns:
-        str: NetCDF filename for monthly climatological zonal extinction
-            properties.
-    """
-    return (
-        f"ext_input4MIPs_aerosolProperties_CMIP_"
-        f"{dataset_version}_gnz_"
-        f"{dataset_date_range}-clim.nc"
+    parser.add_argument(
+        "--config-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="Path to configuration repository containing atmosphere/",
     )
+    return parser.parse_args()
 
 
 def mean_over_pi_months(cube):
@@ -85,7 +71,7 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
     and summing over stratospheric layers.
 
     Args:
-        dataset_path (pathlib.Path): Path to the climatological volcanic
+        dataset_path (os.PathLike): Path to the climatological volcanic
             extinction dataset.
 
     Returns:
@@ -93,7 +79,7 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
             value.
     """
     # Load the dataset into an Iris cube.
-    cube = iris.load_cube(dataset_path)
+    cube = iris.load_cube(os.fspath(dataset_path))
 
     # Constrain to just the CMIP7 prescribed wavelength.
     cube = constrain_to_wavelength(cube, SAOD_WAVELENGTH)
@@ -115,12 +101,13 @@ def average_stratospheric_aerosol_optical_depth(dataset_path):
     return cube.data
 
 
-def cmip7_pi_volcanic_patch(average_saod):
+def cmip7_pi_volcanic_patch(average_saod, config_dir):
     """Patch the VOLCTS_val variable in the coupling namelist.
 
     Args:
         average_saod (float): Unscaled pre-industrial average SAOD (scaled by
             SAOD_SCALING inside).
+        config_dir (pathlib.Path): Configuration repository directory.
     """
     namelist_dict = dict()
     namelist_dict["VOLCTS_val"] = average_saod * SAOD_SCALING
@@ -135,7 +122,7 @@ def cmip7_pi_volcanic_patch(average_saod):
     patch_str_namelist = parser.reads(patch_str)
 
     # Create a new namelist by patching the original namelist.
-    pi_volcanic_namelist_filepath = Path("atmosphere") / "input_atm.nml"
+    pi_volcanic_namelist_filepath = config_dir / "atmosphere" / "input_atm.nml"
     if not pi_volcanic_namelist_filepath.exists():
         raise FileNotFoundError(
             f"Namelist file {pi_volcanic_namelist_filepath} does not exist"
@@ -154,21 +141,11 @@ def cmip7_pi_volcanic_patch(average_saod):
 if __name__ == "__main__":
     args = parse_args()
 
-    dirpath = cmip7_volcanic_dirpath(
-        args,
-        "CMIP",
-        "monC",
-        args.dataset_version,
-        args.dataset_vdate,
-    )
-    filename = cmip7_pi_volcanic_filename(
-        args.dataset_version,
-        args.dataset_date_range,
-    )
-    dataset_path = dirpath / filename
+    config = DatasetConfig.from_yaml(args.config)
+    dataset = config.to_dataset()
 
     # Calculate the average stratospheric optical depth.
-    average_saod = average_stratospheric_aerosol_optical_depth(dataset_path)
+    average_saod = average_stratospheric_aerosol_optical_depth(dataset)
 
     # Patch the VOLCTS_val variable in the coupling namelist.
-    cmip7_pi_volcanic_patch(average_saod)
+    cmip7_pi_volcanic_patch(average_saod, args.config_dir)

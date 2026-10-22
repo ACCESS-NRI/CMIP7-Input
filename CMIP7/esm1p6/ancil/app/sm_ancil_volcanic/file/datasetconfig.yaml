@@ -1,0 +1,25 @@
+_defaults: &defaults
+  root: /g/data/qv56/replicas
+  activity_id: input4MIPs
+  mip_era: CMIP7
+  institution_id: uoexeter
+  realm: atmos
+  grid_label: gnz
+  dataset_category: aerosolProperties
+  variable_id: ext
+
+pi:
+  <<: *defaults
+  target_mip: CMIP
+  source_id: UOEXETER-CMIP-2-2-1
+  frequency: monC
+  version: v20250521
+  time_range: 185001-202112-clim
+
+sm:
+  <<: *defaults
+  target_mip: ScenarioMIP
+  source_id: UOEXETER-ScenarioMIP-2-2-2
+  frequency: mon
+  version: v20251219
+  time_range: 202201-210012

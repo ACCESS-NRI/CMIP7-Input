@@ -3,12 +3,11 @@ from pathlib import Path
 
 import f90nml
 import iris
-from cmip7_ancil_argparse import dataset_parser, path_parser
 from cmip7_PI import CMIP7_PI_YEAR
+from dataset import DatasetConfig
 from ghg.cmip7_ghg import (
     GHG_MOLAR_MASS,
-    cmip7_ghg_dirpath,
-    cmip7_ghg_filename,
+    GHG_SPECIES,
     cmip7_ghg_mmr,
     cmip7_pro_greg_date_constraint_from_years,
 )
@@ -19,40 +18,50 @@ def parse_args():
     generation.
 
     Returns:
-        argparse.Namespace: Parsed CLI arguments containing path, dataset, and
-            date range parameters.
+        argparse.Namespace: Parsed CLI arguments containing config and path
+            parameters.
     """
     parser = ArgumentParser(
-        parents=[path_parser(), dataset_parser()],
         prog="cmip7_PI_ghg_generate",
         description=(
             "Generate input files from "
             "CMIP7 pre-industrial greenhouse gas forcings"
         ),
     )
-    parser.add_argument("--dataset-date-range")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("datasetconfig.yaml"),
+        help="Path to dataset configuration YAML file",
+    )
+    parser.add_argument(
+        "--config-dir",
+        type=Path,
+        default=Path.cwd(),
+        help="Path to configuration repository containing atmosphere/namelists",
+    )
     return parser.parse_args()
 
 
-def load_cmip7_pi_ghg_mmr(args, ghg):
+def load_cmip7_pi_ghg_mmr(dataset, ghg):
     """Load the pre-industrial annual greenhouse gas concentration and convert
     to mass mixing ratio.
 
     Args:
-        args (argparse.Namespace): Command-line arguments containing dataset
-            configuration.
+        dataset (Dataset or Path or str): Dataset instance for the greenhouse
+            gas.
         ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4', 'n2o').
 
     Returns:
         float or numpy.ndarray: Pre-industrial mass mixing ratio (kg gas / kg
             dry air) for year 1850.
     """
-    dirpath = cmip7_ghg_dirpath(args, "CMIP", ghg)
-    filename = cmip7_ghg_filename(args, "CMIP", ghg)
-    cmip7_filepath = dirpath / filename
+    filepath = (
+        str(dataset.to_path()) if hasattr(dataset, "to_path") else str(dataset)
+    )
 
     # Read in the CMIP7 cube
-    full_cube = iris.load_cube(cmip7_filepath)
+    full_cube = iris.load_cube(filepath)
 
     # Check that we have the right greenhouse gas
     variable_id = full_cube.metadata.attributes["variable_id"]
@@ -68,12 +77,15 @@ def load_cmip7_pi_ghg_mmr(args, ghg):
     return cmip7_ghg_mmr(pi_cube, ghg)
 
 
-def cmip7_pi_ghg_patch(ghg_mmr_dict):
+def cmip7_pi_ghg_patch(ghg_mmr_dict, config_dir=None):
     """Patch the greenhouse gas variables in the RUN_Radiation namelist.
 
     Args:
         ghg_mmr_dict (dict): Dictionary mapping gas names ('co2', 'n2o', 'ch4',
             etc.) to scalar pre-industrial mass mixing ratios.
+        config_dir (pathlib.Path or str, optional): Configuration repository
+            working directory containing atmosphere/namelists. Defaults to
+            Path.cwd().
 
     Raises:
         FileNotFoundError: If atmosphere/namelists does not exist.
@@ -104,7 +116,8 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
     patch_str_namelist = parser.reads(patch_str)
 
     # Create a new namelist by patching the original namelist
-    pi_ghg_namelist_filepath = Path("atmosphere") / "namelists"
+    config_dir_path = Path(config_dir) if config_dir is not None else Path.cwd()
+    pi_ghg_namelist_filepath = config_dir_path / "atmosphere" / "namelists"
     if not pi_ghg_namelist_filepath.exists():
         raise FileNotFoundError(
             f"Namelist file {pi_ghg_namelist_filepath} does not exist"
@@ -121,9 +134,13 @@ def cmip7_pi_ghg_patch(ghg_mmr_dict):
 if __name__ == "__main__":
     args = parse_args()
 
+    config = DatasetConfig.from_yaml(args.config)
+    config.check_variables(GHG_SPECIES)
+    datasets = config.to_datasets_by_variable()
+
     ghg_mmr_dict = dict()
     for ghg in GHG_MOLAR_MASS:
-        ghg_mmr_dict[ghg] = load_cmip7_pi_ghg_mmr(args, ghg)
+        ghg_mmr_dict[ghg] = load_cmip7_pi_ghg_mmr(datasets[ghg], ghg)
 
     # Patch the greenhouse gas variables in the RUN_Radiation namelist
-    cmip7_pi_ghg_patch(ghg_mmr_dict)
+    cmip7_pi_ghg_patch(ghg_mmr_dict, config_dir=args.config_dir)

@@ -5,7 +5,7 @@ import cf_units
 import cftime
 import iris
 import numpy as np
-from cmip7_ancil_argparse import common_parser
+from cmip7_ancil_argparse import grid_parser, path_parser
 from cmip7_ancil_common import (
     esm_grid_mask_cube,
     save_ancil,
@@ -37,7 +37,7 @@ def parse_args():
         description=(
             "Generate CO2 emissions for the CMIP7 esm-flat10-cdr experiment"
         ),
-        parents=[common_parser()],
+        parents=[path_parser(), grid_parser()],
     )
     parser.add_argument(
         "--year-start",

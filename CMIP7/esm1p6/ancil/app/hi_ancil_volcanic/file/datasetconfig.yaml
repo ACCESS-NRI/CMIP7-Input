@@ -1,0 +1,13 @@
+root: /g/data/qv56/replicas
+activity_id: input4MIPs
+mip_era: CMIP7
+target_mip: CMIP
+institution_id: uoexeter
+source_id: UOEXETER-CMIP-2-2-1
+realm: atmos
+frequency: mon
+grid_label: gnz
+version: v20250521
+dataset_category: aerosolProperties
+variable_id: ext
+time_range: 175001-202312
