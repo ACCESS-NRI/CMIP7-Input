@@ -1,6 +1,6 @@
 {% set NCI_PROJECT = environ['PROJECT'] %}
 {% set NCI_QUEUE = "normalsr" %}
-{% set NCI_STORAGE = "gdata/"~environ['PROJECT']~"+scratch/"~environ['PROJECT']~"+gdata/access+gdata/hr22+gdata/ki32+gdata/qv56+gdata/tm70+gdata/vk83" %}
+{% set NCI_STORAGE = "gdata/"~environ['PROJECT']~"+scratch/"~environ['PROJECT']~"+gdata/access+gdata/hr22+gdata/ki32+gdata/qv56+gdata/tm70+gdata/vk83+gdata/jq44" %}
 
     [[root]]
         [[[events]]]
@@ -30,7 +30,7 @@
             -l storage = {{NCI_STORAGE}}
             -W umask = 0022
 
-    {% if (ANCIL_CREATE_AMIP or ANCIL_CREATE_PICLIM) and USE_EXP["AM"] %}
+    {% if (ANCIL_CREATE_AMIP and USE_EXP["AM"]) or (ANCIL_CREATE_PICLIM and USE_EXP["piClim"]) %}
     [[COMPILER]]
         pre-script = """
 	module load binutils/2.44

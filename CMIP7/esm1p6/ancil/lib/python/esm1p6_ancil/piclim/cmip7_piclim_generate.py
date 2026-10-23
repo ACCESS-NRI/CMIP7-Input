@@ -29,7 +29,7 @@ def esm_am_amip_save_dirpath(args):
     return (
         Path(args.ancil_target_dirname)
         / "modern"
-        / "amip"
+        / "piclim"
         / "atmosphere"
         / "boundary_conditions"
         / args.esm_grid_rel_dirname
@@ -58,20 +58,9 @@ if __name__ == "__main__":
     # Match the ESM1.5 mask coordinates but do not zero-fill
     esm_cube = fix_cmip7_ukesm(args, ukesm_cube, fill=False)
     # Subset to one year in the middle of the period
-    # Add time bounds
-    print("PICLIM", esm_cube)
-    print("PICLIM time", esm_cube.coord('time'))
-    print("PICLIM time bounds", esm_cube.coord('time').bounds)
     time_constraint = Constraint(time=lambda cell: cell.point==PartialDateTime(year=1950))
     tmp_cube = esm_cube.extract(time_constraint)
-    # Gives incorrect results but overwritten later
+    # Add time bounds. This gives incorrect results but overwritten later by set_gregorian
     tmp_cube.coord('time').guess_bounds()
-    # time = tmp_cube.coord('time')
-    # tbnds = np.zeros((len(time.points),2))
-    # for i in range(len(time.points)):
-    #     date = time.units.num2date(time.points[i])
-    # print("tm_cube", tmp_cube)
-    # print("tm_cube time", tmp_cube.coord('time'))
-    # print("tm_cube time bounds", tmp_cube.coord('time').bounds)
     # Save the ancillary
     save_cmip7_am_amip(args, tmp_cube) # esm_cube.extract(time_constraint))

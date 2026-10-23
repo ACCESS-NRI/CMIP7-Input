@@ -7,7 +7,6 @@
 {# Define known sites #}
 {% set KNOWN_SITE_CFGS = ['nci-gadi'] %}
 {{ assert(SITE in KNOWN_SITE_CFGS, "Site not recognised") }}
-{{ assert(not (ANCIL_CREATE_AMIP and ANCIL_CREATE_PICLIM), "Cannot use both ANCIL_CREATE_AMIP and ANCIL_CREATE_PICLIM") }}
 
 {# Define a unique name for this run #}
 {% from "uuid" import uuid4 %}
@@ -145,10 +144,10 @@
           {% endfor %}
         {% endif %}
 
-        {% if ANCIL_CREATE_PICLIM and USE_EXP["AM"] %}
-            git_clone_amip_scripts => install_piclim => AM_ukesm_taylor => AM_ukesm_ancil
+        {% if ANCIL_CREATE_PICLIM and USE_EXP["piClim"] %}
+            git_clone_amip_scripts => install_amip => piClim_mean => piClim_ukesm_taylor => piClim_ukesm_ancil
           {% for VAR in AMIP_VARS %}
-            AM_ukesm_ancil => AM_{{VAR}}_ancil_piclim
+            piClim_ukesm_ancil => piClim_{{VAR}}_ancil_amip
           {% endfor %}
         {% endif %}
 
@@ -253,14 +252,14 @@
         inherit = GIT
 
         [[[environment]]]
-    {% if (ANCIL_CREATE_AMIP or ANCIL_CREATE_PICLIM) and USE_EXP["AM"] %}
+    {% if (ANCIL_CREATE_AMIP and USE_EXP["AM"]) or (ANCIL_CREATE_PICLIM and USE_EXP["piClim"]) %}
             GIT_AMIP_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_AMIP_SCRIPTS_REPO}}-amip
     {% endif %}
     {% if ANCIL_CREATE_OZONE %}
             GIT_OZONE_SCRIPTS_CLONE_DIR = ${CYLC_WORKFLOW_SHARE_DIR}/{{GIT_OZONE_SCRIPTS_REPO}}-ozone
     {% endif %}
 
-    {% if (ANCIL_CREATE_AMIP or ANCIL_CREATE_PICLIM) and USE_EXP["AM"] %}
+    {% if (ANCIL_CREATE_AMIP and USE_EXP["AM"]) or (ANCIL_CREATE_PICLIM and USE_EXP["piClim"]) %}
 
       [[git_clone_amip_scripts]]
           inherit = GIT_SCRIPTS, LOCAL_JOB
@@ -269,6 +268,16 @@
               set -e
               git clone {{GIT_REPO_URL(GIT_AMIP_SCRIPTS_REPO)}} --branch {{GIT_AMIP_SCRIPTS_BRANCH}} ${GIT_AMIP_SCRIPTS_CLONE_DIR}
               """
+      
+      [[UKESM_ANCIL_AMIP]]
+        inherit = ANTS
+
+        [[[environment]]]
+            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/amip_ancil:${PYTHONPATH}
+            ANCIL_LANDFRAC_PATH = {{VAR.ESM15_INPUTS_PATH}}/modern/share/atmosphere/land_fraction/global.N96/{{ESM15_LANDFRAC_VERSION}}
+
+      [[ESM1P6_ANCIL_AMIP]]
+          inherit = ESM1P6_ANCIL
 
       [[install_amip]]
           inherit = CMIP7, GIT_SCRIPTS, LOCAL_JOB
@@ -279,18 +288,10 @@
           SST_DIRPATH = ${CMIP7_SOURCE_CMIP}/PCMDI/{{CMIP7_AMIP_VERSION}}/ocean/mon/tos/gn/{{CMIP7_AMIP_VDATE}}
           SST_FILENAME = tos_input4MIPs_SSTsAndSeaIce_CMIP_{{CMIP7_AMIP_VERSION}}_gn_{{CMIP7_AMIP_DATE_RANGE}}.nc
 
-      [[install_piclim]]
-          inherit =  CMIP7, GIT_SCRIPTS, LOCAL_JOB
+    {% endif %}
 
-        [[[environment]]]
-          PICLIM_DIRPATH = /scratch/tm70/mrd599/piclim
+    {% if ANCIL_CREATE_AMIP and USE_EXP["AM"] %}
 
-    [[UKESM_ANCIL_AMIP]]
-        inherit = ANTS
-
-        [[[environment]]]
-            PYTHONPATH = ${CYLC_WORKFLOW_RUN_DIR}/lib/python/amip_ancil:${PYTHONPATH}
-            ANCIL_LANDFRAC_PATH = {{VAR.ESM15_INPUTS_PATH}}/modern/share/atmosphere/land_fraction/global.N96/{{ESM15_LANDFRAC_VERSION}}
 
 {% set AMIP_ARGS %}
                   --share-dirname "${CYLC_WORKFLOW_SHARE_DIR}/" \
@@ -321,8 +322,6 @@
                 {{ AMIP_ARGS }}
       """
 
-    [[ESM1P6_ANCIL_AMIP]]
-        inherit = ESM1P6_ANCIL
 
       {% for VAR in AMIP_VARS %}
       [[AM_{{VAR}}_ancil_amip]]
@@ -337,21 +336,63 @@
               --ukesm-netcdf-filename {{ quote(UKESM_AMIP_NETCDF_FILENAME[VAR]) }} \
               --save-filename {{ quote(ESM_AMIP_SAVE_FILENAME[VAR]) }}
       """
+      
+      {% endfor %}
+    {% endif %}
 
-      [[AM_{{VAR}}_ancil_piclim]]
-      inherit = ESM1P6_ANCIL_AMIP, TINY_JOB
+    {% if ANCIL_CREATE_PICLIM and USE_EXP["piClim"] %}
+
+{% set PICLIM_ARGS %}
+                  --share-dirname "${CYLC_WORKFLOW_SHARE_DIR}/piClim/" \
+                  --mask-dirname "${ANCIL_LANDFRAC_PATH}/"
+{% endset %}
+
+      [[piClim_mean]]
+          inherit =  ESM1P6_ANCIL_AMIP, UKESM_ANCIL_AMIP, TINY_JOB
+          script = """
+          python_env python \
+              -m piclim.cmip7_piclim_mean \
+              --cmip7-picontrol-archive {{ quote(CMIP7_PICONTROL_ARCHIVE) }} \
+              --cmip7-picontrol-output-start {{CMIP7_PICONTROL_OUTPUT_START}} \
+              --cmip7-picontrol-output-end {{CMIP7_PICONTROL_OUTPUT_END}} \
+              {{ PICLIM_ARGS }}
+      """
+
+      [[piClim_ukesm_taylor]]
+          inherit = UKESM_ANCIL_AMIP, TINY_JOB, COMPILER
+      script = """
+            python_env_no_ants python3 \
+                -m run_nci_taylor_amip_lbcs \
+                {{ PICLIM_ARGS }}
+      """
+
+      [[piClim_ukesm_ancil]]
+          inherit = UKESM_ANCIL_AMIP, TINY_JOB
+      script = """
+            python_env python \
+                -m output_nci_ancil_ants \
+                {{ PICLIM_ARGS }}
+      """
+
+    [[ESM1P6_ANCIL_PICLIM]]
+        inherit = ESM1P6_ANCIL
+
+      {% for VAR in AMIP_VARS %}
+      [[piClim_{{VAR}}_ancil_amip]]
+      inherit = ESM1P6_ANCIL_PICLIM, TINY_JOB
 
       script = """
           python_env python \
-              -m amip.cmip7_AM_piclim_generate \
+              -m piclim.cmip7_piclim_generate \
               {{ PATH_ARGS }}
               {{ GRID_ARGS }}
-              --ukesm-ancil-dirpath "${CYLC_WORKFLOW_SHARE_DIR}/" \
+              --ukesm-ancil-dirpath "${CYLC_WORKFLOW_SHARE_DIR}/piClim" \
               --ukesm-netcdf-filename {{ quote(UKESM_AMIP_NETCDF_FILENAME[VAR]) }} \
               --save-filename {{ quote(ESM_PICLIM_SAVE_FILENAME[VAR]) }}
       """
       {% endfor %}
     {% endif %}
+
 
 {% if ANCIL_CREATE_CO2 %}
     [[ANCIL_CO2]]
