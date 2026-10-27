@@ -728,11 +728,12 @@
                   {{ PATH_ARGS }}
                   {{ GRID_ARGS }}
                   --dataset-version {{ quote(CMIP7_NITROGEN_VERSION) }} \
-                  --dataset-vdate {{ quote(CMIP7_NITROGEN_VDATE) }} \
                   {% if EXP == "HI" %}
+                  --dataset-vdate {{ quote(CMIP7_HI_NITROGEN_VDATE) }} \
                   --dataset-date-range {{ quote(CMIP7_HI_NITROGEN_DATE_RANGE) }} \
                   --save-filename {{ quote(ESM_HI_NITROGEN_SAVE_FILENAME) }}
                   {% else %}
+                  --dataset-vdate {{ quote(CMIP7_PI_NITROGEN_VDATE) }} \
                   --dataset-date-range {{ quote(CMIP7_PI_NITROGEN_DATE_RANGE) }} \
                   --save-filename {{ quote(ESM_PI_NITROGEN_SAVE_FILENAME) }}
                   {% endif %}
