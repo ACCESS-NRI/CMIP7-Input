@@ -21,7 +21,7 @@ STASH_ITEM = 251
 # The CO2 time series includes 1849 and 2023,
 # so use these years directly from the datasets.
 CMIP7_HI_CO2_BEG_YEAR = CMIP7_HI_BEG_YEAR - 1
-CMIP7_HI_CO2_END_YEAR = CMIP7_HI_END_YEAR + 1
+CMIP7_HI_CO2_END_YEAR = CMIP7_HI_END_YEAR
 
 
 def esm_eh_co2_save_dirpath(args):
