@@ -1,7 +1,17 @@
+"""Modular command-line argument parsers for CMIP7 ancillary generation
+tasks.
+"""
+
 from argparse import ArgumentParser
 
 
 def dataset_parser():
+    """Create an argument parser for CMIP7 input4MIPs dataset identification.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining ``--dataset-version`` and
+            ``--dataset-vdate`` arguments.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--dataset-version")
     parser.add_argument("--dataset-vdate")
@@ -9,6 +19,17 @@ def dataset_parser():
 
 
 def dms_filename_parser(dms_ancil_filename=None):
+    """Create an argument parser for DMS (dimethyl sulfide) background aerosol
+    ancillary parameters.
+
+    Args:
+        dms_ancil_filename (str, optional): Default filename for the DMS
+            ancillary file.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining ``--esm15-aerosol-version``
+            and ``--dms-ancil-filename`` arguments.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--esm15-aerosol-version")
     parser.add_argument("--dms-ancil-filename", default=dms_ancil_filename)
@@ -16,12 +37,25 @@ def dms_filename_parser(dms_ancil_filename=None):
 
 
 def pad_parser():
+    """Create an argument parser for temporal padding control.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining the ``--pad`` boolean flag to
+            duplicate bounding years for temporal interpolation.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--pad", action="store_true")
     return parser
 
 
 def grid_parser():
+    """Create an argument parser for model horizontal grid resolution and mask
+    configuration.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining ``--esm-grid-rel-dirname`` and
+            ``--esm15-grid-version`` arguments.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--esm-grid-rel-dirname")
     parser.add_argument("--esm15-grid-version")
@@ -29,6 +63,13 @@ def grid_parser():
 
 
 def path_parser():
+    """Create an argument parser for filesystem directory paths.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining ``--ancil-target-dirname``,
+            ``--cmip7-source-data-dirname``, and ``--esm15-inputs-dirname``
+            arguments.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--ancil-target-dirname")
     parser.add_argument("--cmip7-source-data-dirname")
@@ -37,6 +78,13 @@ def path_parser():
 
 
 def percent_parser():
+    """Create an argument parser for percentage-based emission distribution
+    datasets.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining ``--percent-version``,
+            ``--percent-vdate``, and ``--percent-date-range`` arguments.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument("--percent-version")
     parser.add_argument("--percent-vdate")
@@ -45,6 +93,13 @@ def percent_parser():
 
 
 def common_parser():
+    """Create a composite argument parser combining path, grid, and dataset
+    options.
+
+    Returns:
+        argparse.ArgumentParser: Composite parent parser combining
+       :func:`path_parser`, :func:`grid_parser`, and :func:`dataset_parser`.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), dataset_parser()], add_help=False
     )
@@ -52,6 +107,14 @@ def common_parser():
 
 
 def ext_parser():
+    """Create an argument parser for ScenarioMIP timeline extension (2022-2150)
+    parameters.
+
+    Returns:
+        argparse.ArgumentParser: Parser defining extension toggles (``--ext``),
+            override targets (``--end-year``), and extension dataset
+            coordinates for surface and aircraft emissions.
+    """
     parser = ArgumentParser(add_help=False)
     parser.add_argument(
         "--ext",

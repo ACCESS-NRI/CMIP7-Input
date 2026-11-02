@@ -18,6 +18,27 @@ from ghg.cmip7_ghg import (
 def load_cmip7_ghg_series_mmr(
     args, activity, ghg, beg_year, end_year, ext=False
 ):
+    """Load and process a greenhouse gas annual time series as mass mixing
+    ratios.
+
+    Linearly interpolates annual data to January 1 to ensure standard UM linear
+    interpolation reproduces annual means. Supports temporal extension datasets
+    beyond 2100 when available.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration.
+        activity (str): MIP activity name ('CMIP' or 'ScenarioMIP').
+        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4', 'n2o').
+        beg_year (int): Start year of the desired output series.
+        end_year (int): End year of the desired output series.
+        ext (bool, optional): Whether to include ScenarioMIP extension dataset
+            beyond 2100. Defaults to False.
+
+    Returns:
+        list: List of annual mass mixing ratios (kg gas / kg dry air) spanning
+            each year from beg_year to end_year.
+    """
     dirpath = cmip7_ghg_dirpath(args, activity, ghg)
     filename = cmip7_ghg_filename(args, activity, ghg)
     cmip7_filepath = dirpath / filename
@@ -119,12 +140,23 @@ def load_cmip7_ghg_series_mmr(
 
 
 def read_namelists_lines_up_to(namelists_filepath, exclude_group):
-    """
-    Read lines from namelists_filepath up to but not including a line that
+    """Read lines from namelists_filepath up to but not including a line that
     contains the string exclude_group. This function is used to avoid having
     to use f90nml to reformat an entire namelist file. Versions of f90nml
     older than v1.5 contain a bug that affects null values in namelists.
     See https://github.com/marshallward/f90nml/pull/180
+
+    Args:
+        namelists_filepath (pathlib.Path): Path to the existing UM Fortran
+            namelist file.
+        exclude_group (str): Namelist group name prefix (without '&') where
+            reading terminates.
+
+    Returns:
+        str: Text content of the namelist file prior to the excluded group.
+
+    Raises:
+        FileNotFoundError: If namelists_filepath does not exist.
     """
     if not namelists_filepath.exists():
         raise FileNotFoundError(
@@ -143,8 +175,13 @@ def read_namelists_lines_up_to(namelists_filepath, exclude_group):
 
 
 def format_namelist(namelist, float_format="13.6e"):
-    """
-    Change the namelist formatting to the preferred format.
+    """Change the namelist formatting to the preferred format.
+
+    Args:
+        namelist (f90nml.namelist.Namelist): Namelist object to format in-
+            place.
+        float_format (str, optional): Fortran floating-point format specifier.
+            Defaults to "13.6e".
     """
     namelist.float_format = float_format
     namelist.end_comma = True
@@ -154,9 +191,20 @@ def format_namelist(namelist, float_format="13.6e"):
 
 
 def cmip7_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name, beg_year, end_year):
-    """
-    Use the greenhouse gas mass mixing ratios to
+    """Use the greenhouse gas mass mixing ratios to
     produce a replacement clmchfcg namelist as a string.
+
+    Args:
+        ghg_mmr_dict (dict): Dictionary mapping gas names to lists/arrays of
+            annual mass mixing ratios.
+        ghg_namelist_name (str): Target namelist group name (typically
+            'clmchfcg').
+        beg_year (int): Start year of the climate forcing series.
+        end_year (int): End year of the climate forcing series.
+
+    Returns:
+        str: Formatted Fortran namelist string containing 2D arrays of
+            greenhouse gas levels.
     """
     # Map each greenhouse gas to an index in the
     # historical climate forcing arrays.
@@ -214,9 +262,14 @@ def cmip7_ghg_namelist_str(ghg_mmr_dict, ghg_namelist_name, beg_year, end_year):
 
 
 def cmip7_ghg_update_namelists_file(ghg_mmr_dict, beg_year, end_year):
-    """
-    Use the greenhouse gas mass mixing ratios in ghg_mmr_dict
+    """Use the greenhouse gas mass mixing ratios in ghg_mmr_dict
     to replace the greenhouse gas namelist in the relevant namelists file.
+
+    Args:
+        ghg_mmr_dict (dict): Dictionary mapping gas names to annual mass mixing
+            ratios.
+        beg_year (int): Start year of the forcing series.
+        end_year (int): End year of the forcing series.
     """
     namelists_filepath = Path("atmosphere") / "namelists"
     ghg_namelist_name = "clmchfcg"

@@ -17,6 +17,13 @@ CMIP7_SM_EXT_GHG_END_YEAR = CMIP7_SM_EXT_END_YEAR + 1
 
 
 def parse_args():
+    """Parse command-line arguments for CMIP7 ScenarioMIP greenhouse gas
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, dataset, date
+            range, and scenario extension parameters.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser(), ext_parser()],
         prog="cmip7_SM_ghg_generate",

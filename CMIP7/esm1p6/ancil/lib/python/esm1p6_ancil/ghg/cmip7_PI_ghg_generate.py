@@ -15,6 +15,13 @@ from ghg.cmip7_ghg import (
 
 
 def parse_args():
+    """Parse command-line arguments for CMIP7 pre-industrial greenhouse gas
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, dataset, and
+            date range parameters.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), dataset_parser()],
         prog="cmip7_PI_ghg_generate",
@@ -28,6 +35,18 @@ def parse_args():
 
 
 def load_cmip7_pi_ghg_mmr(args, ghg):
+    """Load the pre-industrial annual greenhouse gas concentration and convert
+    to mass mixing ratio.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing dataset
+            configuration.
+        ghg (str): Greenhouse gas species name (e.g. 'co2', 'ch4', 'n2o').
+
+    Returns:
+        float or numpy.ndarray: Pre-industrial mass mixing ratio (kg gas / kg
+            dry air) for year 1850.
+    """
     dirpath = cmip7_ghg_dirpath(args, "CMIP", ghg)
     filename = cmip7_ghg_filename(args, "CMIP", ghg)
     cmip7_filepath = dirpath / filename
@@ -50,8 +69,14 @@ def load_cmip7_pi_ghg_mmr(args, ghg):
 
 
 def cmip7_pi_ghg_patch(ghg_mmr_dict):
-    """
-    Patch the greenhouse gas variables in the RUN_Radiation namelist
+    """Patch the greenhouse gas variables in the RUN_Radiation namelist.
+
+    Args:
+        ghg_mmr_dict (dict): Dictionary mapping gas names ('co2', 'n2o', 'ch4',
+            etc.) to scalar pre-industrial mass mixing ratios.
+
+    Raises:
+        FileNotFoundError: If atmosphere/namelists does not exist.
     """
     GHG_PI_NAME = {
         "co2": "CO2_MMR",
