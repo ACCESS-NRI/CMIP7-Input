@@ -67,7 +67,8 @@ venv.bak/
 
 # --- Documentation builds ------------------------------------------------------
 docs/_build/
-site/          # mkdocs build output
+# mkdocs build output
+documentation/site/
 
 # --- IDE / editor -------------------------------------------------------------
 .vscode/
@@ -81,6 +82,3 @@ Thumbs.db
 
 # --- AI Agents files --------------------------------------------------------
 AGENTS.md
-
-# Temporary
-CMIP7/
