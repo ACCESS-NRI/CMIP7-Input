@@ -22,6 +22,40 @@ edit_uri: edit/main/documentation/docs
 # Navigation 
 nav:
   - Home: pages/index.md
+  - Pre-refactoring Reference:
+      - Experiments:
+          - Overview: pages/experiments/overview.md
+          - Naming & Configuration Alignment: pages/experiments/naming_alignment.md
+          - Pre-Industrial Control (PI): pages/experiments/pre_industrial.md
+          - Historical (HI): pages/experiments/historical.md
+          - ScenarioMIP (SM): pages/experiments/scenariomip.md
+          - AMIP (AM): pages/experiments/amip.md
+          - Emission-Driven (EH & ES): pages/experiments/emission_driven.md
+          - Paleoclimate / PMIP (PM): pages/experiments/pmip.md
+      - Forcings:
+          - Overview: pages/forcings/overview.md
+          - Aerosols: pages/forcings/aerosols.md
+          - Greenhouse Gases (GHG): pages/forcings/ghg.md
+          - Carbon Dioxide (CO2) Fluxes: pages/forcings/co2.md
+          - Nitrogen Deposition: pages/forcings/nitrogen.md
+          - Ozone Pipeline: pages/forcings/ozone.md
+          - Solar Irradiance (TSI): pages/forcings/solar.md
+          - Volcanic Optical Depth (SAOD): pages/forcings/volcanic.md
+          - AMIP (SST & Sea Ice): pages/forcings/amip.md
+          - Configuration Git Sync: pages/forcings/config_sync.md
+      - Configuration:
+          - Suite Objects: pages/configuration/suite_objects.md
+      - API Reference:
+          - Overview: pages/api/index.md
+          - Core Utilities: pages/api/common.md
+          - Aerosol Emissions: pages/api/aerosol.md
+          - AMIP Boundary Conditions: pages/api/amip.md
+          - Carbon Dioxide Fluxes: pages/api/co2.md
+          - Greenhouse Gases: pages/api/ghg.md
+          - Nitrogen Deposition: pages/api/nitrogen.md
+          - Ozone Pipeline: pages/api/ozone.md
+          - Solar Irradiance: pages/api/solar.md
+          - Volcanic Optical Depth: pages/api/volcanic.md
 
 
 # Theme configuration
@@ -124,17 +158,23 @@ plugins:
       include_source: true
       no_prompt: True
       highlight_extra_classes: "jupyter-code"
+      ignore: ["*.md"]
   - mkdocstrings: # Automatic documentation from docstrings (https://mkdocstrings.github.io/)
       default_handler: python
       handlers:
         python:
-          paths: [../src]
+          paths: [../CMIP7/esm1p6/ancil/lib/python]
           options:
+            docstring_style: google
+            docstring_options:
+              returns_named_value: false
+            members_order: alphabetical
             show_source: false
             show_root_heading: true
   - git-revision-date-localized: # Adds creation and last update dates at the end of each page
       type: date
       enable_creation_date: true
+      enable_git_follow: false
   - bibtex: # Add citation syntax support (https://github.com/shyamd/mkdocs-bibtex#usage)
       bib_file: references.bib
   - redirects: # Adds support for URL redirects using mkdocs-redirects (https://github.com/mkdocs/mkdocs-redirects#mkdocs-redirects)
