@@ -16,6 +16,13 @@ from ozone.cmip7_ozone import (
 
 
 def parse_args():
+    """Parse command-line arguments for 21-year mean pre-industrial ozone
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing path, grid, and
+            ozone dataset options.
+    """
     parser = ArgumentParser(
         parents=[path_parser(), grid_parser(), ozone_parser()],
         prog="cmip7_PI_mean_ozone_generate",
@@ -28,6 +35,17 @@ def parse_args():
 
 
 def esm_pi_ozone_save_dirpath(args):
+    """Construct the destination directory path for pre-industrial mean ozone
+    ancillary files.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path configuration (ancil_target_dirname, esm_grid_rel_dirname).
+
+    Returns:
+        pathlib.Path: Target directory path under modern/pre-industrial-
+            mean/atmosphere/forcing/.
+    """
     return (
         Path(args.ancil_target_dirname)
         / "modern"
@@ -40,6 +58,18 @@ def esm_pi_ozone_save_dirpath(args):
 
 
 def save_cmip7_pi_mean_ozone(args, cube):
+    """Aggregate a multi-year ozone time series into a 12-month climatology and
+    save as ancillary.
+
+    Categorizes time slices by month number, computes the 12-month mean
+    climatology,
+    re-guesses contiguous time bounds, and writes the output ancillary file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments containing output
+            path and filename.
+        cube (iris.cube.Cube): Harmonized multi-year ozone cube.
+    """
     # Add a "month_number" variable.
     iris.coord_categorisation.add_month_number(
         cube, "time", name="month_number"

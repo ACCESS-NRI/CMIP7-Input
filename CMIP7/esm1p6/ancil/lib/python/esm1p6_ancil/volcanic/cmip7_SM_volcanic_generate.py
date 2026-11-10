@@ -22,6 +22,14 @@ CMIP7_SM_VOLCANIC_END_YEAR = 2100
 
 
 def parse_args():
+    """Parse command-line arguments for ScenarioMIP volcanic forcing
+    generation.
+
+    Returns:
+        argparse.Namespace: Parsed CLI arguments containing dataset, pad, path,
+            ext, PI dataset parameters, scenario, date range, and save
+            filename.
+    """
     parser = ArgumentParser(
         prog="cmip7_SM_volcanic_generate",
         description=(
@@ -44,6 +52,16 @@ def parse_args():
 
 
 def cmip7_sm_volcanic_filename(dataset_version, dataset_date_range):
+    """Construct the standard input4MIPs netCDF filename for ScenarioMIP
+    volcanic extinction.
+
+    Args:
+        dataset_version (str): Version string of the volcanic dataset.
+        dataset_date_range (str): Date range string (e.g. '202201-210012').
+
+    Returns:
+        str: NetCDF filename for monthly zonal extinction properties.
+    """
     return (
         f"ext_input4MIPs_aerosolProperties_ScenarioMIP_"
         f"{dataset_version}_gnz_"
@@ -54,10 +72,17 @@ def cmip7_sm_volcanic_filename(dataset_version, dataset_date_range):
 def save_sm_stratospheric_aerosol_optical_depth(
     args, dataset_path, pi_mean_saod
 ):
-    """
-    Calculate the average stratospheric aerosol optical depth (SAOD)
+    """Calculate the average stratospheric aerosol optical depth (SAOD)
     for each historical month by averaging extinction over latitude,
     and summing over stratospheric layers. Save to the save file.
+
+    Args:
+        args (argparse.Namespace): Command-line arguments specifying pad, ext,
+            and output options.
+        dataset_path (pathlib.Path): Path to the ScenarioMIP volcanic
+            extinction netCDF file.
+        pi_mean_saod (float): Pre-industrial mean SAOD constant value for
+            padding early years.
     """
     target_end_year = (
         (args.end_year or CMIP7_SM_EXT_END_YEAR)
