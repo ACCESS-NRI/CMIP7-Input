@@ -284,7 +284,7 @@
 {% endset %}
 
       [[AM_ukesm_regrid]]
-          inherit = UKESM_ANCIL_AMIP, MEDIUM_JOB
+          inherit = UKESM_ANCIL_AMIP, SHORT_TIME_MED_MEM_JOB
       script = """
             python_env python \
                 -m regrid_nci_input_ants \
@@ -292,7 +292,7 @@
       """
 
       [[AM_ukesm_taylor]]
-          inherit = UKESM_ANCIL_AMIP, MEDIUM_JOB, COMPILER
+          inherit = UKESM_ANCIL_AMIP, SHORT_TIME_LOW_MEM_JOB, COMPILER
       script = """
             python_env_no_ants python3 \
                 -m run_nci_taylor_amip_lbcs \
@@ -300,7 +300,7 @@
       """
 
       [[AM_ukesm_ancil]]
-          inherit = UKESM_ANCIL_AMIP, SMALL_JOB
+          inherit = UKESM_ANCIL_AMIP, SHORT_TIME_LOW_MEM_JOB
       script = """
             python_env python \
                 -m output_nci_ancil_ants \
@@ -312,7 +312,7 @@
 
       {% for VAR in AMIP_VARS %}
       [[AM_{{VAR}}_ancil_amip]]
-      inherit = ESM1P6_ANCIL_AMIP, SMALL_JOB
+      inherit = ESM1P6_ANCIL_AMIP, SHORT_TIME_LOW_MEM_JOB
 
       script = """
           python_env python \
@@ -332,7 +332,7 @@
 
   {% if USE_EXP["EH"] %}
     [[EH_ancil_co2]]
-        inherit = ANCIL_CO2, SMALL_JOB
+        inherit = ANCIL_CO2, SHORT_TIME_LOW_MEM_JOB
         script = """
             mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
             python_env python \
@@ -350,7 +350,7 @@
     {% for SCEN in SCENARIOS %}
       {% if USE_SCEN[SCEN] %}
     [[ES_{{SCEN}}_ancil_co2]]
-        inherit = ANCIL_CO2, SMALL_JOB
+        inherit = ANCIL_CO2, SHORT_TIME_MED_MEM_JOB
         script = """
             mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
             export PYTHONUNBUFFERED=1
@@ -409,7 +409,7 @@
 
   {% if USE_EXP["PM"] %}
     [[PI_mean_ukesm_ancil_ozone]]
-      inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+      inherit = UKESM_ANCIL_OZONE, MED_TIME_MED_MEM_JOB
       script = "rose task-run --app-key=ukesm_ancil_ozone"
 
         [[[environment]]]
@@ -427,7 +427,7 @@
             sources_temp = ${cmip7_temp_prefix}/mon/zmta/gn/{{CMIP7_OZONE_ZMTA_VDATE}}/zmta_input4MIPs_ozone_CMIP_{{CMIP7_OZONE_ZMTA_VERSION}}_gn_{{CMIP7_PI_MEAN_OZONE_ZMTA_DATE_RANGE}}.nc
 
   [[PI_mean_ancil_ozone]]
-      inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+      inherit = ESM1P6_ANCIL_OZONE, SHORT_TIME_LOW_MEM_JOB
 
       script = """
           python_env python \
@@ -500,7 +500,7 @@
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
       [[SM_{{SCEN}}_ancil_aerosol]]
-          inherit = ANCIL_AEROSOL, MEDIUM_JOB
+          inherit = ANCIL_AEROSOL, SHORT_TIME_HIGH_MEM_JOB
         {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
       [[SM_{{SCEN}}_ancil_aerosol_{{SPECIES}}]]
           inherit = SM_{{SCEN}}_ancil_aerosol
@@ -577,9 +577,9 @@
       {% else %}
       [[{{EXP}}_ancil_aerosol]]
         {% if EXP == "HI" %}
-          inherit = ANCIL_AEROSOL, MEDIUM_JOB
+          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
         {% else %}
-          inherit = ANCIL_AEROSOL, SMALL_JOB
+          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
         {% for SPECIES in CMIP7_AEROSOL_SPECIES %}
       [[{{EXP}}_ancil_aerosol_{{SPECIES}}]]
@@ -603,9 +603,9 @@
         {% endfor %}
       [[{{EXP}}_ancil_aerosol_Bio]]
         {% if EXP == "HI" %}
-          inherit = ANCIL_AEROSOL, LARGE_JOB
+          inherit = ANCIL_AEROSOL, MED_TIME_MAX_MEM_JOB
         {% else %}
-          inherit = ANCIL_AEROSOL, SMALL_JOB
+          inherit = ANCIL_AEROSOL, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
           script = """
               mkdir -p {{ VAR.ANCIL_TARGET_PATH }}
@@ -655,7 +655,7 @@
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
       [[SM_{{SCEN}}_ancil_ghg]]
-          inherit = ANCIL_GHG, SM_{{SCEN}}_GIT, SMALL_JOB
+          inherit = ANCIL_GHG, SM_{{SCEN}}_GIT, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               cd $GIT_SM_{{SCEN}}_CONFIG_DIR
@@ -676,7 +676,7 @@
     {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_ghg]]
-          inherit = ANCIL_GHG, {{EXP}}_GIT, SMALL_JOB
+          inherit = ANCIL_GHG, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               cd $GIT_{{EXP}}_CONFIG_DIR
@@ -698,7 +698,7 @@
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
       [[SM_{{SCEN}}_ancil_nitrogen]]
-          inherit = ANCIL_NITROGEN, SMALL_JOB
+          inherit = ANCIL_NITROGEN, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
@@ -720,7 +720,7 @@
     {% endfor %}
       {% else %}
       [[{{EXP}}_ancil_nitrogen]]
-          inherit = ANCIL_NITROGEN, SMALL_JOB
+          inherit = ANCIL_NITROGEN, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
@@ -745,7 +745,7 @@
         {% for SCEN in SCENARIOS %}
           {% if USE_SCEN[SCEN] %}
         [[SM_{{SCEN}}_ukesm_ancil_ozone]]
-          inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+          inherit = UKESM_ANCIL_OZONE, LONG_TIME_HIGH_MEM_JOB
           script = "rose task-run --app-key=ukesm_ancil_ozone"
 
             [[[environment]]]
@@ -763,14 +763,14 @@
                 sources_temp = ${cmip7_temp_prefix}/mon/zmta/gn/{{CMIP7_SM_OZONE_ZMTA_VDATE[SCEN]}}/zmta_input4MIPs_ozone_ScenarioMIP_{{CMIP7_SM_OZONE_ZMTA_VERSION[SCEN]}}_gn_{{CMIP7_SM_OZONE_ZMTA_DATE_RANGE}}.nc
 
       [[SM_{{SCEN}}_ancil_ozone]]
-          inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+          inherit = ESM1P6_ANCIL_OZONE, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
                   -m ozone.cmip7_SM_ozone_generate \
                   --scenario {{ SCEN }} \
-                  {{ PATH_ARGS }}
-                  {{ GRID_ARGS }}
+                  {{ PATH_ARGS }} \
+                  {{ GRID_ARGS }} \
                   --ukesm-ancil-dirpath ${UKESM_OZONE_ANCIL_DIRPATH}/{{ SCEN }} \
                   --ukesm-netcdf-filename {{ quote(UKESM_SM_OZONE_NETCDF_FILENAME) }} \
                   {% if EXTEND_SM_OZONE[SCEN] %}
@@ -785,9 +785,9 @@
       {% else %}
         [[{{EXP}}_ukesm_ancil_ozone]]
         {% if EXP == "HI" %}
-          inherit = UKESM_ANCIL_OZONE, SERIAL_LARGE_JOB
+          inherit = UKESM_ANCIL_OZONE, MAX_TIME_HIGH_MEM_JOB
         {% else %}
-          inherit = UKESM_ANCIL_OZONE, SMALL_JOB
+          inherit = UKESM_ANCIL_OZONE, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
           script = "rose task-run --app-key=ukesm_ancil_ozone"
 
@@ -815,7 +815,7 @@
         {% endif %}
 
       [[{{EXP}}_ancil_ozone]]
-          inherit = ESM1P6_ANCIL_OZONE, SMALL_JOB
+          inherit = ESM1P6_ANCIL_OZONE, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
@@ -841,7 +841,7 @@
 
       {% if EXP == "SM" %}
       [[SM_ancil_solar]]
-          inherit = ANCIL_SOLAR, LARGE_JOB
+          inherit = ANCIL_SOLAR, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
@@ -859,9 +859,9 @@
       {% else %}
       [[{{EXP}}_ancil_solar]]
         {% if EXP == "HI" %}
-          inherit = ANCIL_SOLAR, LARGE_JOB
+          inherit = ANCIL_SOLAR, SHORT_TIME_LOW_MEM_JOB
         {% else %}
-          inherit = ANCIL_SOLAR, {{EXP}}_GIT, SMALL_JOB
+          inherit = ANCIL_SOLAR, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
           script = """
             {% if EXP == "HI" %}
@@ -889,7 +889,7 @@
 
       {% if EXP == "SM" %}
       [[SM_ancil_volcanic]]
-          inherit = ANCIL_VOLCANIC, LARGE_JOB
+          inherit = ANCIL_VOLCANIC, SHORT_TIME_LOW_MEM_JOB
 
           script = """
               python_env python \
@@ -910,9 +910,9 @@
       {% else %}
       [[{{EXP}}_ancil_volcanic]]
         {% if EXP == "HI" %}
-          inherit = ANCIL_VOLCANIC, LARGE_JOB
+          inherit = ANCIL_VOLCANIC, SHORT_TIME_LOW_MEM_JOB
         {% else %}
-          inherit = ANCIL_VOLCANIC, {{EXP}}_GIT, SMALL_JOB
+          inherit = ANCIL_VOLCANIC, {{EXP}}_GIT, SHORT_TIME_LOW_MEM_JOB
         {% endif %}
 
           script = """
