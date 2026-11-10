@@ -42,30 +42,52 @@
     [[LOCAL_JOB]]
         inherit = HOST_LOCAL
 
-    [[SMALL_JOB]]
+    [[SHORT_TIME_LOW_MEM_JOB]]
         inherit = HOST_HPC
         execution time limit = PT10M
         [[[directives]]]
-            -l mem = 64gb
-            -l ncpus = 3
-
-    [[MEDIUM_JOB]]
-        inherit = HOST_HPC
-        execution time limit = PT30M
-        [[[directives]]]
-            -l mem = 128gb
-            -l ncpus = 6
-
-    [[LARGE_JOB]]
-        inherit = HOST_HPC
-        execution time limit = PT1H
-        [[[directives]]]
-            -l mem = 384gb
-            -l ncpus = 12
-
-    [[SERIAL_LARGE_JOB]]
-        inherit = HOST_HPC
-        execution time limit = PT3H
-        [[[directives]]]
-            -l mem = 384gb
+            -l mem = 8gb
             -l ncpus = 2
+
+    [[SHORT_TIME_MED_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT10M
+        [[[directives]]]
+            -l mem = 24gb
+            -l ncpus = 5
+
+    [[SHORT_TIME_HIGH_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT10M
+        [[[directives]]]
+            -l mem = 80gb
+            -l ncpus = 17
+
+    [[MED_TIME_MED_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT20M
+        [[[directives]]]
+            -l mem = 24gb
+            -l ncpus = 5
+
+    [[MED_TIME_MAX_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT20M
+        [[[directives]]]
+            -l mem = 220gb
+            -l ncpus = 45
+
+    [[LONG_TIME_HIGH_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT50M
+        [[[directives]]]
+            -l mem = 64gb
+            -l ncpus = 13
+
+    [[MAX_TIME_HIGH_MEM_JOB]]
+        inherit = HOST_HPC
+        execution time limit = PT2H
+        [[[directives]]]
+            -l mem = 120gb
+            -l ncpus = 25
+
